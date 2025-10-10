@@ -5,7 +5,7 @@ import { env } from '$env/dynamic/private';
 const BASE_ID = 'appumOs6hlFGhbv7c';
 const TABLE_NAME = 'RSVP';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
   const AIRTABLE_API_KEY = env.AIRTABLE_API_KEY || '';
   try {
     const { email } = await request.json();
@@ -24,6 +24,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Server configuration error' }, { status: 500 });
     }
 
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const clientIP = forwardedFor ? forwardedFor.split(',')[0].trim() : getClientAddress();
+
     const response = await fetch(
       `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`,
       {
@@ -37,6 +40,7 @@ export const POST: RequestHandler = async ({ request }) => {
             {
               fields: {
                 Email: email,
+                IP: clientIP,
               },
             },
           ],
