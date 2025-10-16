@@ -1,0 +1,13 @@
+{
+  "name": "midnight",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"GATEWAY,USER-API,MAIL-API,UI\" -c \"cyan,magenta,yellow,green\" \"pnpm --filter gateway dev\" \"pnpm --filter user-service dev\" \"pnpm --filter mail-service dev\" \"pnpm --filter lark-ui dev\"",
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

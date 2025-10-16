@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - midnight-network
+    depends_on:
+      - lark-ui
+      - user-service
+      - mail-service
+
+  # Frontend UI - SvelteKit Application
+  lark-ui:
+    build:
+      context: .
+      dockerfile: ./lark-ui/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=5173
+    restart: unless-stopped
+    networks:
+      - midnight-network
+    expose:
+      - "5173"
+
+  # User Service - NestJS API
+  user-service:
+    build:
+      context: .
+      dockerfile: ./owl-api/user-service/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - MAIL_SERVICE_URL=http://mail-service:3003
+    restart: unless-stopped
+    networks:
+      - midnight-network
+    expose:
+      - "3002"
+
+  # Mail Service - NestJS API
+  mail-service:
+    build:
+      context: .
+      dockerfile: ./owl-api/mail-service/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - MAIL_SERVICE_PORT=3003
+    restart: unless-stopped
+    networks:
+      - midnight-network
+    expose:
+      - "3003"
+
+networks:
+  midnight-network:
+    driver: bridge
