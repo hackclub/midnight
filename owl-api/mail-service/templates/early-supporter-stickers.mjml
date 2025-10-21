@@ -119,20 +119,21 @@
       <mj-section padding="0 30px 4px 30px">
         <mj-column>
           <mj-text align="center" font-size="16px" padding="0">
-            Every friend who signs up counts as one entry into our raffle for a <strong>Framework 12 Laptop</strong>! By referring 4+ people, you get this custom die-cut sticker: 
+            Every friend who signs up counts as one entry into our raffle for a <strong>Framework 12 Laptop</strong>! By referring 2+ people, you also get this custom sticker sheet:  
           </mj-text>
-          <mj-image src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/2f68806584ad80c8c8f364fba94d6f510dd2ba2a_image.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
+          <mj-image src="https://cdn.leafd.dev/midnightsticker.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
         </mj-column>
       </mj-section>
 
       <mj-section padding="0 30px 15px 30px">
         <mj-column>
           <mj-text align="center" font-size="16px" padding="0 0 16px 0">
-            Also, as the [#nth] of my first 5000 niblings to sign up, claim a free sticker sheet as a token of of my appreciation. <br>
+            Also, as the [#nth] of my first 5000 niblings to sign up, claim a free sticker as a token of of my appreciation. <br>
           </mj-text>
-          <mj-image src="https://cdn.leafd.dev/midnightsticker.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
+          <mj-image src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/2f68806584ad80c8c8f364fba94d6f510dd2ba2a_image.png"
+          alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
           <mj-text align="center" font-size="16px" padding="0">
-            <i>RenRan, my butler, drew this!</i>
+            <i>RenRan, my butler, drew these!</i>
           </mj-text>
         </mj-column>
       </mj-section>
@@ -140,7 +141,7 @@
       <mj-section padding="15px 30px">
         <mj-column>
           <mj-button 
-            href="{{stickerUrl}}"
+            href="https://forms.hackclub.com/midnight-stickers"
             background-color="#F24B4B"
             color="#fee1c0"
             font-size="20px"
@@ -148,6 +149,7 @@
             border-radius="8px"
             padding="12px 40px"
             align="center"
+  
           >
             Claim Them Here!
           </mj-button>
