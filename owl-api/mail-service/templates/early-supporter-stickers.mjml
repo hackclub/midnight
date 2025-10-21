@@ -116,21 +116,20 @@
         </mj-column>
       </mj-section>
 
-      <mj-section padding="0 30px 4px 30px">
+      <mj-section padding="0 30px 10px 30px">
         <mj-column>
           <mj-text align="center" font-size="16px" padding="0">
-            Every friend who signs up counts as one entry into our raffle for a <strong>Framework 12 Laptop</strong>! By referring 2+ people, you also get this custom sticker sheet:  
+            Every friend who signs up counts as one entry into our raffle for a <strong>FRAMEWORK 12 LAPTOP</strong>!  
           </mj-text>
-          <mj-image src="https://cdn.leafd.dev/midnightsticker.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
         </mj-column>
       </mj-section>
 
-      <mj-section padding="0 30px 15px 30px">
+      <mj-section padding="0 30px 20px 30px">
         <mj-column>
-          <mj-text align="center" font-size="16px" padding="0 0 16px 0">
-            Also, as the [#nth] of my first 5000 niblings to sign up, claim a free sticker as a token of of my appreciation. <br>
+          <mj-text align="center" font-size="16px" padding="0 20px 16px 0">
+            Refer 2+ friends and get this sticker sheet for free! Be quick, you're the [#nth] to RSVP and we only have 5000 in stock... <br>
           </mj-text>
-          <mj-image src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/2f68806584ad80c8c8f364fba94d6f510dd2ba2a_image.png"
+          <mj-image src="https://cdn.leafd.dev/midnightsticker.png"
           alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
           <mj-text align="center" font-size="16px" padding="0">
             <i>RenRan, my butler, drew these!</i>

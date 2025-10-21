@@ -1,12 +1,13 @@
 <mjml>
   <mj-head>
     <mj-attributes>
-      <mj-all font-family="'Ws Paradose', Georgia, serif" />
+      <mj-all font-family="'Pt serif', Georgia, serif" />
       <mj-text color="#081832" line-height="1.6" />
+      
     </mj-attributes>
     <mj-style>
       @font-face {
-        font-family: 'Ws Paradose';
+        font-family: 'Pt Serif';
         src: url('https://cdn.leafd.dev/Ws%20Paradose.ttf') format('truetype');
         font-weight: normal;
         font-style: normal;
@@ -94,10 +95,13 @@
       <mj-section padding="0 30px 18px 30px">
         <mj-column>
           <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
-            I am inviting you to come to my palace in Vienna in a few months to help me figure out who is going to kill me.
+            You’re invited to my palace in Vienna this January — to find who's trying to kill me. 
           </mj-text>
-          <mj-text align="left" font-size="16px" line-height="1.6" padding="0">
-            Of course, it'll be tough funding transport for all my nieces and nephews (not to mention the lack of space in my estate). I need my most dedicated nibblings to help me solve this mystery. So show me that you are determined - <strong>spend 70 hours building projects to earn your ticket to my Vienna estate</strong>. As a thank you, I'll be treating you with the beauty of Vienna and the lavishness of the Austrian cuisine (not to mention the possibility of earning some of my inheritance too, if that gets you interested...).
+          <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
+            But I can’t trust you... Not yet. So, develop your skills and prove yourself: <strong> spend 70 hours building projects to earn your stay at my Vienna estate. </strong>
+          </mj-text>
+          <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
+            As a reward, I’ll treat you to Vienna’s beauty and Austria’s finest cuisine. And, perhaps, even some of my inheritance... 
           </mj-text>
         </mj-column>
       </mj-section>
@@ -105,14 +109,14 @@
       <mj-section padding="15px 20px" background-color="#f9f7f4">
         <mj-column width="50%">
           <mj-image src="https://cdn.leafd.dev/em1.png" alt="Austrian cuisine" width="200px" padding="5px" />
-          <mj-text align="left" font-size="12px" font-style="italic" padding="2px 5px" color="#5a5a5a">
-            This Austrian stuff is GOOD!!! it's so delicious :P
+          <mj-text align="center" font-size="12px" font-style="italic" padding="2px 5px" color="#5a5a5a">
+            All meals are on me! I, unlike others, am not broke.
           </mj-text>
         </mj-column>
         <mj-column width="50%">
           <mj-image src="https://cdn.leafd.dev/em2.png" alt="Vienna city view" width="200px" padding="5px" />
-          <mj-text align="right" font-size="12px" font-style="italic" padding="2px 5px" color="#5a5a5a">
-            Vienna, my beautiful city. I hope I get to see you there!
+          <mj-text align="center" font-size="12px" font-style="italic" padding="2px 5px" color="#5a5a5a">
+            Vienna, my beautiful city... I hope you love it more than my husband did
           </mj-text>
         </mj-column>
       </mj-section>
