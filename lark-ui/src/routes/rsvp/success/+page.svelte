@@ -1,18 +1,34 @@
 <script lang="ts">
   import MidnightHeader from '$lib/MidnightHeader.svelte';
   import { onMount } from 'svelte';
+  import { env } from "$env/dynamic/public";
 
   let referralCode = '';
   let shareUrl = '';
   let copied = false;
 
-  onMount(() => {
+  let rsvpCount = 0;
+  $: maxRsvps = 5000;
+  $: progressPercentage = Math.min((rsvpCount / maxRsvps) * 100, 100);
+
+  onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     if (code) {
       referralCode = code;
       const baseUrl = window.location.origin;
       shareUrl = `${baseUrl}/rsvp?code=${code}`;
+    }
+
+    const apiUrl = env.PUBLIC_API_URL || "";
+    try {
+      const response = await fetch(`${apiUrl}/api/user/rsvp/count`);
+      if (response.ok) {
+        const data = await response.json();
+        rsvpCount = data.count || 0;
+      }
+    } catch (error) {
+      console.error("Failed to fetch RSVP count:", error);
     }
   });
 
@@ -167,7 +183,7 @@
   <MidnightHeader />
 
   <!-- Mobile/Tablet Card Layout -->
-  <div class="mobile-card-container" style="align-items: flex-start; padding-top: 26vh;">
+  <div class="mobile-card-container" style="align-items: flex-start; padding-top: 26vh; overflow-y: auto">
     <div class="mobile-card">
       <div class="flex flex-col items-center gap-4">
         <div class="relative w-full max-w-[200px]">
@@ -186,22 +202,42 @@
           those postal employees work fast!
         </p>
 
-        {#if referralCode}
-          <div class="bg-[#fffbf6] rounded-[8px] p-4 mt-4 w-[85%] max-w-[320px]">
-            <h2 class="font-['PT_Serif',_serif] font-bold text-black text-[16px] text-center leading-[1.2] mb-3">
-              Want to refer people?
-            </h2>
-            
-            <button 
-              class="copy-button w-full"
-              on:click={copyToClipboard}
-            >
-              <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[12px]">
-                {copied ? '✓ Copied!' : 'Copy Referral Link'}
+        <div class="p-4 bg-[#fffbf6] rounded-[8px] w-full max-w-140 leading-[1.2]">
+            <div class="flex justify-between items-center mb-[0.5vh]">
+              <span class="mb-1">
+                <span
+                  class="font-['PT_Sans',_sans-serif] text-[14px] text-black font-semibold"
+                >
+                  {rsvpCount.toLocaleString()} out of {maxRsvps.toLocaleString()}
+                  sticker sheets claimed
+                </span><br />
+                <span
+                  class="font-['PT_Sans',_sans-serif] text-[12px] text-black"
+                >
+                  Refer 2 friends, get a sticker sheet!<br>
+                  + Each referral counts as a ticket toward a raffle for a <strong>Framework 12 Laptop</strong>!
+                </span>
               </span>
-            </button>
+            </div>
+            <div
+              class="w-full h-[clamp(10px,_1vh,_16px)] bg-[#fffbf6] rounded-full overflow-hidden border-2 border-black"
+            >
+              <div
+                class="h-full bg-[#f24b4b] transition-all duration-500 ease-out rounded-full"
+                style="width: {progressPercentage}%"
+              ></div>
+            </div>
+            {#if referralCode}
+              <button 
+                class="copy-button w-full mt-4"
+                on:click={copyToClipboard}
+              >
+                <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[clamp(12px,_0.85vw,_16px)]">
+                  {copied ? '✓ Copied!' : 'Copy Referral Link'}
+                </span>
+              </button>
+            {/if}
           </div>
-        {/if}
 
         <a href="/faq" class="px-[18px] py-[8px] bg-[#fffbf6] rounded-[8px] text-center flex flex-col mt-4">
           <span class="font-['PT_Serif',_sans-serif] font-bold text-[12px] text-[#3c3765] leading-[1.2]">
@@ -216,8 +252,8 @@
   </div>
 
   <!-- Desktop Layout -->
-  <div class="desktop-layout relative flex-col items-center justify-start flex-1 w-full px-4 overflow-y-auto hidden lg:flex pt-[28vh]">
-    <img src="/letter.svg" alt="Letter" class="letter-bg absolute top-0 left-0 w-full h-full md:top-auto md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:w-[60vw] md:max-w-[1200px] md:max-h-[70vh] md:h-auto object-cover object-center md:object-contain z-0 pointer-events-none" style="object-position: center center;" />
+  <div class="desktop-layout relative flex-col items-center justify-start flex-1 w-full px-4 overflow-y-auto hidden lg:flex pt-[20vh]">
+    <img src="/letter.svg" alt="Letter" class="letter-bg absolute top-0 left-0 w-full h-full md:top-auto md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:w-[60vw] md:max-w-[1200px] md:max-h-[70vh] md:h-auto object-cover object-center md:object-contain z-0 pointer-events-none min-w-[900px] min-h-[600px]" style="object-position: center center;" />
     
     <div class="relative z-20 flex flex-col items-center w-[48vw] max-w-[960px] px-[0.5vw]">
       <div class="flex flex-col items-center gap-[2vh]">
@@ -237,24 +273,44 @@
           those postal employees work fast!
         </p>
 
-        {#if referralCode}
-          <div class="bg-[#fffbf6] rounded-[clamp(8px,_0.6vw,_12px)] p-[clamp(16px,_1.2vw,_24px)] mt-[2vh] w-[85%] max-w-[clamp(320px,_28vw,_450px)]">
-            <h2 class="font-['PT_Serif',_serif] font-bold text-black text-[clamp(16px,_1.2vw,_22px)] text-center leading-[1.2] mb-[1.2vh]">
-              Want to refer people?
-            </h2>
-            
-            <button 
-              class="copy-button w-full"
-              on:click={copyToClipboard}
-            >
-              <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[clamp(12px,_0.85vw,_16px)]">
-                {copied ? '✓ Copied!' : 'Copy Referral Link'}
+        <div class="p-4 bg-[#fffbf6] rounded-[8px] w-140 leading-[1.2]">
+            <div class="flex justify-between items-center mb-[0.5vh]">
+              <span class="mb-1">
+                <span
+                  class="font-['PT_Sans',_sans-serif] text-[14px] text-black font-semibold"
+                >
+                  {rsvpCount.toLocaleString()} out of {maxRsvps.toLocaleString()}
+                  sticker sheets claimed
+                </span><br />
+                <span
+                  class="font-['PT_Sans',_sans-serif] text-[12px] text-black"
+                >
+                  Refer 2 friends, get a sticker sheet!<br>
+                  + Each referral counts as a ticket toward a raffle for a <strong>Framework 12 Laptop</strong>!
+                </span>
               </span>
-            </button>
+            </div>
+            <div
+              class="w-full h-[clamp(10px,_1vh,_16px)] bg-[#fffbf6] rounded-full overflow-hidden border-2 border-black"
+            >
+              <div
+                class="h-full bg-[#f24b4b] transition-all duration-500 ease-out rounded-full"
+                style="width: {progressPercentage}%"
+              ></div>
+            </div>
+            {#if referralCode}
+              <button 
+                class="copy-button w-full mt-4"
+                on:click={copyToClipboard}
+              >
+                <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[clamp(12px,_0.85vw,_16px)]">
+                  {copied ? '✓ Copied!' : 'Copy Referral Link'}
+                </span>
+              </button>
+            {/if}
           </div>
-        {/if}
 
-        <a href="/faq" class="px-[1vw] py-[0.5vh] bg-[#fffbf6] rounded-[0.4vw] text-center flex flex-col mt-[2vh]">
+        <a href="/faq" class="px-[1vw] py-[0.5vh] bg-[#fffbf6] rounded-[0.4vw] text-center flex flex-col mb-[3vh]">
           <span class="font-['PT_Serif',_sans-serif] font-bold text-[clamp(11px,_0.65vw,_16px)] text-[#3c3765] leading-[normal]">
             seems like your aunt left you another letter...
           </span>
