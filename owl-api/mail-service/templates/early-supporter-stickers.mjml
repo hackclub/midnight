@@ -1,16 +1,10 @@
 <mjml>
   <mj-head>
     <mj-attributes>
-      <mj-all font-family="'Ws Paradose', Georgia, serif" />
+      <mj-all font-family="'PT Serif', Georgia, serif" />
       <mj-text color="#081832" line-height="1.6" />
     </mj-attributes>
     <mj-style>
-      @font-face {
-        font-family: 'Ws Paradose';
-        src: url('https://cdn.leafd.dev/Ws%20Paradose.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-      }
       @font-face {
         font-family: 'Moga';
         src: url('https://cdn.leafd.dev/Moga.ttf') format('truetype');
@@ -108,25 +102,38 @@
         </mj-column>
       </mj-section>
 
-      <mj-section padding="0 30px 15px 30px">
+      <mj-section padding="0 30px 0px 30px">
         <mj-column>
-          <mj-text align="left" font-size="16px" line-height="1.6" padding="0">
-            Thank you for being the <strong>{{rsvpNumber}}</strong> person to RSVP to this adventure. Your early enthusiasm warms my heart (even in these dire circumstances).
+          <mj-text align="center" color="#f24b4b" font-family="Moga" font-size="56px" padding="0" font-weight="700" line-height="1.1">
+            ReFER YOuR FRIENDS, 
           </mj-text>
+          <mj-text align="center" font-family="Moga" font-size="56px" padding="0" font-weight="700" line-height="1.1">
+            WIN A FRAMEWORK 12 LAPTOP
+          </mj-text>
+          <mj-text align="center" font-family="PT Serif" font-size="20px" padding="4px 0 18px 0" font-weight="500" line-height="1.1">
+            Your Referral Link: {{referralLink}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0 30px 4px 30px">
+        <mj-column>
+          <mj-text align="center" font-size="16px" padding="0">
+            Every friend who signs up counts as one entry into our raffle for a <strong>Framework 12 Laptop</strong>! By referring 4+ people, you get this custom die-cut sticker: 
+          </mj-text>
+          <mj-image src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/2f68806584ad80c8c8f364fba94d6f510dd2ba2a_image.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
         </mj-column>
       </mj-section>
 
       <mj-section padding="0 30px 15px 30px">
         <mj-column>
-          <mj-text align="left" font-size="16px" line-height="1.6" padding="0">
-            As a token of my appreciation, here's an <em>incredibly done</em> sticker sheet by my friend <strong>RenRan</strong>:
+          <mj-text align="center" font-size="16px" padding="0 0 16px 0">
+            Also, as the [#nth] of my first 5000 niblings to sign up, claim a free sticker sheet as a token of of my appreciation. <br>
           </mj-text>
-        </mj-column>
-      </mj-section>
-
-      <mj-section padding="15px 30px" background-color="#faf8f5" border="2px dashed #d4a574">
-        <mj-column>
           <mj-image src="https://cdn.leafd.dev/midnightsticker.png" alt="Midnight Sticker Sheet by RenRan" width="320px" padding="8px 0" />
+          <mj-text align="center" font-size="16px" padding="0">
+            <i>RenRan, my butler, drew this!</i>
+          </mj-text>
         </mj-column>
       </mj-section>
 
@@ -151,7 +158,7 @@
         <mj-column>
           <mj-text align="center" font-size="15px" padding="0">
             Now, get to work on those <strong>70 hours of projects</strong>.<br/>
-            I'm counting on you to help me <span style="color: #f24b4b; font-weight: 700;">solve my murder</span>.
+            I'm counting on you to help me <span style="color: #f24b4b; font-weight: 700;">solve my impending murder</span>.
           </mj-text>
         </mj-column>
       </mj-section>
