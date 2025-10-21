@@ -1,6 +1,6 @@
 import { Controller, Get, Headers, HttpCode, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { PrismaClient } from '../../mail-service/node_modules/.prisma/client-mail-service';
+import { PrismaClient } from '../node_modules/.prisma/client-mail-service';
 
 @Controller('admin/dashboard')
 export class DashboardController {

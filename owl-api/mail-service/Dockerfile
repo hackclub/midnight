@@ -5,11 +5,15 @@ FROM base AS deps
 WORKDIR /app
 COPY owl-api/mail-service/package.json ./
 RUN pnpm install --prod
+COPY owl-api/mail-service/prisma ./prisma
+RUN pnpm prisma generate
 
 FROM base AS builder
 WORKDIR /app
 COPY owl-api/mail-service/package.json ./
 RUN pnpm install
+COPY owl-api/mail-service/prisma ./prisma
+RUN pnpm prisma generate
 COPY owl-api/mail-service/src ./src
 COPY owl-api/mail-service/tsconfig*.json ./
 COPY owl-api/mail-service/nest-cli.json ./
