@@ -55,7 +55,7 @@
     </a>
   </header>
 
-  <div class="container mx-auto px-8 md:px-16 lg:px-32 xl:px-48 py-20 max-w-5xl">
+  <div class="container mx-auto px-8 md:px-16 lg:px-32 xl:px-12 py-20 max-w-5xl w-full">
     <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
       <aside class="w-full max-w-sm mx-auto lg:w-[225px] lg:mx-0 lg:sticky lg:top-[180px] lg:self-start flex-shrink-0 z-10">
         <div class="bg-[rgba(255,255,255,0.5)] p-6 rounded-lg">
@@ -70,11 +70,15 @@
             <li><a href="#unable-to-attend">What if I can't attend?</a></li>
             <li><a href="#contact">Who can I contact?</a></li>
           </ul>
+          
+          <div class="h-[1px] bg-black my-4"></div>
+
+          <a href="https://docs.google.com/document/d/1QN19MK9OBo85iW-dVQn3uU2sy78u8UEzAOTBj8C-Fs4/edit?tab=t.0" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">Parent's Guide</a>
         </div>
       </aside>
 
       <main class="flex-1">
-        <h1 class="font-['Moga',_sans-serif] text-[48px] md:text-[72px] text-black text-center mb-12">
+        <h1 class="font-['Moga',_sans-serif] text-[48px] md:text-[72px] text-black text-left">
           <span>FAQ FoR </span>
           <span class="text-[#f24b4b]">MIDNIGHT</span>
         </h1>
