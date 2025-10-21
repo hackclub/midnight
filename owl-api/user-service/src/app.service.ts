@@ -1,4 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AppService {
@@ -7,9 +9,76 @@ export class AppService {
   private readonly EMAIL_TABLE_ID = 'tblFDNhax22eAjSB3';
   private readonly AIRTABLE_API_KEY = process.env.USER_SERVICE_AIRTABLE_API_KEY;
 
+  constructor(private prisma: PrismaService) {}
+
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  private async generateUniqueToken(): Promise<string> {
+    let token: string;
+    let exists = true;
+    
+    while (exists) {
+      token = randomBytes(32).toString('hex');
+      const existingToken = await this.prisma.stickerToken.findUnique({
+        where: { token },
+      });
+      exists = !!existingToken;
+    }
+    
+    return token;
+  }
+
+  private async sendRsvpEmailInBackground(email: string): Promise<void> {
+    try {
+      const rsvpCountData = await this.getRsvpCount();
+      const rsvpNumber = rsvpCountData.count;
+      
+      let stickerToken: string | null = null;
+      
+      if (rsvpNumber <= 5000) {
+        const existingToken = await this.prisma.stickerToken.findFirst({
+          where: { email },
+        });
+        
+        if (!existingToken) {
+          const token = await this.generateUniqueToken();
+          await this.prisma.stickerToken.create({
+            data: {
+              email,
+              token,
+              rsvpNumber,
+            },
+          });
+          stickerToken = token;
+        } else {
+          stickerToken = existingToken.token;
+        }
+      }
+      
+      const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://localhost:3003';
+      const mailResponse = await fetch(`${mailServiceUrl}/send-rsvp-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email,
+          rsvpNumber,
+          stickerToken,
+        }),
+      });
+
+      if (!mailResponse.ok) {
+        console.error('Failed to send email in background');
+      } else {
+        console.log('Successfully sent RSVP confirmation email in background');
+      }
+    } catch (error) {
+      console.error('Error in background email send:', error);
+    }
   }
 
   async createInitialRsvp(email: string, clientIP: string): Promise<void> {
@@ -91,9 +160,9 @@ export class AppService {
   }
 
   async completeRsvp(
-    data: { email: string; firstName: string; lastName: string; birthday: string },
+    data: { email: string; firstName: string; lastName: string; birthday: string; referralCode?: string },
     clientIP: string,
-  ): Promise<void> {
+  ): Promise<{ rafflePosition: number }> {
     if (!this.AIRTABLE_API_KEY) {
       throw new HttpException(
         'Server configuration error',
@@ -162,6 +231,20 @@ export class AppService {
         }
         
         console.log('Updating incomplete RSVP record:', existingRecord.id);
+        const updateFields: any = {
+          fldLfzvf3xvXnLeIr: data.firstName,
+          fldfOBSrsWih4oHe6: data.lastName,
+          fldsYVJC0EpDMiSgY: data.birthday,
+          fldRmDEgOgxdjLcpR: clientIP,
+        };
+        
+        if (data.referralCode) {
+          const parsedCode = parseInt(data.referralCode, 10);
+          if (!isNaN(parsedCode)) {
+            updateFields.fldsx18FJRxEA19do = parsedCode;
+          }
+        }
+        
         const updateResponse = await fetch(
           `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${existingRecord.id}`,
           {
@@ -171,12 +254,7 @@ export class AppService {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              fields: {
-                fldLfzvf3xvXnLeIr: data.firstName,
-                fldfOBSrsWih4oHe6: data.lastName,
-                fldsYVJC0EpDMiSgY: data.birthday,
-                fldRmDEgOgxdjLcpR: clientIP,
-              },
+              fields: updateFields,
             }),
           },
         );
@@ -190,31 +268,33 @@ export class AppService {
           );
         }
 
-        console.log('Successfully updated RSVP:', existingRecord.id);
+        const updateData = await updateResponse.json();
+        const rafflePosition = updateData.fields?.['Loops - MidnightRafflePosition'] || updateData.fields?.fldjbQgoCjCd9fwc5 || 0;
+        console.log('Successfully updated RSVP:', existingRecord.id, 'Raffle Position:', rafflePosition);
         
-        try {
-          const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://localhost:3003';
-          const mailResponse = await fetch(`${mailServiceUrl}/send-rsvp-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: data.email }),
-          });
+        this.sendRsvpEmailInBackground(data.email).catch(error => {
+          console.error('Background email send failed:', error);
+        });
 
-          if (!mailResponse.ok) {
-            console.error('Failed to send email, but RSVP was updated successfully');
-          } else {
-            console.log('Successfully sent RSVP confirmation email');
-          }
-        } catch (emailError) {
-          console.error('Error sending email, but RSVP was updated successfully:', emailError);
-        }
-
-        return;
+        return { rafflePosition };
       }
 
       console.log('Creating new RSVP for:', data.email);
+      const createFields: any = {
+        fldZCDn3M5M2F6AOX: data.email,
+        fldLfzvf3xvXnLeIr: data.firstName,
+        fldfOBSrsWih4oHe6: data.lastName,
+        fldsYVJC0EpDMiSgY: data.birthday,
+        fldRmDEgOgxdjLcpR: clientIP,
+      };
+      
+      if (data.referralCode) {
+        const parsedCode = parseInt(data.referralCode, 10);
+        if (!isNaN(parsedCode)) {
+          createFields.fldsx18FJRxEA19do = parsedCode;
+        }
+      }
+      
       const createResponse = await fetch(
         `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}`,
         {
@@ -226,13 +306,7 @@ export class AppService {
           body: JSON.stringify({
             records: [
               {
-                fields: {
-                  fldZCDn3M5M2F6AOX: data.email,
-                  fldLfzvf3xvXnLeIr: data.firstName,
-                  fldfOBSrsWih4oHe6: data.lastName,
-                  fldsYVJC0EpDMiSgY: data.birthday,
-                  fldRmDEgOgxdjLcpR: clientIP,
-                },
+                fields: createFields,
               },
             ],
           }),
@@ -250,28 +324,113 @@ export class AppService {
 
       const createData = await createResponse.json();
       const recordId = createData.records[0].id;
-      console.log('Successfully created RSVP:', recordId);
+      const rafflePosition = createData.records[0].fields?.['Loops - MidnightRafflePosition'] || createData.records[0].fields?.fldjbQgoCjCd9fwc5 || 0;
+      console.log('Successfully created RSVP:', recordId, 'Raffle Position:', rafflePosition);
       
-      try {
-        const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://localhost:3003';
-        const mailResponse = await fetch(`${mailServiceUrl}/send-rsvp-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: data.email }),
-        });
-
-        if (!mailResponse.ok) {
-          console.error('Failed to send email, but RSVP was created successfully');
-        } else {
-          console.log('Successfully sent RSVP confirmation email');
-        }
-        } catch (emailError) {
-          console.error('Error sending email, but RSVP was created successfully:', emailError);
-        }
+      this.sendRsvpEmailInBackground(data.email).catch(error => {
+        console.error('Background email send failed:', error);
+      });
+        
+      return { rafflePosition };
       } catch (error) {
         console.error('Error completing RSVP:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getRsvpCount(): Promise<{ count: number }> {
+    if (!this.AIRTABLE_API_KEY) {
+      throw new HttpException(
+        'Server configuration error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    try {
+      let totalCount = 0;
+      let offset: string | undefined;
+      
+      do {
+        const url = offset 
+          ? `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}?pageSize=100&offset=${offset}`
+          : `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}?pageSize=100`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Airtable count error:', errorData);
+          throw new HttpException(
+            'Failed to fetch RSVP count',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+
+        const data = await response.json();
+        totalCount += data.records?.length || 0;
+        offset = data.offset;
+      } while (offset);
+      
+      return { count: totalCount };
+    } catch (error) {
+      console.error('Error fetching RSVP count:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async verifyStickerToken(token: string): Promise<{ valid: boolean; email?: string; rsvpNumber?: number }> {
+    if (!token) {
+      throw new HttpException(
+        'Token is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      const stickerToken = await this.prisma.stickerToken.findUnique({
+        where: { token },
+      });
+
+      if (!stickerToken) {
+        return { valid: false };
+      }
+
+      if (stickerToken.isUsed) {
+        return { valid: false };
+      }
+
+      await this.prisma.stickerToken.update({
+        where: { token },
+        data: {
+          isUsed: true,
+          usedAt: new Date(),
+        },
+      });
+
+      return {
+        valid: true,
+        email: stickerToken.email,
+        rsvpNumber: stickerToken.rsvpNumber,
+      };
+    } catch (error) {
+      console.error('Error verifying sticker token:', error);
       if (error instanceof HttpException) {
         throw error;
       }

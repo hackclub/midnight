@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 
 export class CompleteRsvpDto {
   @IsNotEmpty({ message: 'Email is required' })
@@ -16,5 +16,9 @@ export class CompleteRsvpDto {
   @IsString()
   @IsNotEmpty()
   birthday: string;
+
+  @IsString()
+  @IsOptional()
+  referralCode?: string;
 }
 

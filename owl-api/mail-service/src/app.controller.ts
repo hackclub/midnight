@@ -9,7 +9,14 @@ export class AppController {
   @Post('/send-rsvp-email')
   @HttpCode(200)
   async sendRsvpEmail(@Body() body: SendEmailDto) {
-    return await this.appService.sendRsvpEmail(body.email);
+    return await this.appService.sendRsvpEmail(body.email, body.rsvpNumber, body.stickerToken);
+  }
+
+  @Post('/process-scheduled-emails')
+  @HttpCode(200)
+  async processScheduledEmails() {
+    await this.appService.processScheduledEmails();
+    return { success: true, message: 'Scheduled emails processed' };
   }
 
   @Get()

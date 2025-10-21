@@ -10,12 +10,33 @@
   let birthday = '';
   let isSubmitting = false;
   let errorMessage = '';
+  let referralCode: string | null = null;
+  
+  let rsvpCount = 0;
+  $: maxRsvps = 5000;
+  $: progressPercentage = Math.min((rsvpCount / maxRsvps) * 100, 100);
 
   onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const emailParam = urlParams.get('email');
     if (emailParam) {
       email = emailParam;
+    }
+    
+    const codeParam = urlParams.get('code');
+    if (codeParam) {
+      referralCode = codeParam;
+    }
+
+    const apiUrl = env.PUBLIC_API_URL || '';
+    try {
+      const response = await fetch(`${apiUrl}/api/user/rsvp/count`);
+      if (response.ok) {
+        const data = await response.json();
+        rsvpCount = data.count || 0;
+      }
+    } catch (error) {
+      console.error('Failed to fetch RSVP count:', error);
     }
   });
 
@@ -71,12 +92,16 @@
       const apiUrl = env.PUBLIC_API_URL || '';
       
       const formattedBirthday = formatBirthday(birthday);
-      const requestBody = { 
+      const requestBody: any = { 
         email: email.trim(),
         firstName: firstName.trim(), 
         lastName: lastName.trim(), 
         birthday: formattedBirthday 
       };
+      
+      if (referralCode) {
+        requestBody.referralCode = referralCode;
+      }
       
       const response = await fetch(`${apiUrl}/api/user/rsvp/complete`, {
         method: 'POST',
@@ -89,7 +114,8 @@
       const data = await response.json().catch(() => ({}));
 
       if (response.ok) {
-        goto('/rsvp/success');
+        const rafflePosition = data.rafflePosition || '';
+        goto(`/rsvp/success?code=${rafflePosition}`);
       } else {
         errorMessage = data.error || 'Failed to submit RSVP. Please try again.';
       }
@@ -315,6 +341,23 @@
     <div class="mobile-card">
       <form on:submit={handleSubmit} class="flex flex-col w-full">
         <div class="form-content">
+          <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-['PT_Sans',_sans-serif] text-[14px] text-black font-semibold">
+                {rsvpCount.toLocaleString()} / {maxRsvps.toLocaleString()} RSVPs
+              </span>
+              <span class="font-['PT_Sans',_sans-serif] text-[14px] text-black">
+                {progressPercentage.toFixed(1)}%
+              </span>
+            </div>
+            <div class="w-full h-[12px] bg-[#fffbf6] rounded-full overflow-hidden border-2 border-black">
+              <div 
+                class="h-full bg-[#f24b4b] transition-all duration-500 ease-out rounded-full"
+                style="width: {progressPercentage}%"
+              ></div>
+            </div>
+          </div>
+          
           <h1 class="font-['Moga',_sans-serif] text-[40px] text-black leading-[1.1] mb-[12px]">
             <span>RSVP FoR</span> <span class="text-[#f24b4b]">MIDNIGHT</span>
           </h1>
@@ -435,6 +478,23 @@
     
     <div class="relative z-20 flex flex-col items-start w-[48vw] max-w-[960px] max-h-[70vh] px-[0.5vw] overflow-y-auto">
       <form on:submit={handleSubmit} class="flex flex-col w-full">
+        <div class="mb-[2vh]">
+          <div class="flex justify-between items-center mb-[0.4vh]">
+            <span class="font-['PT_Sans',_sans-serif] text-[clamp(14px,_1vw,_24px)] text-black font-semibold">
+              {rsvpCount.toLocaleString()} / {maxRsvps.toLocaleString()} RSVPs
+            </span>
+            <span class="font-['PT_Sans',_sans-serif] text-[clamp(14px,_1vw,_24px)] text-black">
+              {progressPercentage.toFixed(1)}%
+            </span>
+          </div>
+          <div class="w-full h-[clamp(10px,_1vh,_16px)] bg-[#fffbf6] rounded-full overflow-hidden border-2 border-black">
+            <div 
+              class="h-full bg-[#f24b4b] transition-all duration-500 ease-out rounded-full"
+              style="width: {progressPercentage}%"
+            ></div>
+          </div>
+        </div>
+        
         <h1 class="font-['Moga',_sans-serif] text-[clamp(36px,_3.5vw,_104px)] text-black leading-[1.1] mb-[0.6vh]">
           <span>RSVP FoR</span> <span class="text-[#f24b4b]">MIDNIGHT</span>
         </h1>

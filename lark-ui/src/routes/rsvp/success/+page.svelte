@@ -1,5 +1,29 @@
 <script lang="ts">
   import MidnightHeader from '$lib/MidnightHeader.svelte';
+  import { onMount } from 'svelte';
+
+  let referralCode = '';
+  let shareUrl = '';
+  let copied = false;
+
+  onMount(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+      referralCode = code;
+      const baseUrl = window.location.origin;
+      shareUrl = `${baseUrl}/rsvp?code=${code}`;
+    }
+  });
+
+  function copyToClipboard() {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+      }, 2000);
+    });
+  }
 </script>
 
 <svelte:head>
@@ -24,6 +48,36 @@
       src: url('/font/Moga.ttf') format('truetype');
       font-weight: normal;
       font-style: normal;
+    }
+
+    .copy-button {
+      background: #000000;
+      border: none;
+      border-radius: 12px;
+      padding: 0;
+      cursor: pointer;
+      transform: translateY(4px) translateX(-4px);
+      transition: transform 250ms cubic-bezier(.3, .7, .4, 1);
+    }
+    
+    .copy-button-front {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 24px;
+      border-radius: 12px;
+      background: #1385f0;
+      color: #fff;
+      transform: translateY(-4px) translateX(4px);
+      transition: transform 200ms cubic-bezier(.3, .7, .4, 1);
+    }
+    
+    .copy-button:hover .copy-button-front {
+      transform: translateY(-6px) translateX(6px);
+    }
+    
+    .copy-button:active .copy-button-front {
+      transform: translateY(-2px) translateX(2px);
     }
     
     @media (max-width: 1023px), (orientation: portrait), (max-aspect-ratio: 4/3) {
@@ -132,6 +186,23 @@
           those postal employees work fast!
         </p>
 
+        {#if referralCode}
+          <div class="bg-[#fffbf6] rounded-[8px] p-4 mt-4 w-[85%] max-w-[320px]">
+            <h2 class="font-['PT_Serif',_serif] font-bold text-black text-[16px] text-center leading-[1.2] mb-3">
+              Want to refer people?
+            </h2>
+            
+            <button 
+              class="copy-button w-full"
+              on:click={copyToClipboard}
+            >
+              <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[12px]">
+                {copied ? '✓ Copied!' : 'Copy Referral Link'}
+              </span>
+            </button>
+          </div>
+        {/if}
+
         <a href="/faq" class="px-[18px] py-[8px] bg-[#fffbf6] rounded-[8px] text-center flex flex-col mt-4">
           <span class="font-['PT_Serif',_sans-serif] font-bold text-[12px] text-[#3c3765] leading-[1.2]">
             seems like your aunt left you another letter...
@@ -165,6 +236,23 @@
         <p class="font-['PT_Sans',_sans-serif] text-black text-[clamp(16px,_1.2vw,_28px)] text-center leading-[1.3] max-w-[clamp(280px,_35vw,_500px)]">
           those postal employees work fast!
         </p>
+
+        {#if referralCode}
+          <div class="bg-[#fffbf6] rounded-[clamp(8px,_0.6vw,_12px)] p-[clamp(16px,_1.2vw,_24px)] mt-[2vh] w-[85%] max-w-[clamp(320px,_28vw,_450px)]">
+            <h2 class="font-['PT_Serif',_serif] font-bold text-black text-[clamp(16px,_1.2vw,_22px)] text-center leading-[1.2] mb-[1.2vh]">
+              Want to refer people?
+            </h2>
+            
+            <button 
+              class="copy-button w-full"
+              on:click={copyToClipboard}
+            >
+              <span class="copy-button-front font-['PT_Sans',_sans-serif] font-bold text-[clamp(12px,_0.85vw,_16px)]">
+                {copied ? '✓ Copied!' : 'Copy Referral Link'}
+              </span>
+            </button>
+          </div>
+        {/if}
 
         <a href="/faq" class="px-[1vw] py-[0.5vh] bg-[#fffbf6] rounded-[0.4vw] text-center flex flex-col mt-[2vh]">
           <span class="font-['PT_Serif',_sans-serif] font-bold text-[clamp(11px,_0.65vw,_16px)] text-[#3c3765] leading-[normal]">

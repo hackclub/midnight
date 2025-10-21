@@ -4,8 +4,8 @@
   import { env } from '$env/dynamic/public';
   
   let email = '';
-  let isSubmitting = false;
   let errorMessage = '';
+  let showModal = false;
 
   function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,29 +26,32 @@
       return;
     }
 
-    isSubmitting = true;
+    const emailToSend = email.trim();
+    goto(`/rsvp?email=${encodeURIComponent(emailToSend)}`);
 
-    try {
-      const apiUrl = env.PUBLIC_API_URL || '';
-      const response = await fetch(`${apiUrl}/api/user/rsvp/initial`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      if (response.ok) {
-        goto(`/rsvp?email=${encodeURIComponent(email)}`);
-      } else {
-        const data = await response.json().catch(() => ({}));
-        errorMessage = data.error || 'Failed to submit email';
-      }
-    } catch (error) {
+    const apiUrl = env.PUBLIC_API_URL || '';
+    fetch(`${apiUrl}/api/user/rsvp/initial`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: emailToSend }),
+    }).catch(error => {
       console.error('Error submitting email:', error);
-      errorMessage = 'Network error. Please try again.';
-    } finally {
-      isSubmitting = false;
+    });
+  }
+
+  function openModal() {
+    showModal = true;
+  }
+
+  function closeModal() {
+    showModal = false;
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+      closeModal();
     }
   }
 </script>
@@ -245,6 +248,81 @@
     .pushable-bottom:focus:not(:focus-visible) {
       outline: none;
     }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      background: #fee1c0;
+      padding: 32px;
+      border-radius: 24px;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    @media (min-width: 768px) {
+      .modal-content {
+        padding: 48px;
+      }
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #F24B4B;
+      color: #fee1c0;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+    
+    .modal-close:hover {
+      transform: scale(1.1);
+    }
+    
+    .letter-content {
+      font-family: 'PT Serif', serif;
+      color: #2A2746;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+    
+    @media (min-width: 768px) {
+      .letter-content {
+        font-size: 18px;
+      }
+    }
+    
+    .letter-content p {
+      margin-bottom: 1em;
+    }
+    
+    .letter-signature {
+      margin-top: 2em;
+      font-style: italic;
+    }
   </style>
 </svelte:head>
 
@@ -262,7 +340,7 @@
         
         <form on:submit={handleNavigateToRsvp} class="flex flex-col items-center gap-4 2xl:gap-8 rotate-[-4.25deg]">
           <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[32px] text-center leading-normal max-w-3xl 2xl:max-w-6xl">
-            Spend 70 hours building personal projects, get a trip to Vienna, Austria January 2026
+            Spend 70 hours building personal projects, get a ticket to a hackathon in Vienna, Austria - Jan 2026 
           </p>
           
           <div class="flex flex-col items-center gap-3 2xl:gap-6 w-full max-w-2xl 2xl:max-w-4xl">
@@ -272,13 +350,11 @@
                 bind:value={email}
                 placeholder="wdaniel@hackclub.com"
                 class="w-full md:flex-1 h-[60px] md:h-[66px] lg:h-[72px] 2xl:h-[144px] px-6 2xl:px-12 rounded-[18px] 2xl:rounded-[36px] bg-[#fee1c0] font-['PT_Sans',_sans-serif] text-[rgba(0,0,0,0.7)] text-xl md:text-2xl lg:text-[32px] 2xl:text-[64px] focus:outline-none focus:ring-2 focus:ring-[#fee1c0] focus:ring-opacity-50"
-                disabled={isSubmitting}
               />
               
               <button 
                 type="submit"
                 class="pushable flex-shrink-0"
-                disabled={isSubmitting}
               >
                 <span class="front font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[128px] text-center text-nowrap tracking-[3.84px] 2xl:tracking-[7.68px] whitespace-pre">
                   RSVP
@@ -287,7 +363,8 @@
             </div>
             
             <button 
-              on:click={() => goto('/faq')}
+              on:click={openModal}
+              type="button"
               class="pushable-blue"
             >
               <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[128px] text-center text-nowrap tracking-[3.84px] 2xl:tracking-[7.68px] whitespace-pre">
@@ -314,7 +391,7 @@
 
   <section class="w-full flex flex-col items-center overflow-x-hidden pt-12 md:pt-16">
   <div class="bg-[#2A2746] aspect-video w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 p-4 flex items-center justify-center mb-8 relative z-10">
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/imBlPXbAv6E?si=l09kXnFrCEmGYcvQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="w-full h-full relative z-10"></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/mDfKVZ2DITo?si=1mZD58C0CbrDm1Bh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" class="w-full h-full" allowfullscreen></iframe>
   </div>
   
   <div class="w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 relative block leading-[0]">
@@ -333,3 +410,43 @@
   </div>
   </section>
 </div>
+
+{#if showModal}
+  <div 
+    class="modal-overlay" 
+    on:click={closeModal} 
+    on:keydown={handleKeydown}
+    role="dialog" 
+    aria-modal="true"
+    tabindex="0"
+  >
+    <div 
+      class="modal-content" 
+      on:click={(e) => e.stopPropagation()}
+      role="document"
+    >
+      <button class="modal-close" on:click={closeModal} aria-label="Close modal">×</button>
+      
+      <div class="letter-content">
+        <p><strong>Dear hacker,</strong></p>
+        
+        <p>Welcome to Hack Club Midnight!</p>
+        
+        <p>Every year, Hack Club does something special. We have organized a bunch of wild adventures in the past (Shipwrecked, Juice, the Hacker Zephyr, etc).</p>
+        
+        <p>This year Hack Club is organizing our first ever murder mystery themed flagship hackathon in the EU. We will be working together online for two months, making our own projects, shipping them, and then getting together in-person in Vienna, Austria to be a part of an in-person murder mystery themed hackathon.</p>
+        
+        <p>You will have a community of makers and hackers just like yourself who want to build projects they're proud of! Every week, the midnight team will run calls and Slack huddles, as well as special online events for you to meet other participants coming to Midnight.</p>
+        
+        <p>For some of you, this might be the first time you're building projects. Others might be more experienced! We built Midnight to support hackers from with all levels of experience.</p>
+        
+        <p>The premise is simple: Spend 70 hours building projects, get a guaranteed ticket to an all expense paid murder mystery hackathon in Vienna, Austria.</p>
+        
+        <p>Being a part of events like these changed our lives as teenagers, and made us all fall in love with making things. All of us took our first solo flights to go to Hack Club events, build cool shit, and form some of our best friendships. We hope you get to experience that too :)</p>
+        
+        <p class="letter-signature">With love,</p>
+        <p class="letter-signature">Alex, Kacper, Sebastian, Renran, Manitej, Dev and the Midnight Team</p>
+      </div>
+    </div>
+  </div>
+{/if}

@@ -13,16 +13,22 @@ model EmailJob {
   recipientEmail String
   subject     String
   status      String   @default("pending")
+  scheduledFor DateTime?
   sentAt      DateTime?
   failedAt    DateTime?
   errorMessage String?
   metadata    Json?
+  lockedBy    String?
+  lockedAt    DateTime?
+  attempts    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([status])
   @@index([recipientEmail])
   @@index([createdAt])
+  @@index([scheduledFor])
+  @@index([lockedBy])
   @@map("email_jobs")
 }
 

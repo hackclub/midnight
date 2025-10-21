@@ -6,15 +6,20 @@ import mjml2html from 'mjml';
 import { SmimeUtil, SmimeCertificate } from './utils/smime.util';
 import * as forge from 'node-forge';
 import { PrismaService } from './prisma.service';
+import { JobLockService } from './job-lock.service';
 
 @Injectable()
 export class AppService {
   private transporter: nodemailer.Transporter;
   private emailTemplate: string;
+  private stickerEmailTemplate: string;
   private smimeUtil: SmimeUtil | null = null;
   private smimeEnabled: boolean = false;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private jobLock: JobLockService,
+  ) {
     const smtpHost = process.env.SMTP_HOST || `email-smtp.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`;
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
     const smtpUser = process.env.SMTP_USER || process.env.AWS_SMTP_USER;
@@ -41,7 +46,32 @@ export class AppService {
     const { html } = mjml2html(mjmlTemplate);
     this.emailTemplate = html;
 
+    try {
+      const stickerMjmlTemplate = fs.readFileSync(
+        path.join(__dirname, '../templates/early-supporter-stickers.mjml'),
+        'utf8',
+      );
+      const stickerHtml = mjml2html(stickerMjmlTemplate);
+      this.stickerEmailTemplate = stickerHtml.html;
+      console.log('Loaded sticker email template successfully');
+    } catch (error) {
+      console.error('Error loading sticker email template:', error);
+      this.stickerEmailTemplate = this.emailTemplate;
+    }
+
     this.initializeSmime();
+    this.startEmailScheduler();
+  }
+
+  private startEmailScheduler() {
+    setInterval(async () => {
+      try {
+        await this.processScheduledEmails();
+      } catch (error) {
+        console.error('Error in email scheduler:', error);
+      }
+    }, 60000);
+    console.log('Email scheduler started - checking every minute');
   }
 
   private initializeSmime() {
@@ -106,10 +136,35 @@ export class AppService {
     return message;
   }
 
-  async sendRsvpEmail(email: string): Promise<{ success: boolean }> {
+  async sendRsvpEmail(email: string, rsvpNumber?: number, stickerToken?: string): Promise<{ success: boolean }> {
+    await this.sendImmediateEmail(email, this.emailTemplate, 'To my dear nibbling...', {
+      smimeEnabled: this.smimeEnabled,
+      type: 'rsvp-confirmation',
+    });
+
+    if (stickerToken && rsvpNumber && rsvpNumber <= 5000) {
+      const scheduledFor = new Date();
+      scheduledFor.setMinutes(scheduledFor.getMinutes() + 5);
+      
+      const stickerUrl = `https://forms.hackclub.com/midnight-stickers?owl_tkn=${stickerToken}`;
+      const emailContent = this.stickerEmailTemplate
+        .replace(/{{rsvpNumber}}/g, rsvpNumber.toString())
+        .replace(/{{stickerUrl}}/g, stickerUrl);
+
+      await this.scheduleEmail(email, emailContent, 'To my dear nibbling...', scheduledFor, {
+        smimeEnabled: this.smimeEnabled,
+        rsvpNumber,
+        stickerToken,
+        type: 'early-supporter-stickers',
+      });
+    }
+
+    return { success: true };
+  }
+
+  async sendImmediateEmail(email: string, htmlContent: string, subject: string, metadata: any = {}): Promise<{ success: boolean }> {
     const fromEmail = process.env.EMAIL_FROM || 'noreply@midnight.hackclub.com';
     const from = `Midnight (Hack Club) <${fromEmail}>`;
-    const subject = 'To my dear nibbling...';
 
     const emailJob = await this.prisma.emailJob.create({
       data: {
@@ -118,7 +173,7 @@ export class AppService {
         status: 'pending',
         metadata: {
           from: fromEmail,
-          smimeEnabled: this.smimeEnabled,
+          ...metadata,
         },
       },
     });
@@ -131,7 +186,7 @@ export class AppService {
         let htmlPart = `Content-Type: text/html; charset="UTF-8"\r\n`;
         htmlPart += `Content-Transfer-Encoding: 7bit\r\n`;
         htmlPart += `\r\n`;
-        htmlPart += this.emailTemplate.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+        htmlPart += htmlContent.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
         
         const signature = this.smimeUtil.createDetachedSignature(htmlPart);
         const base64Lines = signature.match(/.{1,76}/g) || [];
@@ -183,7 +238,7 @@ export class AppService {
           from: from,
           to: email,
           subject: subject,
-          html: this.emailTemplate,
+          html: htmlContent,
         });
 
         console.log('Successfully sent email via SMTP:', info.messageId);
@@ -223,6 +278,119 @@ export class AppService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async scheduleEmail(email: string, htmlContent: string, subject: string, scheduledFor: Date, metadata: any = {}): Promise<{ success: boolean; jobId: string }> {
+    const fromEmail = process.env.EMAIL_FROM || 'noreply@midnight.hackclub.com';
+    
+    const emailJob = await this.prisma.emailJob.create({
+      data: {
+        recipientEmail: email,
+        subject,
+        status: 'scheduled',
+        scheduledFor,
+        metadata: {
+          from: fromEmail,
+          htmlContent,
+          ...metadata,
+        },
+      },
+    });
+
+    console.log(`Scheduled email for ${email} at ${scheduledFor.toISOString()}, job ID: ${emailJob.id}`);
+
+    return { success: true, jobId: emailJob.id };
+  }
+
+  async processScheduledEmails(): Promise<void> {
+    const availableJobs = await this.jobLock.getAvailableJobs(50);
+    
+    console.log(`[${this.jobLock.getWorkerId()}] Found ${availableJobs.length} available email job(s)`);
+
+    let processed = 0;
+    for (const job of availableJobs) {
+      const lockAcquired = await this.jobLock.acquireJobLock(job.id);
+      
+      if (!lockAcquired) {
+        console.log(`[${this.jobLock.getWorkerId()}] Failed to acquire lock for job ${job.id}, skipping`);
+        continue;
+      }
+
+      processed++;
+      console.log(`[${this.jobLock.getWorkerId()}] Processing job ${job.id} (${processed}/${availableJobs.length})`);
+
+      try {
+        await this.jobLock.markJobProcessing(job.id);
+
+        const metadata = job.metadata as any;
+        const htmlContent = metadata.htmlContent || this.emailTemplate;
+        
+        const fromEmail = process.env.EMAIL_FROM || 'noreply@midnight.hackclub.com';
+        const from = `Midnight (Hack Club) <${fromEmail}>`;
+
+        if (this.smimeEnabled && this.smimeUtil) {
+          let htmlPart = `Content-Type: text/html; charset="UTF-8"\r\n`;
+          htmlPart += `Content-Transfer-Encoding: 7bit\r\n`;
+          htmlPart += `\r\n`;
+          htmlPart += htmlContent.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+          
+          const signature = this.smimeUtil.createDetachedSignature(htmlPart);
+          const base64Lines = signature.match(/.{1,76}/g) || [];
+          
+          const signedBoundary = `----=_Part_Signed_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+          
+          let message = `From: ${from}\r\n`;
+          message += `To: ${job.recipientEmail}\r\n`;
+          message += `Subject: ${job.subject}\r\n`;
+          message += `MIME-Version: 1.0\r\n`;
+          message += `Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg="sha-256"; boundary="${signedBoundary}"\r\n`;
+          message += `\r\n`;
+          message += `This is a cryptographically signed message in MIME format.\r\n`;
+          message += `\r\n`;
+          message += `--${signedBoundary}\r\n`;
+          message += htmlPart;
+          message += `\r\n`;
+          message += `--${signedBoundary}\r\n`;
+          message += `Content-Type: application/pkcs7-signature; name="smime.p7s"\r\n`;
+          message += `Content-Transfer-Encoding: base64\r\n`;
+          message += `Content-Disposition: attachment; filename="smime.p7s"\r\n`;
+          message += `\r\n`;
+          message += base64Lines.join('\r\n');
+          message += `\r\n`;
+          message += `--${signedBoundary}--\r\n`;
+
+          await this.transporter.sendMail({
+            envelope: {
+              from: from,
+              to: job.recipientEmail,
+            },
+            raw: message,
+          });
+        } else {
+          await this.transporter.sendMail({
+            from: from,
+            to: job.recipientEmail,
+            subject: job.subject,
+            html: htmlContent,
+          });
+        }
+
+        await this.jobLock.markJobSent(job.id);
+        await this.jobLock.releaseJobLock(job.id);
+
+        console.log(`[${this.jobLock.getWorkerId()}] Successfully sent email to: ${job.recipientEmail}`);
+      } catch (error) {
+        console.error(`[${this.jobLock.getWorkerId()}] Error sending email to ${job.recipientEmail}:`, error);
+        
+        await this.jobLock.markJobFailed(
+          job.id,
+          error instanceof Error ? error.message : 'Unknown error'
+        );
+        await this.jobLock.releaseJobLock(job.id);
+      }
+    }
+
+    console.log(`[${this.jobLock.getWorkerId()}] Processed ${processed} email job(s)`);
   }
 
   getHello(): string {

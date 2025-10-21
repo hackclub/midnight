@@ -40,8 +40,20 @@ export class AppController {
       ? forwardedFor.split(',')[0].trim()
       : req.ip || req.socket.remoteAddress || 'unknown';
 
-    await this.appService.completeRsvp(body, clientIP);
-    return { success: true };
+    const result = await this.appService.completeRsvp(body, clientIP);
+    return { success: true, rafflePosition: result.rafflePosition };
+  }
+
+  @Get('/rsvp/count')
+  @HttpCode(200)
+  async getRsvpCount() {
+    return await this.appService.getRsvpCount();
+  }
+
+  @Post('/sticker-token/verify')
+  @HttpCode(200)
+  async verifyStickerToken(@Body() body: { token: string }) {
+    return await this.appService.verifyStickerToken(body.token);
   }
 
   @Get()
