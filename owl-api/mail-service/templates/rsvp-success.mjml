@@ -76,13 +76,14 @@
         </mj-column>
       </mj-section>
 
-      <mj-section padding="15px 30px 5px 30px">
+      <mj-section padding="20px 0px 10px 30px">
         <mj-column>
-          <mj-text align="left" font-size="38px" color="#f24b4b" padding="0" font-weight="700" line-height="1.1">
+          <mj-text align="left" font-size="35px" color="#f24b4b" padding="0" font-weight="700" line-height="1.1">
             THERE IS A PLOT TO KILL ME
           </mj-text>
         </mj-column>
       </mj-section>
+      
 
       <mj-section padding="0 30px 15px 30px">
         <mj-column>
@@ -92,14 +93,37 @@
         </mj-column>
       </mj-section>
 
-      <mj-section padding="0 30px 18px 30px">
+      <mj-section padding="0 30px 10px 30px">
         <mj-column>
           <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
             You’re invited to my palace in Vienna this January — to find who's trying to kill me. 
           </mj-text>
           <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
-            But I can’t trust you... Not yet. So, develop your skills and prove yourself: <strong> spend 70 hours building projects to earn your stay at my Vienna estate. </strong>
+            But I can’t trust you. Not yet. 
+            You have over two months to develop your skills and prove yourself: <strong> Spend 70 hours building projects to earn your stay at my Vienna estate. </strong>
           </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="10px 10px 10px 10px">
+        <mj-column>
+          <mj-button 
+            href="https://forms.hackclub.com/midnight-stickers"
+            background-color="#F24B4B"
+            color="#fee1c0"
+            font-size="20px"
+            font-weight="700"
+            border-radius="8px"
+            padding="12px 40px"
+            align="center"
+          >
+            RSVP FOR KICKOFF CALL
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0 30px 18px 30px">
+      <mj-column>
           <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
             As a reward, I’ll treat you to Vienna’s beauty and Austria’s finest cuisine. And, perhaps, even some of my inheritance... 
           </mj-text>
@@ -128,7 +152,7 @@
           </mj-text>
           <mj-text align="center" font-size="15px" padding="0">
             Spend 70 hours building projects, earn a trip to Vienna, Austria<br/>
-            and <span style="color: #f24b4b; font-weight: 700;">solve my murder</span>
+            and <span style="color: #f24b4b; font-weight: 700;">solve my impending murder</span>
           </mj-text>
         </mj-column>
       </mj-section>
