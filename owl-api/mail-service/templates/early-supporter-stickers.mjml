@@ -137,12 +137,28 @@
         </mj-column>
       </mj-section>
 
-      <mj-section padding="15px 30px 18px 30px">
+      <mj-section padding="15px 30px 0 30px">
         <mj-column>
           <mj-text align="center" font-size="15px" padding="0">
-            Now, get to work on those <strong>70 hours of projects</strong>.<br/>
             I'm counting on you to help me <span style="color: #f24b4b; font-weight: 700;">solve my impending murder</span>.
           </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="10px 10px 10px 10px">
+        <mj-column>
+          <mj-button 
+            href="https://forms.hackclub.com/midnight-stickers"
+            background-color="#F24B4B"
+            color="#fee1c0"
+            font-size="20px"
+            font-weight="700"
+            border-radius="8px"
+            padding="12px 40px"
+            align="center"
+          >
+            RSVP FOR KICKOFF CALL
+          </mj-button>
         </mj-column>
       </mj-section>
 
@@ -154,7 +170,6 @@
           </mj-text>
         </mj-column>
       </mj-section>
-
     </mj-wrapper>
 
     <mj-section padding="20px 30px">
