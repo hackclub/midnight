@@ -86,7 +86,7 @@
         <section id="what-is-midnight" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
             What is Midnight?
-          </h2>
+          </h2> 
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
             Midnight is an in-person murder mystery experience by Hack Club. In early January 2026 you and 99 other teenagers will go to Vienna, Austria to solve a murder mystery through creating technical projects! You will experience Vienna, meet like-minded friends (for life!) and create projects you will be proud of.
           </p>
@@ -97,7 +97,7 @@
             How do I get invited?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            To participate in Midnight you must spend [X] hours building projects. And, that's it! The first 100 folks who do so will be invited. Travel stipends will be available.
+            To participate in Midnight you must spend 70 hours building projects. And, that's it! The first 100 folks who do so will be invited. Travel stipends will be available.
           </p>
         </section>
 
