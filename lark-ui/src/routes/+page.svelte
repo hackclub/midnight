@@ -118,8 +118,8 @@
     
     @media (min-width: 1536px) {
       .front {
-        height: 144px;
-        padding: 0 80px;
+        height: 78px;
+        padding: 0 55px;
       }
     }
     
@@ -175,8 +175,8 @@
     
     @media (min-width: 1536px) {
       .front-blue {
-        height: 144px;
-        padding: 0 80px;
+        height: 78px;
+        padding: 0 55px;
       }
     }
     
@@ -334,29 +334,29 @@
       <div class="flex flex-col items-center w-full max-w-7xl">
         <h1 class="sr-only">Midnight - A Murder Mystery by Hack Club</h1>
         
-        <div class="relative w-full max-w-3xl 2xl:max-w-6xl px-4 -mb-4 md:-mb-6 2xl:-mb-12">
+        <div class="relative w-full max-w-3xl 2xl:max-w-4xl px-4 -mb-4 md:-mb-6 2xl:-mb-6">
           <img alt="Midnight - A Murder Mystery" class="w-full h-auto block" style="object-fit: contain; background-repeat: no-repeat; background-size: contain;" src="/logo.svg" />
         </div>
         
-        <form on:submit={handleNavigateToRsvp} class="flex flex-col items-center gap-4 2xl:gap-8 rotate-[-4.25deg]">
-          <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[32px] text-center leading-normal max-w-3xl 2xl:max-w-6xl">
+        <form on:submit={handleNavigateToRsvp} class="flex flex-col items-center gap-4 2xl:gap-5 rotate-[-4.25deg]">
+          <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[30px] text-center leading-normal max-w-3xl 2xl:max-w-4xl">
             Spend 70 hours building personal projects, get a ticket to a hackathon in Vienna, Austria - Jan 2026 
           </p>
           
-          <div class="flex flex-col items-center gap-3 2xl:gap-6 w-full max-w-2xl 2xl:max-w-4xl">
-            <div class="flex flex-col md:flex-row items-center gap-3 md:gap-4 2xl:gap-8 w-full">
+          <div class="flex flex-col items-center gap-3 2xl:gap-4 w-full max-w-2xl 2xl:max-w-[52rem]">
+            <div class="flex flex-col md:flex-row items-center gap-3 md:gap-4 2xl:gap-5 w-full">
               <input
                 type="email"
                 bind:value={email}
                 placeholder="wdaniel@hackclub.com"
-                class="w-full md:flex-1 h-[60px] md:h-[66px] lg:h-[72px] 2xl:h-[144px] px-6 2xl:px-12 rounded-[18px] 2xl:rounded-[36px] bg-[#fee1c0] font-['PT_Sans',_sans-serif] text-[rgba(0,0,0,0.7)] text-xl md:text-2xl lg:text-[32px] 2xl:text-[64px] focus:outline-none focus:ring-2 focus:ring-[#fee1c0] focus:ring-opacity-50"
+                class="w-full md:flex-1 h-[60px] md:h-[66px] lg:h-[72px] 2xl:h-[78px] px-6 2xl:px-8 rounded-[18px] 2xl:rounded-[22px] bg-[#fee1c0] font-['PT_Sans',_sans-serif] text-[rgba(0,0,0,0.7)] text-xl md:text-2xl lg:text-[32px] 2xl:text-[36px] focus:outline-none focus:ring-2 focus:ring-[#fee1c0] focus:ring-opacity-50"
               />
               
               <button 
                 type="submit"
                 class="pushable flex-shrink-0"
               >
-                <span class="front font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[128px] text-center text-nowrap tracking-[3.84px] 2xl:tracking-[7.68px] whitespace-pre">
+                <span class="front font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre">
                   RSVP
                 </span>
               </button>
@@ -367,13 +367,13 @@
               type="button"
               class="pushable-blue"
             >
-              <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[128px] text-center text-nowrap tracking-[3.84px] 2xl:tracking-[7.68px] whitespace-pre">
+              <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre">
                 Read More
               </span>
             </button>
             
             {#if errorMessage}
-              <p class="text-[#fee1c0] font-['PT_Sans',_sans-serif] text-base md:text-lg 2xl:text-4xl bg-red-900 bg-opacity-50 px-4 py-2 2xl:px-8 2xl:py-4 rounded-lg 2xl:rounded-2xl">
+              <p class="text-[#fee1c0] font-['PT_Sans',_sans-serif] text-base md:text-lg 2xl:text-xl bg-red-900 bg-opacity-50 px-4 py-2 2xl:px-5 2xl:py-2 rounded-lg 2xl:rounded-lg">
                 {errorMessage}
               </p>
             {/if}
@@ -382,8 +382,8 @@
       </div>
     </div>
 
-    <div class="absolute bottom-8 md:bottom-12 lg:bottom-16 2xl:bottom-24 left-0 right-0 flex justify-center z-30">
-      <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-lg md:text-2xl lg:text-3xl 2xl:text-6xl text-center">
+    <div class="absolute bottom-8 md:bottom-12 lg:bottom-16 2xl:bottom-16 left-0 right-0 flex justify-center z-30">
+      <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-lg md:text-2xl lg:text-3xl 2xl:text-[34px] text-center">
         a strange letter arrives... <span class="inline-block animate-bounce ml-2">⌄</span>
       </p>
     </div>
@@ -402,7 +402,7 @@
         on:click={() => goto('/faq')}
         class="pushable-blue"
       >
-        <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[128px] text-center text-nowrap tracking-[3.84px] 2xl:tracking-[7.68px] whitespace-pre">
+        <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre">
           FAQ
         </span>
       </button>
