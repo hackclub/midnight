@@ -3,20 +3,18 @@ RUN npm install -g pnpm
 
 FROM base AS builder
 WORKDIR /app
-COPY owl-api/user-service/package.json ./
+COPY owl-api/unified-service/package.json ./
 RUN pnpm install
-COPY owl-api/user-service/prisma ./prisma
-COPY owl-api/mail-service/prisma ./prisma-mail
+COPY owl-api/unified-service/prisma ./prisma
 RUN npx prisma generate --schema=./prisma/schema.prisma
-RUN npx prisma generate --schema=./prisma-mail/schema.prisma
-COPY owl-api/user-service/src ./src
-COPY owl-api/user-service/tsconfig*.json ./
-COPY owl-api/user-service/nest-cli.json ./
+COPY owl-api/unified-service/src ./src
+COPY owl-api/unified-service/tsconfig*.json ./
+COPY owl-api/unified-service/nest-cli.json ./
 RUN pnpm run build
 
 FROM base AS deps
 WORKDIR /app
-COPY owl-api/user-service/package.json ./
+COPY owl-api/unified-service/package.json ./
 RUN pnpm install --prod
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 

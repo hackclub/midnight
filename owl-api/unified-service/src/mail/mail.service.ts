@@ -41,7 +41,7 @@ export class MailService {
     });
 
     const mjmlTemplate = fs.readFileSync(
-      path.join(__dirname, './templates/rsvp-success.mjml'),
+      path.join(__dirname, '../../templates/rsvp-success.mjml'),
       'utf8',
     );
     const { html } = mjml2html(mjmlTemplate);
@@ -49,7 +49,7 @@ export class MailService {
 
     try {
       const stickerMjmlTemplate = fs.readFileSync(
-        path.join(__dirname, './templates/early-supporter-stickers.mjml'),
+        path.join(__dirname, '../../templates/early-supporter-stickers.mjml'),
         'utf8',
       );
       const stickerHtml = mjml2html(stickerMjmlTemplate);

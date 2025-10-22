@@ -18,7 +18,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.client.on('connect', () => {
-      console.log('Mail Service connected to Redis');
+      console.log('Connected to Redis');
     });
   }
 

@@ -8,6 +8,7 @@ import { AdminService } from './admin.service';
 import { DashboardController } from './dashboard.controller';
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis.service';
+import { JobLockService } from '../job-lock.service';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RedisService } from '../redis.service';
     AdminService,
     PrismaService,
     RedisService,
+    JobLockService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
