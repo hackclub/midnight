@@ -9,11 +9,12 @@ import { PrismaService } from '../prisma.service';
 import { JobLockService } from '../job-lock.service';
 
 @Injectable()
-export class AppService {
+export class MailService {
   private transporter: nodemailer.Transporter;
   private emailTemplate: string;
   private stickerEmailTemplate: string;
   private smimeUtil: SmimeUtil | null = null;
+
   private smimeEnabled: boolean = false;
 
   constructor(

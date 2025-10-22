@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { DashboardController } from './dashboard.controller';
@@ -16,9 +16,9 @@ import { RedisService } from '../redis.service';
       limit: 10,
     }]),
   ],
-  controllers: [AppController, AdminController, DashboardController],
+  controllers: [UserController, AdminController, DashboardController],
   providers: [
-    AppService,
+    UserService,
     AdminService,
     PrismaService,
     RedisService,
@@ -28,4 +28,4 @@ import { RedisService } from '../redis.service';
     },
   ],
 })
-export class AppModule {}
+export class UserModule {}

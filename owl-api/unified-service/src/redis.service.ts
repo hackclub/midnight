@@ -18,7 +18,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.client.on('connect', () => {
-      console.log('Connected to Redis');
+      console.log('Mail Service connected to Redis');
     });
   }
 
@@ -46,5 +46,33 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     const result = await this.client.exists(key);
     return result === 1;
   }
-}
 
+  async acquireLock(key: string, value: string, ttlSeconds: number): Promise<boolean> {
+    const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
+  }
+
+  async releaseLock(key: string, value: string): Promise<boolean> {
+    const script = `
+      if redis.call("get", KEYS[1]) == ARGV[1] then
+        return redis.call("del", KEYS[1])
+      else
+        return 0
+      end
+    `;
+    const result = await this.client.eval(script, 1, key, value);
+    return result === 1;
+  }
+
+  async extendLock(key: string, value: string, ttlSeconds: number): Promise<boolean> {
+    const script = `
+      if redis.call("get", KEYS[1]) == ARGV[1] then
+        return redis.call("expire", KEYS[1], ARGV[2])
+      else
+        return 0
+      end
+    `;
+    const result = await this.client.eval(script, 1, key, value, ttlSeconds);
+    return result === 1;
+  }
+}

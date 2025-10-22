@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { randomBytes } from 'crypto';
 
 @Injectable()
-export class AppService {
+export class UserService {
   private readonly BASE_ID = 'appumOs6hlFGhbv7c';
   private readonly TABLE_NAME = 'tbldJ8CL1xt7qcnrM';
   private readonly EMAIL_TABLE_ID = 'tblFDNhax22eAjSB3';

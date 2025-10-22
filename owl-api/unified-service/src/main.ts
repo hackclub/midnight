@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './user/app.module';
+import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
@@ -33,6 +33,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3002;
   await app.listen(port);
-  console.log(`🦉 User service running on port ${port}`);
+  console.log(`🦉 Unified service running on port ${port}`);
 }
 bootstrap();
