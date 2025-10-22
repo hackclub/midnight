@@ -61,7 +61,7 @@ export class UserService {
         }
       }
       
-      const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://localhost:3003';
+      const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://unified-service:3002';
       const payload = { 
         email,
         rsvpNumber,

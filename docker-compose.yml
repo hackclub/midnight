@@ -35,7 +35,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3002
-      - MAIL_SERVICE_URL=http://mail-service:3002
+      - MAIL_SERVICE_URL=http://unified-service:3002
     restart: unless-stopped
     networks:
       - midnight-network
