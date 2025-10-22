@@ -9,6 +9,9 @@ export class AppController {
   @Post('/send-rsvp-email')
   @HttpCode(200)
   async sendRsvpEmail(@Body() body: SendEmailDto) {
+    console.log('=== MAIL CONTROLLER RECEIVED ===');
+    console.log('Full body:', JSON.stringify(body, null, 2));
+    console.log('body.rafflePosition:', body.rafflePosition, 'type:', typeof body.rafflePosition);
     return await this.appService.sendRsvpEmail(body.email, body.rsvpNumber, body.rafflePosition, body.stickerToken);
   }
 

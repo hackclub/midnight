@@ -33,6 +33,9 @@ export class AppService {
 
   private async sendRsvpEmailInBackground(email: string, rafflePosition: number): Promise<void> {
     try {
+      console.log(`=== SENDING EMAIL IN BACKGROUND ===`);
+      console.log(`Email: ${email}, RafflePosition received: ${rafflePosition}`);
+      
       const rsvpCountData = await this.getRsvpCount();
       const rsvpNumber = rsvpCountData.count;
       
@@ -59,17 +62,20 @@ export class AppService {
       }
       
       const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://localhost:3003';
+      const payload = { 
+        email,
+        rsvpNumber,
+        rafflePosition,
+        stickerToken,
+      };
+      console.log(`Sending to mail service:`, JSON.stringify(payload, null, 2));
+      
       const mailResponse = await fetch(`${mailServiceUrl}/send-rsvp-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email,
-          rsvpNumber,
-          rafflePosition,
-          stickerToken,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!mailResponse.ok) {
@@ -164,6 +170,12 @@ export class AppService {
     data: { email: string; firstName: string; lastName: string; birthday: string; referralCode?: string },
     clientIP: string,
   ): Promise<{ rafflePosition: number }> {
+    console.log('====================================');
+    console.log('=== COMPLETE RSVP CALLED ===');
+    console.log(`Email: ${data.email}`);
+    console.log(`ReferralCode: ${data.referralCode}`);
+    console.log('====================================');
+    
     if (!this.AIRTABLE_API_KEY) {
       throw new HttpException(
         'Server configuration error',
@@ -221,7 +233,9 @@ export class AppService {
       }
       
       if (searchData.records && searchData.records.length > 0) {
+        console.log('=== EXISTING RECORD FOUND, UPDATING ===');
         const existingRecord = searchData.records[0];
+        console.log('Existing record ID:', existingRecord.id);
         const fields = existingRecord.fields;
         
         const hasFirstName = fields['First Name'] && fields['First Name'].trim() !== '';
@@ -236,13 +250,15 @@ export class AppService {
           );
         }
         
-        console.log('Updating incomplete RSVP record:', existingRecord.id);
+        console.log('=== UPDATING INCOMPLETE RSVP RECORD ===');
+        console.log('Record ID:', existingRecord.id);
         const updateFields: any = {
           fldLfzvf3xvXnLeIr: data.firstName,
           fldfOBSrsWih4oHe6: data.lastName,
           fldsYVJC0EpDMiSgY: data.birthday,
           fldRmDEgOgxdjLcpR: clientIP,
         };
+        console.log('Update fields:', JSON.stringify(updateFields, null, 2));
         
         if (data.referralCode) {
           const parsedCode = parseInt(data.referralCode, 10);
@@ -275,7 +291,32 @@ export class AppService {
         }
 
         const updateData = await updateResponse.json();
-        const rafflePosition = updateData.fields?.['Loops - MidnightRafflePosition'] || updateData.fields?.fldjbQgoCjCd9fwc5 || 0;
+        console.log('=== UPDATE RESPONSE DEBUG ===');
+        console.log('Full updateData:', JSON.stringify(updateData, null, 2));
+        console.log('updateData.fields:', JSON.stringify(updateData.fields, null, 2));
+        console.log('Checking field by name:', updateData.fields?.['Loops - midnightRafflePosition']);
+        console.log('All field keys:', Object.keys(updateData.fields || {}));
+        let rafflePosition = updateData.fields?.['Loops - midnightRafflePosition'] || 0;
+        
+        if (!rafflePosition || rafflePosition === 0) {
+          console.log('Raffle position not in update response, fetching record again...');
+          const fetchResponse = await fetch(
+            `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${existingRecord.id}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
+              },
+            },
+          );
+          if (fetchResponse.ok) {
+            const fetchData = await fetchResponse.json();
+            console.log('Fetched record fields:', JSON.stringify(fetchData.fields, null, 2));
+            rafflePosition = fetchData.fields?.['Loops - midnightRafflePosition'] || 0;
+            console.log('Raffle position from fetch:', rafflePosition);
+          }
+        }
+        
         console.log('Successfully updated RSVP:', existingRecord.id, 'Raffle Position:', rafflePosition);
         
         this.sendRsvpEmailInBackground(data.email, rafflePosition).catch(error => {
@@ -285,7 +326,8 @@ export class AppService {
         return { rafflePosition };
       }
 
-      console.log('Creating new RSVP for:', data.email);
+      console.log('=== NO EXISTING RECORD, CREATING NEW RSVP ===');
+      console.log('Email:', data.email);
       const createFields: any = {
         fldZCDn3M5M2F6AOX: data.email,
         fldLfzvf3xvXnLeIr: data.firstName,
@@ -293,6 +335,7 @@ export class AppService {
         fldsYVJC0EpDMiSgY: data.birthday,
         fldRmDEgOgxdjLcpR: clientIP,
       };
+      console.log('Create fields:', JSON.stringify(createFields, null, 2));
       
       if (data.referralCode) {
         const parsedCode = parseInt(data.referralCode, 10);
@@ -330,7 +373,32 @@ export class AppService {
 
       const createData = await createResponse.json();
       const recordId = createData.records[0].id;
-      const rafflePosition = createData.records[0].fields?.['Loops - MidnightRafflePosition'] || createData.records[0].fields?.fldjbQgoCjCd9fwc5 || 0;
+      console.log('=== CREATE RESPONSE DEBUG ===');
+      console.log('Full createData:', JSON.stringify(createData, null, 2));
+      console.log('createData.records[0].fields:', JSON.stringify(createData.records[0].fields, null, 2));
+      console.log('Checking field by name:', createData.records[0].fields?.['Loops - midnightRafflePosition']);
+      console.log('All field keys:', Object.keys(createData.records[0].fields || {}));
+      let rafflePosition = createData.records[0].fields?.['Loops - midnightRafflePosition'] || 0;
+      
+      if (!rafflePosition || rafflePosition === 0) {
+        console.log('Raffle position not in create response, fetching record again...');
+        const fetchResponse = await fetch(
+          `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${recordId}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
+            },
+          },
+        );
+        if (fetchResponse.ok) {
+          const fetchData = await fetchResponse.json();
+          console.log('Fetched record fields:', JSON.stringify(fetchData.fields, null, 2));
+          rafflePosition = fetchData.fields?.['Loops - midnightRafflePosition'] || 0;
+          console.log('Raffle position from fetch:', rafflePosition);
+        }
+      }
+      
       console.log('Successfully created RSVP:', recordId, 'Raffle Position:', rafflePosition);
       
       this.sendRsvpEmailInBackground(data.email, rafflePosition).catch(error => {

@@ -137,7 +137,9 @@ export class AppService {
   }
 
   async sendRsvpEmail(email: string, rsvpNumber?: number, rafflePosition?: number, stickerToken?: string): Promise<{ success: boolean }> {
+    console.log('=== MAIL SERVICE DEBUG ===');
     console.log(`sendRsvpEmail called with: email=${email}, rsvpNumber=${rsvpNumber}, rafflePosition=${rafflePosition}, stickerToken=${stickerToken ? 'present' : 'null'}`);
+    console.log(`rafflePosition type: ${typeof rafflePosition}, value: ${rafflePosition}, isUndefined: ${rafflePosition === undefined}, isNull: ${rafflePosition === null}`);
     
     await this.sendImmediateEmail(email, this.emailTemplate, 'To my dear nibbling...', {
       smimeEnabled: this.smimeEnabled,
@@ -154,8 +156,9 @@ export class AppService {
         ? `https://forms.hackclub.com/midnight-stickers?owl_tkn=${stickerToken}`
         : `https://forms.hackclub.com/midnight-stickers`;
       const referralLink = rafflePosition !== undefined && rafflePosition !== null
-        ? `https://midnight.hackclub.com/?ref=${rafflePosition}`
+        ? `https://midnight.hackclub.com/?code=${rafflePosition}`
         : `https://midnight.hackclub.com/`;
+      console.log(`Generated referralLink: ${referralLink} (from rafflePosition: ${rafflePosition})`);
       const emailContent = this.stickerEmailTemplate
         .replace(/{{rsvpNumber}}/g, rsvpNumber.toString())
         .replace(/{{stickerUrl}}/g, stickerUrl)
