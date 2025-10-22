@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
-import { RedisService } from './redis.service';
+import { PrismaService } from '../prisma.service';
+import { RedisService } from '../redis.service';
 import * as crypto from 'crypto';
 
 @Injectable()

@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './user/app.module';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import { resolve } from 'path';
+import { AllExceptionsFilter } from './http-exception.filter';
 
 if (process.env.NODE_ENV !== 'production') {
   config({ path: resolve(__dirname, '../../../.env') });
@@ -11,8 +13,12 @@ if (process.env.NODE_ENV !== 'production') {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
+
+  app.useGlobalFilters(new AllExceptionsFilter());
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   });
@@ -25,8 +31,8 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.MAIL_SERVICE_PORT || 3003;
+  const port = process.env.PORT || 3002;
   await app.listen(port);
-  console.log(`📧 Mail service running on port ${port}`);
+  console.log(`🦉 User service running on port ${port}`);
 }
 bootstrap();

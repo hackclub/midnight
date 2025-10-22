@@ -6,8 +6,8 @@ import { AppService } from './app.service';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { DashboardController } from './dashboard.controller';
-import { PrismaService } from './prisma.service';
-import { RedisService } from './redis.service';
+import { PrismaService } from '../prisma.service';
+import { RedisService } from '../redis.service';
 
 @Module({
   imports: [

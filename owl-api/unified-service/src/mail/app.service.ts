@@ -5,8 +5,8 @@ import * as path from 'path';
 import mjml2html from 'mjml';
 import { SmimeUtil, SmimeCertificate } from './utils/smime.util';
 import * as forge from 'node-forge';
-import { PrismaService } from './prisma.service';
-import { JobLockService } from './job-lock.service';
+import { PrismaService } from '../prisma.service';
+import { JobLockService } from '../job-lock.service';
 
 @Injectable()
 export class AppService {
@@ -40,7 +40,7 @@ export class AppService {
     });
 
     const mjmlTemplate = fs.readFileSync(
-      path.join(__dirname, '../templates/rsvp-success.mjml'),
+      path.join(__dirname, './templates/rsvp-success.mjml'),
       'utf8',
     );
     const { html } = mjml2html(mjmlTemplate);
@@ -48,7 +48,7 @@ export class AppService {
 
     try {
       const stickerMjmlTemplate = fs.readFileSync(
-        path.join(__dirname, '../templates/early-supporter-stickers.mjml'),
+        path.join(__dirname, './templates/early-supporter-stickers.mjml'),
         'utf8',
       );
       const stickerHtml = mjml2html(stickerMjmlTemplate);
