@@ -6,12 +6,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
 
   async onModuleInit() {
-    this.client = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379', 10),
-      password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_DB || '0', 10),
-    });
+    const redisConfig = this.getRedisConfig();
+    this.client = new Redis(redisConfig);
 
     this.client.on('error', (err) => {
       console.error('Redis error:', err);
@@ -20,6 +16,35 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client.on('connect', () => {
       console.log('Mail Service connected to Redis');
     });
+  }
+
+  private getRedisConfig() {
+    const sentinelHosts = process.env.REDIS_SENTINEL_HOSTS;
+    const sentinelName = process.env.REDIS_SENTINEL_NAME;
+    
+    if (sentinelHosts && sentinelName) {
+      const hosts = sentinelHosts.split(',').map(host => {
+        const [hostname, port] = host.trim().split(':');
+        return { host: hostname, port: parseInt(port || '26379', 10) };
+      });
+      
+      return {
+        sentinels: hosts,
+        name: sentinelName,
+        password: process.env.REDIS_PASSWORD,
+        db: parseInt(process.env.REDIS_DB || '0', 10),
+        retryDelayOnFailover: 100,
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      };
+    }
+    
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD,
+      db: parseInt(process.env.REDIS_DB || '0', 10),
+    };
   }
 
   async onModuleDestroy() {

@@ -60,3 +60,18 @@ model AdminSession {
   @@map("admin_sessions")
 }
 
+model StickerToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  rsvpNumber Int
+  isUsed    Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([email])
+  @@map("sticker_tokens")
+}
+
