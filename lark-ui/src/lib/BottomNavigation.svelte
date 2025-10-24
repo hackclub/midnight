@@ -81,8 +81,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #453b61;
-    border-top: 4px solid #ffd3a8;
+    background: #2D273F;
     height: 137px;
     display: flex;
     align-items: center;
@@ -96,6 +95,7 @@
     font-size: 90px;
     color: white;
     text-align: center;
+    text-box-trim: trim-both;
     cursor: pointer;
     transition: color 0.3s ease;
     letter-spacing: -0.99px;

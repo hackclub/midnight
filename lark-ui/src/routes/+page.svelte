@@ -12,34 +12,34 @@
     return emailRegex.test(email);
   }
 
-  async function handleNavigateToRsvp(event: Event) {
-    event.preventDefault();
-    errorMessage = '';
+  // async function handleNavigateToRsvp(event: Event) {
+  //   event.preventDefault();
+  //   errorMessage = '';
     
-    if (!email.trim()) {
-      goto('/rsvp');
-      return;
-    }
+  //   if (!email.trim()) {
+  //     goto('/rsvp');
+  //     return;
+  //   }
 
-    if (!isValidEmail(email)) {
-      errorMessage = 'Please enter a valid email address';
-      return;
-    }
+  //   if (!isValidEmail(email)) {
+  //     errorMessage = 'Please enter a valid email address';
+  //     return;
+  //   }
 
-    const emailToSend = email.trim();
-    goto(`/rsvp?email=${encodeURIComponent(emailToSend)}`);
+  //   const emailToSend = email.trim();
+  //   goto(`/rsvp?email=${encodeURIComponent(emailToSend)}`);
 
-    const apiUrl = env.PUBLIC_API_URL || '';
-    fetch(`${apiUrl}/api/user/rsvp/initial`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: emailToSend }),
-    }).catch(error => {
-      console.error('Error submitting email:', error);
-    });
-  }
+  //   const apiUrl = env.PUBLIC_API_URL || '';
+  //   fetch(`${apiUrl}/api/user/rsvp/initial`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({ email: emailToSend }),
+  //   }).catch(error => {
+  //     console.error('Error submitting email:', error);
+  //   });
+  // }
 
   function openModal() {
     showModal = true;
@@ -338,7 +338,7 @@
           <img alt="Midnight - A Murder Mystery" class="w-full h-auto block" style="object-fit: contain; background-repeat: no-repeat; background-size: contain;" src="/logo.svg" />
         </div>
         
-        <form on:submit={handleNavigateToRsvp} class="flex flex-col items-center gap-4 2xl:gap-5 rotate-[-4.25deg]">
+        <form action="/login" class="flex flex-col items-center gap-4 2xl:gap-5 rotate-[-4.25deg]">
           <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[30px] text-center leading-normal max-w-3xl 2xl:max-w-4xl">
             Spend 70 hours building personal projects, fly to a <br><span class="text-[#f24b4b]">murder mystery</span> hackathon in Vienna, Austria - Jan 2026 
           </p>
@@ -347,6 +347,7 @@
             <div class="flex flex-col md:flex-row items-center gap-3 md:gap-4 2xl:gap-5 w-full">
               <input
                 type="email"
+                name="email"
                 bind:value={email}
                 placeholder="wdaniel@hackclub.com"
                 class="w-full md:flex-1 h-[60px] md:h-[66px] lg:h-[72px] 2xl:h-[78px] px-6 2xl:px-8 rounded-[18px] 2xl:rounded-[22px] bg-[#fee1c0] font-['PT_Sans',_sans-serif] text-[rgba(0,0,0,0.7)] text-xl md:text-2xl lg:text-[32px] 2xl:text-[36px] focus:outline-none focus:ring-2 focus:ring-[#fee1c0] focus:ring-opacity-50"
@@ -357,7 +358,7 @@
                 class="pushable flex-shrink-0"
               >
                 <span class="front font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre">
-                  RSVP
+                  SEND OTP
                 </span>
               </button>
             </div>
