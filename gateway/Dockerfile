@@ -18,8 +18,8 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV USER_SERVICE_URL=http://user-service:3002
-ENV MAIL_SERVICE_URL=http://mail-service:3003
+ENV USER_SERVICE_URL=http://unified-service:3002
+ENV MAIL_SERVICE_URL=http://unified-service:3002
 ENV UI_SERVICE_URL=http://lark-ui:5173
 
 RUN addgroup --system --gid 1001 nodejs

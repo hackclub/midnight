@@ -11,8 +11,7 @@ services:
       - midnight-network
     depends_on:
       - lark-ui
-      - user-service
-      - mail-service
+      - unified-service
 
   # Frontend UI - SvelteKit Application
   lark-ui:
@@ -28,34 +27,20 @@ services:
     expose:
       - "5173"
 
-  # User Service - NestJS API
-  user-service:
+  # Unified Service - NestJS API
+  unified-service:
     build:
       context: .
-      dockerfile: ./owl-api/user-service/Dockerfile
+      dockerfile: ./owl-api/unified-service/Dockerfile
     environment:
       - NODE_ENV=production
       - PORT=3002
-      - MAIL_SERVICE_URL=http://mail-service:3003
+      - MAIL_SERVICE_URL=http://unified-service:3002
     restart: unless-stopped
     networks:
       - midnight-network
     expose:
       - "3002"
-
-  # Mail Service - NestJS API
-  mail-service:
-    build:
-      context: .
-      dockerfile: ./owl-api/mail-service/Dockerfile
-    environment:
-      - NODE_ENV=production
-      - MAIL_SERVICE_PORT=3003
-    restart: unless-stopped
-    networks:
-      - midnight-network
-    expose:
-      - "3003"
 
 networks:
   midnight-network:

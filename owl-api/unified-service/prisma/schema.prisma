@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailJob {
+  id          String   @id @default(uuid())
+  recipientEmail String
+  subject     String
+  status      String   @default("pending")
+  scheduledFor DateTime?
+  sentAt      DateTime?
+  failedAt    DateTime?
+  errorMessage String?
+  metadata    Json?
+  lockedBy    String?
+  lockedAt    DateTime?
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([recipientEmail])
+  @@index([createdAt])
+  @@index([scheduledFor])
+  @@index([lockedBy])
+  @@map("email_jobs")
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  AdminSession[]
+
+  @@map("admin_users")
+}
+
+model AdminSession {
+  id          String    @id @default(uuid())
+  adminUserId String
+  otpCode     String
+  otpExpiresAt DateTime
+  isVerified  Boolean   @default(false)
+  verifiedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([otpCode])
+  @@map("admin_sessions")
+}
+
+model StickerToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  rsvpNumber Int
+  isUsed    Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([email])
+  @@map("sticker_tokens")
+}
+
