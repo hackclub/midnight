@@ -9,5 +9,6 @@ import { JobLockService } from '../job-lock.service';
   imports: [],
   controllers: [MailController],
   providers: [MailService, PrismaService, RedisService, JobLockService],
+  exports: [MailService],
 })
 export class MailModule {}

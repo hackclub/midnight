@@ -9,6 +9,7 @@ import { DashboardController } from './dashboard.controller';
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis.service';
 import { JobLockService } from '../job-lock.service';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JobLockService } from '../job-lock.service';
       ttl: 60000,
       limit: 10,
     }]),
+    MailModule,
   ],
   controllers: [UserController, AdminController, DashboardController],
   providers: [

@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -9,7 +10,10 @@ export class UserService {
   private readonly EMAIL_TABLE_ID = 'tblFDNhax22eAjSB3';
   private readonly AIRTABLE_API_KEY = process.env.USER_SERVICE_AIRTABLE_API_KEY;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,28 +62,21 @@ export class UserService {
         }
       }
       
-      const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://unified-service:3002';
-      const payload = { 
+      console.log(`Calling mail service directly with:`, {
         email,
         rsvpNumber: rafflePosition,
         rafflePosition,
         stickerToken,
-      };
-      console.log(`Sending to mail service:`, JSON.stringify(payload, null, 2));
-      
-      const mailResponse = await fetch(`${mailServiceUrl}/send-rsvp-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
       });
-
-      if (!mailResponse.ok) {
-        console.error('Failed to send email in background');
-      } else {
-        console.log('Successfully sent RSVP confirmation email in background');
-      }
+      
+      await this.mailService.sendRsvpEmail(
+        email,
+        rafflePosition,
+        rafflePosition,
+        stickerToken
+      );
+      
+      console.log('Successfully sent RSVP confirmation email in background');
     } catch (error) {
       console.error('Error in background email send:', error);
     }
