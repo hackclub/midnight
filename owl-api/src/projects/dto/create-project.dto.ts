@@ -5,7 +5,7 @@ export class CreateProjectDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(30)
-  projectName: string;
+  projectTitle: string;
 
   @IsEnum(ProjectType)
   @IsNotEmpty()

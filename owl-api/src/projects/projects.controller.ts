@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { Request } from 'express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -25,7 +26,7 @@ export class ProjectsController {
 
   @Get(':id')
   async getProject(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
   ) {
     return this.projectsService.getProject(id, req.user.userId);
@@ -41,9 +42,18 @@ export class ProjectsController {
 
   @Get(':id/submissions')
   async getProjectSubmissions(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
   ) {
     return this.projectsService.getProjectSubmissions(id, req.user.userId);
+  }
+
+  @Put(':id')
+  async updateProject(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @Req() req: Request,
+  ) {
+    return this.projectsService.createEditRequest(id, updateProjectDto, req.user.userId);
   }
 }

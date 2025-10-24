@@ -1,6 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { MailService } from '../mail/mail.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -507,6 +509,94 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async createUser(createUserDto: CreateUserDto) {
+    const { email, firstName, lastName } = createUserDto;
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new HttpException(
+        'User with this email already exists',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        birthday: new Date('2000-01-01'), // Default birthday, can be updated later
+      },
+    });
+
+    return {
+      userId: user.userId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      createdAt: user.createdAt,
+    };
+  }
+
+  async updateUser(userId: number, updateUserDto: UpdateUserDto) {
+    const updateData: any = {};
+
+    if (updateUserDto.firstName !== undefined) {
+      updateData.firstName = updateUserDto.firstName;
+    }
+    if (updateUserDto.lastName !== undefined) {
+      updateData.lastName = updateUserDto.lastName;
+    }
+    if (updateUserDto.birthday !== undefined) {
+      updateData.birthday = new Date(updateUserDto.birthday);
+    }
+    if (updateUserDto.addressLine1 !== undefined) {
+      updateData.addressLine1 = updateUserDto.addressLine1;
+    }
+    if (updateUserDto.addressLine2 !== undefined) {
+      updateData.addressLine2 = updateUserDto.addressLine2;
+    }
+    if (updateUserDto.city !== undefined) {
+      updateData.city = updateUserDto.city;
+    }
+    if (updateUserDto.state !== undefined) {
+      updateData.state = updateUserDto.state;
+    }
+    if (updateUserDto.country !== undefined) {
+      updateData.country = updateUserDto.country;
+    }
+    if (updateUserDto.zipCode !== undefined) {
+      updateData.zipCode = updateUserDto.zipCode;
+    }
+    if (updateUserDto.airtableRecId !== undefined) {
+      updateData.airtableRecId = updateUserDto.airtableRecId;
+    }
+
+    const user = await this.prisma.user.update({
+      where: { userId },
+      data: updateData,
+    });
+
+    return {
+      userId: user.userId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      birthday: user.birthday,
+      addressLine1: user.addressLine1,
+      addressLine2: user.addressLine2,
+      city: user.city,
+      state: user.state,
+      country: user.country,
+      zipCode: user.zipCode,
+      airtableRecId: user.airtableRecId,
+      updatedAt: user.updatedAt,
+    };
   }
 
   getHealth() {

@@ -43,8 +43,8 @@ export class AuthService {
       const tempUser = await this.prisma.user.create({
         data: {
           email,
-          username: `temp_${randomUUID()}`, // Temporary username with UUID
-          name: 'Temporary User', // Temporary name
+          firstName: 'Temporary', // Temporary first name
+          lastName: 'User', // Temporary last name
           birthday: new Date('2000-01-01'), // Temporary birthday
           role: 'user', // Default role
         },
@@ -118,8 +118,8 @@ export class AuthService {
         user: {
           userId: existingUser.userId,
           email: existingUser.email,
-          username: existingUser.username,
-          name: existingUser.name,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
         },
         sessionId: session.id,
       };
@@ -135,7 +135,7 @@ export class AuthService {
   }
 
   async completeProfile(completeProfileDto: CompleteProfileDto, sessionId: string, email: string) {
-    const { username, name, birthday } = completeProfileDto;
+    const { firstName, lastName, birthday, addressLine1, addressLine2, city, state, country, zipCode, airtableRecId } = completeProfileDto;
 
     const session = await this.prisma.userSession.findUnique({
       where: { id: sessionId },
@@ -150,28 +150,28 @@ export class AuthService {
       throw new BadRequestException('User not found in session');
     }
 
-    // Check if this is a temporary user (starts with 'temp_')
-    const isTemporaryUser = session.user.username.startsWith('temp_');
+    // Check if this is a temporary user (first name is 'Temporary')
+    const isTemporaryUser = session.user.firstName === 'Temporary';
     
     if (!isTemporaryUser) {
       throw new BadRequestException('User profile already completed');
-    }
-
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username },
-    });
-
-    if (existingUsername && existingUsername.userId !== session.user.userId) {
-      throw new BadRequestException('Username already taken');
     }
 
     // Update the existing temporary user
     const user = await this.prisma.user.update({
       where: { userId: session.user.userId },
       data: {
-        username,
-        name,
+        firstName,
+        lastName,
         birthday: new Date(birthday),
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        country,
+        zipCode,
+        airtableRecId,
+        onboardedAt: new Date(),
       },
     });
 
@@ -180,8 +180,8 @@ export class AuthService {
       user: {
         userId: user.userId,
         email: user.email,
-        username: user.username,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
     };
   }
@@ -199,7 +199,7 @@ export class AuthService {
     return session.user;
   }
 
-  async completeOnboarding(userId: string) {
+  async completeOnboarding(userId: number) {
     const user = await this.prisma.user.update({
       where: { userId },
       data: { onboardComplete: true },
@@ -210,14 +210,14 @@ export class AuthService {
       user: {
         userId: user.userId,
         email: user.email,
-        username: user.username,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         onboardComplete: user.onboardComplete,
       },
     };
   }
 
-  async getOnboardingStatus(userId: string) {
+  async getOnboardingStatus(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       select: { onboardComplete: true },

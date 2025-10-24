@@ -305,6 +305,114 @@ async function logout() {
 }
 ```
 
+## User Management Endpoints
+
+### 8. Create User
+
+**Endpoint**: `POST /api/user`
+
+**Purpose**: Create a new user with basic information
+
+**Request**:
+```typescript
+{
+  email: string;        // Required - Valid email address
+  firstName: string;    // Required - User's first name
+  lastName: string;     // Required - User's last name
+}
+```
+
+**Response**:
+```typescript
+// Success (201)
+{
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+}
+
+// Error (409)
+{
+  message: "User with this email already exists";
+}
+```
+
+**Frontend Usage**:
+```typescript
+async function createUser() {
+  const response = await fetch(`${API_BASE}/api/user`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: 'user@example.com',
+      firstName: 'John',
+      lastName: 'Doe'
+    })
+  });
+}
+```
+
+### 9. Update User
+
+**Endpoint**: `PUT /api/user`
+
+**Purpose**: Update user information (requires authentication)
+
+**Request**:
+```typescript
+{
+  firstName?: string;           // Optional - User's first name
+  lastName?: string;           // Optional - User's last name
+  birthday?: string;           // Optional - ISO date string (YYYY-MM-DD)
+  addressLine1?: string;      // Optional - Address line 1
+  addressLine2?: string;       // Optional - Address line 2
+  city?: string;               // Optional - City
+  state?: string;              // Optional - State
+  country?: string;            // Optional - Country
+  zipCode?: string;            // Optional - Zip code
+  airtableRecId?: string;      // Optional - Airtable record ID
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  birthday: Date;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  zipCode: string | null;
+  airtableRecId: string | null;
+  updatedAt: Date;
+}
+```
+
+**Frontend Usage**:
+```typescript
+async function updateUser() {
+  const response = await fetch(`${API_BASE}/api/user`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      firstName: 'Jane',
+      lastName: 'Smith',
+      birthday: '1995-06-15',
+      city: 'San Francisco'
+    })
+  });
+}
+```
+
 ## Project Management Endpoints
 
 ### Project Type Enum
@@ -315,7 +423,7 @@ The `projectType` field must be one of the following enum values:
 - `platformer_game` - For platformer game projects  
 - `wildcard` - For any other type of project
 
-### 8. Create Project
+### 10. Create Project
 
 **Endpoint**: `POST /api/projects/auth`
 
@@ -359,7 +467,7 @@ async function createProject() {
 }
 ```
 
-### 9. Get User Projects
+### 11. Get User Projects
 
 **Endpoint**: `GET /api/projects/auth`
 
@@ -397,7 +505,81 @@ async function createProject() {
 ]
 ```
 
-### 10. Get Project Details
+### 12. Update Project
+
+**Endpoint**: `PUT /api/projects/auth/:id`
+
+**Purpose**: Create an edit request for project information (requires authentication and at least one submission)
+
+**Request**:
+```typescript
+{
+  projectTitle?: string;           // Optional - Project title (max 30 chars)
+  description?: string;            // Optional - Project description (max 500 chars)
+  playableUrl?: string;           // Optional - Playable URL
+  repoUrl?: string;               // Optional - Repository URL
+  screenshotUrl?: string;         // Optional - Screenshot URL
+  airtableRecId?: string;         // Optional - Airtable record ID
+}
+```
+
+**Note**: `approvedHours`, `nowHackatimeHours`, and `hoursJustification` are not user-editable and are managed by the system.
+
+**Response**:
+```typescript
+// Success (200)
+{
+  message: string;
+  editRequest: {
+    requestId: number;
+    userId: number;
+    projectId: number;
+    requestType: 'project_update';
+    currentData: Record<string, any>;
+    requestedData: Record<string, any>;
+    status: 'pending';
+    reason: string | null;
+    reviewedBy: number | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+    };
+  };
+}
+
+// Error (403) - No submissions
+{
+  message: "You must submit at least one submission before requesting project edits.";
+}
+```
+
+**Frontend Usage**:
+```typescript
+async function updateProject() {
+  const response = await fetch(`${API_BASE}/api/projects/auth/${projectId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      projectTitle: 'Updated Project Name',
+      description: 'Updated project description',
+      playableUrl: 'https://example.com/play'
+    })
+  });
+}
+```
+
+### 13. Get Project Details
 
 **Endpoint**: `GET /api/projects/auth/:id`
 
@@ -440,20 +622,20 @@ async function createProject() {
 
 ## Submission Management Endpoints
 
-### 11. Create Submission
+### 14. Create Submission
 
 **Endpoint**: `POST /api/projects/auth/submissions`
 
-**Purpose**: Create a submission for a project
+**Purpose**: Create a submission for a project. **Important**: This endpoint validates that both user and project are complete, then automatically copies data from the project to create the submission.
+
+**Prerequisites**:
+- User must have complete profile: firstName, lastName, email, birthday, addressLine1, city, state, country, zipCode
+- Project must have complete data: projectTitle, description, nowHackatimeHours, playableUrl, repoUrl, screenshotUrl
 
 **Request**:
 ```typescript
 {
-  projectId: string;        // Required
-  playableUrl?: string;    // Optional URL
-  imageUrl?: string;       // Optional URL
-  description?: string;     // Optional text
-  repoUrl?: string;        // Optional URL
+  projectId: number;        // Required - ID of the project to submit
 }
 ```
 
@@ -461,16 +643,343 @@ async function createProject() {
 ```typescript
 // Success (200)
 {
-  submissionId: string;
-  projectId: string;
-  playableUrl: string | null;
-  imageUrl: string | null;
-  description: string | null;
-  repoUrl: string | null;
+  submissionId: number;
+  projectId: number;
+  playableUrl: string;      // Copied from project
+  screenshotUrl: string;    // Copied from project
+  description: string;      // Copied from project
+  repoUrl: string;         // Copied from project
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Error (403) - Validation failures
+{
+  message: "User profile incomplete. Please complete your profile first.";
+  // OR
+  message: "User address incomplete. Please complete your address information first.";
+  // OR
+  message: "Project incomplete. Please complete all required project fields first.";
+}
 ```
+
+**Automatic Data Copying**:
+- `playableUrl` is automatically copied from project
+- `screenshotUrl` is automatically copied from project  
+- `description` is automatically copied from project
+- `repoUrl` is automatically copied from project
+- Users cannot manually specify these fields - they are always copied from the project
+
+**Project Locking**:
+- After creating a submission, the project is automatically locked
+- Locked projects cannot be edited by users
+- Only admins can unlock projects
+
+**Edit Request System**:
+- Users can request edits to projects and user profiles
+- **Project edit requests require at least one submission** before they can be made
+- Edit requests require admin approval before changes are applied
+- All edit requests are tracked with status (pending/approved/rejected)
+- Admins can approve or reject edit requests with reasons
+
+## Admin Management Endpoints
+
+### 15. Get All Submissions (Admin Only)
+
+**Endpoint**: `GET /api/admin/submissions`
+
+**Purpose**: Get all submissions across all users (admin only)
+
+**Response**:
+```typescript
+// Success (200)
+[
+  {
+    submissionId: number;
+    projectId: number;
+    playableUrl: string;
+    screenshotUrl: string;
+    description: string;
+    repoUrl: string;
+    approvedHours: number | null;
+    hoursJustification: string | null;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    reviewedBy: string | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+      isLocked: boolean;
+      user: {
+        userId: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+      };
+    };
+  }
+]
+```
+
+### 16. Update Submission (Admin Only)
+
+**Endpoint**: `PUT /api/admin/submissions/:id`
+
+**Purpose**: Update submission approval status, hours, and justification (admin only)
+
+**Request**:
+```typescript
+{
+  approvedHours?: number;           // Optional - Approved hours
+  hoursJustification?: string;     // Optional - Hours justification (max 500 chars)
+  approvalStatus?: 'pending' | 'approved' | 'rejected';  // Optional - Approval status
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  submissionId: number;
+  projectId: number;
+  playableUrl: string;
+  screenshotUrl: string;
+  description: string;
+  repoUrl: string;
+  approvedHours: number | null;
+  hoursJustification: string | null;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  reviewedBy: string;
+  reviewedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  project: {
+    projectId: number;
+    projectTitle: string;
+    projectType: string;
+    isLocked: boolean;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  };
+}
+```
+
+### 17. Unlock Project (Admin Only)
+
+**Endpoint**: `PUT /api/admin/projects/:id/unlock`
+
+**Purpose**: Unlock a project to allow user editing (admin only)
+
+**Response**:
+```typescript
+// Success (200)
+{
+  projectId: number;
+  projectTitle: string;
+  projectType: string;
+  isLocked: false;
+  user: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  submissions: Submission[];
+}
+```
+
+## Edit Request Management Endpoints
+
+### 18. Create Edit Request
+
+**Endpoint**: `POST /api/edit-requests`
+
+**Purpose**: Create an edit request for project or user data (requires authentication)
+
+**Request**:
+```typescript
+{
+  projectId: number;                    // Required - Project ID
+  requestType: 'project_update' | 'user_update';  // Required - Type of edit request
+  currentData: Record<string, any>;    // Required - Current data state
+  requestedData: Record<string, any>;  // Required - Requested changes
+  reason?: string;                     // Optional - Reason for the request (max 500 chars)
+}
+```
+
+**Response**:
+```typescript
+// Success (201)
+{
+  message: string;
+  editRequest: {
+    requestId: number;
+    userId: number;
+    projectId: number;
+    requestType: 'project_update' | 'user_update';
+    currentData: Record<string, any>;
+    requestedData: Record<string, any>;
+    status: 'pending';
+    reason: string | null;
+    reviewedBy: number | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+    };
+  };
+}
+```
+
+### 19. Get User Edit Requests
+
+**Endpoint**: `GET /api/edit-requests`
+
+**Purpose**: Get edit requests for the authenticated user
+
+**Response**:
+```typescript
+// Success (200)
+[
+  {
+    requestId: number;
+    userId: number;
+    projectId: number;
+    requestType: 'project_update' | 'user_update';
+    currentData: Record<string, any>;
+    requestedData: Record<string, any>;
+    status: 'pending' | 'approved' | 'rejected';
+    reason: string | null;
+    reviewedBy: number | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+    };
+    reviewer: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  }
+]
+```
+
+### 20. Get All Edit Requests (Admin Only)
+
+**Endpoint**: `GET /api/edit-requests/admin`
+
+**Purpose**: Get all edit requests across all users (admin only)
+
+**Response**:
+```typescript
+// Success (200)
+[
+  {
+    requestId: number;
+    userId: number;
+    projectId: number;
+    requestType: 'project_update' | 'user_update';
+    currentData: Record<string, any>;
+    requestedData: Record<string, any>;
+    status: 'pending' | 'approved' | 'rejected';
+    reason: string | null;
+    reviewedBy: number | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+    };
+    reviewer: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  }
+]
+```
+
+### 21. Update Edit Request (Admin Only)
+
+**Endpoint**: `PUT /api/edit-requests/:id`
+
+**Purpose**: Approve or reject an edit request (admin only)
+
+**Request**:
+```typescript
+{
+  status?: 'pending' | 'approved' | 'rejected';  // Optional - New status
+  reason?: string;                               // Optional - Reason for decision (max 500 chars)
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  requestId: number;
+  userId: number;
+  projectId: number;
+  requestType: 'project_update' | 'user_update';
+  currentData: Record<string, any>;
+  requestedData: Record<string, any>;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string | null;
+  reviewedBy: number;
+  reviewedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  project: {
+    projectId: number;
+    projectTitle: string;
+    projectType: string;
+  };
+  reviewer: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+```
+
+**Note**: When an edit request is approved, the changes are automatically applied to the database.
 
 **Frontend Usage**:
 ```typescript
@@ -490,7 +999,7 @@ async function createSubmission() {
 }
 ```
 
-### 12. Get Project Submissions
+### 15. Get Project Submissions
 
 **Endpoint**: `GET /api/projects/auth/:id/submissions`
 

@@ -1,7 +1,10 @@
-import { Controller, Post, Get, Body, Req, Res, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Req, Res, HttpCode, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { InitialRsvpDto } from './dto/initial-rsvp.dto';
 import { CompleteRsvpDto } from './dto/complete-rsvp.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from '../auth/auth.guard';
 import * as express from 'express';
 
 @Controller()
@@ -107,5 +110,19 @@ export class UserController {
   @Get()
   getHealth() {
     return this.userService.getHealth();
+  }
+
+  @Post('api/user')
+  @HttpCode(201)
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
+  }
+
+  @Put('api/user')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async updateUser(@Body() updateUserDto: UpdateUserDto, @Req() req: express.Request) {
+    const userId = req.user.userId;
+    return this.userService.updateUser(userId, updateUserDto);
   }
 }
