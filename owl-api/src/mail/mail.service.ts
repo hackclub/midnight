@@ -23,11 +23,11 @@ export class MailService {
   ) {
     const smtpHost = process.env.SMTP_HOST || `email-smtp.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`;
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpUser = process.env.SMTP_USER || process.env.AWS_SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS || process.env.AWS_SMTP_PASS;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
 
     if (!smtpUser || !smtpPass) {
-      throw new Error('SMTP credentials must be configured (SMTP_USER and SMTP_PASS or AWS_SMTP_USER and AWS_SMTP_PASS)');
+      throw new Error('SMTP credentials must be configured (SMTP_USER and SMTP_PASS)');
     }
 
     this.transporter = nodemailer.createTransport({
