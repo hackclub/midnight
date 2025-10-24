@@ -26,6 +26,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
+COPY owl-api/templates ./templates
 COPY owl-api/start.sh ./start.sh
 
 RUN chmod +x ./start.sh
