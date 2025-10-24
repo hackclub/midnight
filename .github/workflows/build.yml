@@ -29,31 +29,19 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          ghcr.io/${{ github.repository }}/mail-service
-          ghcr.io/${{ github.repository }}/user-service
+          ghcr.io/${{ github.repository }}/owl-api
           ghcr.io/${{ github.repository }}/lark-ui
-          ghcr.io/${{ github.repository }}/gateway
         tags: |
           type=ref,event=branch
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
           
-    - name: Build and push owl-api mail-service
+    - name: Build and push owl-api
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./owl-api/mail-service/Dockerfile
-        tags: ghcr.io/${{ github.repository }}/mail-service:latest,ghcr.io/${{ github.repository }}/mail-service:${{ github.sha }}
-        push: true
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        
-    - name: Build and push owl-api user-service
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./owl-api/user-service/Dockerfile
-        tags: ghcr.io/${{ github.repository }}/user-service:latest,ghcr.io/${{ github.repository }}/user-service:${{ github.sha }}
+        file: ./owl-api/Dockerfile
+        tags: ghcr.io/${{ github.repository }}/owl-api:latest,ghcr.io/${{ github.repository }}/owl-api:${{ github.sha }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -68,12 +56,3 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
-    - name: Build and push gateway
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./gateway/Dockerfile
-        tags: ghcr.io/${{ github.repository }}/gateway:latest,ghcr.io/${{ github.repository }}/gateway:${{ github.sha }}
-        push: true
-        cache-from: type=gha
-        cache-to: type=gha,mode=max

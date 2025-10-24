@@ -53,7 +53,7 @@ export class UserController {
   @Get('/api/user/rsvp/count')
   @HttpCode(200)
   async getRsvpCountWithPrefix() {
-    return await this.appService.getRsvpCount();
+    return await this.userService.getRsvpCount();
   }
 
   @Post('/api/user/rsvp/initial')
@@ -67,7 +67,7 @@ export class UserController {
       ? forwardedFor.split(',')[0].trim()
       : req.ip || req.socket.remoteAddress || 'unknown';
 
-    await this.appService.createInitialRsvp(body.email, clientIP);
+    await this.userService.createInitialRsvp(body.email, clientIP);
     return { success: true };
   }
 
@@ -88,7 +88,7 @@ export class UserController {
       ? forwardedFor.split(',')[0].trim()
       : req.ip || req.socket.remoteAddress || 'unknown';
 
-    const result = await this.appService.completeRsvp(body, clientIP);
+    const result = await this.userService.completeRsvp(body, clientIP);
     return { success: true, rafflePosition: result.rafflePosition };
   }
 
@@ -101,7 +101,7 @@ export class UserController {
   @Post('/api/user/sticker-token/verify')
   @HttpCode(200)
   async verifyStickerTokenWithPrefix(@Body() body: { token: string }) {
-    return await this.appService.verifyStickerToken(body.token);
+    return await this.userService.verifyStickerToken(body.token);
   }
 
   @Get()
