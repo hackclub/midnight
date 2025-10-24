@@ -50,10 +50,58 @@ export class UserController {
     return await this.userService.getRsvpCount();
   }
 
+  @Get('/api/user/rsvp/count')
+  @HttpCode(200)
+  async getRsvpCountWithPrefix() {
+    return await this.appService.getRsvpCount();
+  }
+
+  @Post('/api/user/rsvp/initial')
+  @HttpCode(200)
+  async createInitialRsvpWithPrefix(
+    @Body() body: InitialRsvpDto,
+    @Req() req: express.Request,
+  ) {
+    const forwardedFor = req.headers['x-forwarded-for'] as string;
+    const clientIP = forwardedFor
+      ? forwardedFor.split(',')[0].trim()
+      : req.ip || req.socket.remoteAddress || 'unknown';
+
+    await this.appService.createInitialRsvp(body.email, clientIP);
+    return { success: true };
+  }
+
+  @Get('/api/user/rsvp/check-session')
+  @HttpCode(200)
+  checkSessionWithPrefix() {
+    return { hasSession: true };
+  }
+
+  @Post('/api/user/rsvp/complete')
+  @HttpCode(200)
+  async completeRsvpWithPrefix(
+    @Body() body: CompleteRsvpDto,
+    @Req() req: express.Request,
+  ) {
+    const forwardedFor = req.headers['x-forwarded-for'] as string;
+    const clientIP = forwardedFor
+      ? forwardedFor.split(',')[0].trim()
+      : req.ip || req.socket.remoteAddress || 'unknown';
+
+    const result = await this.appService.completeRsvp(body, clientIP);
+    return { success: true, rafflePosition: result.rafflePosition };
+  }
+
   @Post('/sticker-token/verify')
   @HttpCode(200)
   async verifyStickerToken(@Body() body: { token: string }) {
     return await this.userService.verifyStickerToken(body.token);
+  }
+
+  @Post('/api/user/sticker-token/verify')
+  @HttpCode(200)
+  async verifyStickerTokenWithPrefix(@Body() body: { token: string }) {
+    return await this.appService.verifyStickerToken(body.token);
   }
 
   @Get()

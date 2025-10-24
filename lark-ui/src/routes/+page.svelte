@@ -446,6 +446,8 @@
         
         <p class="letter-signature">With love,</p>
         <p class="letter-signature">Alex, Kacper, Sebastian, Renran, Manitej, Dev and the Midnight Team</p>
+
+        <img alt="The Hack Club Midnight Team" src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/7ada8a0621f0f84c5059b856cdea1bc1ab3e4bf0_group_photo.png" />
       </div>
     </div>
   </div>

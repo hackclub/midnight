@@ -36,12 +36,9 @@ export class UserService {
       console.log(`=== SENDING EMAIL IN BACKGROUND ===`);
       console.log(`Email: ${email}, RafflePosition received: ${rafflePosition}`);
       
-      const rsvpCountData = await this.getRsvpCount();
-      const rsvpNumber = rsvpCountData.count;
-      
       let stickerToken: string | null = null;
       
-      if (rsvpNumber <= 5000) {
+      if (rafflePosition <= 5000) {
         const existingToken = await this.prisma.stickerToken.findFirst({
           where: { email },
         });
@@ -52,7 +49,7 @@ export class UserService {
             data: {
               email,
               token,
-              rsvpNumber,
+              rsvpNumber: rafflePosition,
             },
           });
           stickerToken = token;
@@ -64,7 +61,7 @@ export class UserService {
       const mailServiceUrl = process.env.MAIL_SERVICE_URL || 'http://unified-service:3002';
       const payload = { 
         email,
-        rsvpNumber,
+        rsvpNumber: rafflePosition,
         rafflePosition,
         stickerToken,
       };
