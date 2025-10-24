@@ -1,9 +1,10 @@
-# Login Page API Documentation
+# Login & Admin API Documentation
 
-This document describes how the `/login` page interacts with the backend API endpoints, including the data it sends and receives.
+This document describes how the `/login` and `/admin` pages interact with the backend API endpoints, including the data they send and receive.
 
 ## Overview
 
+### Login Page (`/login`)
 The login page (`/Users/leafd/HackClub/midnight/lark-ui/src/routes/login/+page.svelte`) is a comprehensive authentication and project management interface that handles:
 
 1. **Authentication Flow**: Email-based OTP authentication
@@ -12,10 +13,23 @@ The login page (`/Users/leafd/HackClub/midnight/lark-ui/src/routes/login/+page.s
 4. **Submission Management**: Creating submissions for projects
 5. **Onboarding**: Testing onboarding completion status
 
+### Admin Pages (`/admin`)
+The admin pages provide administrative functionality for managing the system:
+
+1. **Admin Authentication**: Email-based OTP authentication for whitelisted admins
+2. **Dashboard**: Email job monitoring and statistics
+3. **Submission Management**: Review and approve user submissions
+4. **Edit Request Management**: Review and approve user edit requests
+5. **Project Management**: Unlock projects for user editing
+
 ## API Base Configuration
 
 ```typescript
+// For login/user endpoints
 const API_BASE = 'http://localhost:3002';
+
+// For admin endpoints  
+const ADMIN_API_BASE = 'http://localhost:3002';
 ```
 
 All API calls include `credentials: 'include'` to maintain session cookies.
@@ -1091,6 +1105,576 @@ let message = '';
 let error = '';
 ```
 
+## Admin Authentication Endpoints
+
+### 22. Admin Login Request
+
+**Endpoint**: `POST /admin/login`
+
+**Purpose**: Send OTP to whitelisted admin email for authentication
+
+**Request**:
+```typescript
+{
+  email: string; // Must be in ADMIN_EMAIL_WHITELIST
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  success: true;
+  message: "OTP sent to your email";
+}
+
+// Error (400/403)
+{
+  success: false;
+  message: "Email not whitelisted" | "Rate limit exceeded";
+}
+```
+
+**Rate Limiting**: 5 requests per 15 minutes per IP
+
+**Frontend Usage**:
+```typescript
+async function requestAdminLogin() {
+  const response = await fetch(`${ADMIN_API_BASE}/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email })
+  });
+}
+```
+
+### 23. Admin OTP Verification
+
+**Endpoint**: `POST /admin/verify-otp`
+
+**Purpose**: Verify admin OTP and establish session
+
+**Request**:
+```typescript
+{
+  email: string;    // Same email used in login
+  otpCode: string;  // 6-digit OTP code
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  success: true;
+}
+
+// Error (401)
+{
+  success: false;
+  message: "Invalid or expired OTP";
+}
+```
+
+**Cookies Set**:
+- `admin_session`: HTTP-only cookie for admin session (24 hours)
+
+**Frontend Usage**:
+```typescript
+async function verifyAdminOtp() {
+  const response = await fetch(`${ADMIN_API_BASE}/admin/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, otpCode })
+  });
+}
+```
+
+### 24. Check Admin Session
+
+**Endpoint**: `GET /admin/session`
+
+**Purpose**: Check if admin is currently authenticated
+
+**Request**:
+- Method: GET
+- Headers: `credentials: 'include'`
+- No body required
+
+**Response**:
+```typescript
+// Success (200)
+{
+  valid: true;
+  email: string;
+}
+
+// Error (401)
+{
+  message: "Authentication required" | "Session cookie not found";
+}
+```
+
+**Frontend Usage**:
+```typescript
+async function checkAdminSession() {
+  const response = await fetch(`${ADMIN_API_BASE}/admin/session`, {
+    credentials: 'include'
+  });
+  
+  if (response.ok) {
+    const data = await response.json();
+    // Admin is authenticated
+  }
+}
+```
+
+### 25. Admin Logout
+
+**Endpoint**: `POST /admin/logout`
+
+**Purpose**: End admin session
+
+**Request**:
+- Method: POST
+- Headers: `credentials: 'include'`
+- No body required
+
+**Response**:
+```typescript
+{
+  success: true;
+}
+```
+
+**Cookies Cleared**:
+- `admin_session`
+
+**Frontend Usage**:
+```typescript
+async function adminLogout() {
+  await fetch(`${ADMIN_API_BASE}/admin/logout`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+}
+```
+
+## Admin Dashboard Endpoints
+
+### 26. Get Email Job Statistics
+
+**Endpoint**: `GET /admin/dashboard/stats`
+
+**Purpose**: Get email job statistics for admin dashboard
+
+**Request**:
+- Method: GET
+- Headers: `credentials: 'include'`
+- No body required
+
+**Response**:
+```typescript
+// Success (200)
+{
+  stats: {
+    total: number;      // Total email jobs
+    pending: number;    // Pending jobs
+    sent: number;       // Successfully sent jobs
+    failed: number;     // Failed jobs
+  };
+  recentJobs: [
+    {
+      id: string;
+      recipientEmail: string;
+      subject: string;
+      status: 'pending' | 'sent' | 'failed';
+      sentAt: string | null;
+      failedAt: string | null;
+      errorMessage: string | null;
+      createdAt: string;
+    }
+  ];
+}
+```
+
+### 27. Get Email Jobs
+
+**Endpoint**: `GET /admin/dashboard/email-jobs`
+
+**Purpose**: Get paginated list of email jobs with optional filtering
+
+**Query Parameters**:
+- `status` (optional): Filter by status ('pending', 'sent', 'failed')
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 50)
+
+**Request**:
+- Method: GET
+- Headers: `credentials: 'include'`
+- URL: `/admin/dashboard/email-jobs?status=sent&page=1&limit=25`
+
+**Response**:
+```typescript
+// Success (200)
+{
+  jobs: [
+    {
+      id: string;
+      recipientEmail: string;
+      subject: string;
+      status: 'pending' | 'sent' | 'failed';
+      sentAt: string | null;
+      failedAt: string | null;
+      errorMessage: string | null;
+      createdAt: string;
+    }
+  ];
+  pagination: {
+    total: number;        // Total jobs matching filter
+    page: number;         // Current page
+    limit: number;        // Items per page
+    totalPages: number;   // Total pages
+  };
+}
+```
+
+**Frontend Usage**:
+```typescript
+async function loadEmailJobs(status = '', page = 1, limit = 50) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  if (status) {
+    params.append('status', status);
+  }
+  
+  const response = await fetch(`${ADMIN_API_BASE}/admin/dashboard/email-jobs?${params}`, {
+    credentials: 'include'
+  });
+}
+```
+
+## Admin Management Endpoints
+
+### 28. Get All Submissions (Admin Only)
+
+**Endpoint**: `GET /api/admin/submissions`
+
+**Purpose**: Get all submissions across all users (admin only)
+
+**Request**:
+- Method: GET
+- Headers: `credentials: 'include'`
+- No body required
+
+**Response**:
+```typescript
+// Success (200)
+[
+  {
+    submissionId: number;
+    projectId: number;
+    playableUrl: string;
+    screenshotUrl: string;
+    description: string;
+    repoUrl: string;
+    approvedHours: number | null;
+    hoursJustification: string | null;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    reviewedBy: string | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+      isLocked: boolean;
+      user: {
+        userId: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+        birthday: Date;
+        addressLine1: string;
+        addressLine2: string | null;
+        city: string;
+        state: string;
+        country: string;
+        zipCode: string;
+        airtableRecId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    };
+  }
+]
+```
+
+### 29. Update Submission (Admin Only)
+
+**Endpoint**: `PUT /api/admin/submissions/:id`
+
+**Purpose**: Update submission approval status, hours, and justification (admin only)
+
+**Request**:
+```typescript
+{
+  approvedHours?: number;           // Optional - Approved hours
+  hoursJustification?: string;     // Optional - Hours justification (max 500 chars)
+  approvalStatus?: 'pending' | 'approved' | 'rejected';  // Optional - Approval status
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  submissionId: number;
+  projectId: number;
+  playableUrl: string;
+  screenshotUrl: string;
+  description: string;
+  repoUrl: string;
+  approvedHours: number | null;
+  hoursJustification: string | null;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  reviewedBy: string;
+  reviewedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  project: {
+    projectId: number;
+    projectTitle: string;
+    projectType: string;
+    isLocked: boolean;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  };
+}
+```
+
+**Airtable Integration**:
+- When `approvalStatus` is set to 'approved', automatically creates Airtable record
+- Updates project and user with Airtable record ID
+- Updates Airtable record with approved hours and justification
+
+### 30. Get All Edit Requests (Admin Only)
+
+**Endpoint**: `GET /api/admin/edit-requests`
+
+**Purpose**: Get all edit requests across all users (admin only)
+
+**Response**:
+```typescript
+// Success (200)
+[
+  {
+    requestId: number;
+    userId: number;
+    projectId: number;
+    requestType: 'project_update' | 'user_update';
+    currentData: Record<string, any>;
+    requestedData: Record<string, any>;
+    status: 'pending' | 'approved' | 'rejected';
+    reason: string | null;
+    reviewedBy: number | null;
+    reviewedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+      birthday: Date;
+      addressLine1: string;
+      addressLine2: string | null;
+      city: string;
+      state: string;
+      country: string;
+      zipCode: string;
+      airtableRecId: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    };
+    project: {
+      projectId: number;
+      projectTitle: string;
+      projectType: string;
+      description: string;
+      playableUrl: string;
+      repoUrl: string;
+      screenshotUrl: string;
+      nowHackatimeHours: number;
+      airtableRecId: string | null;
+      isLocked: boolean;
+      createdAt: Date;
+      updatedAt: Date;
+    };
+    reviewer: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  }
+]
+```
+
+### 31. Update Edit Request (Admin Only)
+
+**Endpoint**: `PUT /api/edit-requests/:id`
+
+**Purpose**: Approve or reject an edit request (admin only)
+
+**Request**:
+```typescript
+{
+  status?: 'pending' | 'approved' | 'rejected';  // Optional - New status
+  reason?: string;                               // Optional - Reason for decision (max 500 chars)
+}
+```
+
+**Response**:
+```typescript
+// Success (200)
+{
+  requestId: number;
+  userId: number;
+  projectId: number;
+  requestType: 'project_update' | 'user_update';
+  currentData: Record<string, any>;
+  requestedData: Record<string, any>;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string | null;
+  reviewedBy: number;
+  reviewedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  project: {
+    projectId: number;
+    projectTitle: string;
+    projectType: string;
+  };
+  reviewer: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+```
+
+**Note**: When an edit request is approved, the changes are automatically applied to the database.
+
+### 32. Unlock Project (Admin Only)
+
+**Endpoint**: `PUT /api/admin/projects/:id/unlock`
+
+**Purpose**: Unlock a project to allow user editing (admin only)
+
+**Request**:
+- Method: PUT
+- Headers: `credentials: 'include'`
+- URL Parameter: `id` (projectId)
+- No body required
+
+**Response**:
+```typescript
+// Success (200)
+{
+  projectId: number;
+  projectTitle: string;
+  projectType: string;
+  isLocked: false;
+  user: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  submissions: [
+    {
+      submissionId: number;
+      projectId: number;
+      playableUrl: string;
+      screenshotUrl: string;
+      description: string;
+      repoUrl: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }
+  ];
+}
+```
+
+## Testing Information
+
+### Admin Email Whitelist
+
+Admin access is restricted to whitelisted email addresses. Configure the whitelist in your environment:
+
+```bash
+ADMIN_EMAIL_WHITELIST=admin@example.com,admin2@example.com
+```
+
+### Testing Admin Endpoints
+
+1. **Start the services**:
+   ```bash
+   # Terminal 1: Start the API
+   cd owl-api && pnpm run start:dev
+   
+   # Terminal 2: Start the UI
+   cd lark-ui && pnpm run dev
+   ```
+
+2. **Access admin portal**:
+   - Navigate to `http://localhost:5173/admin`
+   - Use a whitelisted email address
+   - Check console logs for OTP code (in development)
+
+3. **Test admin dashboard**:
+   - After authentication, access `http://localhost:5173/admin/dashboard`
+   - View email job statistics and paginated job list
+   - Test filtering by status (pending, sent, failed)
+
+### Testing User Endpoints
+
+1. **Access login page**:
+   - Navigate to `http://localhost:5173/login`
+   - Test the complete authentication flow
+   - Create projects and submissions
+
+2. **Test API directly**:
+   ```bash
+   # Test user authentication
+   curl -X POST http://localhost:3002/api/user/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@example.com"}'
+   
+   # Test admin authentication
+   curl -X POST http://localhost:3002/admin/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"admin@example.com"}'
+   ```
+
 ## Security Considerations
 
 1. **OTP Expiry**: OTP codes expire after 10 minutes
@@ -1098,3 +1682,6 @@ let error = '';
 3. **Input Validation**: All inputs are validated on both client and server
 4. **CORS**: Credentials are included for cross-origin requests
 5. **Temporary Users**: New users are created with temporary data until profile completion
+6. **Admin Whitelist**: Admin access restricted to whitelisted email addresses
+7. **Rate Limiting**: Admin endpoints have rate limiting (5 requests per 15 minutes)
+8. **Airtable Integration**: Automatic record creation for approved submissions

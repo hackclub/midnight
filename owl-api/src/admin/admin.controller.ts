@@ -19,6 +19,13 @@ export class AdminController {
     return this.adminService.getAllSubmissions();
   }
 
+  @Get('edit-requests')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async getAllEditRequests() {
+    return this.adminService.getAllEditRequests();
+  }
+
   @Put('submissions/:id')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
