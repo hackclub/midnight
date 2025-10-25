@@ -4,8 +4,8 @@ import { env } from '$env/dynamic/private';
 
 const apiUrl = env.PUBLIC_API_URL || "";
 
-async function verifyOtp(email: string, otp: string) {
-  return await fetch(`${apiUrl}/api/user/auth/verify-otp`, {
+async function verifyOtp(email: string, otp: string, fetchFn: typeof fetch) {
+  return await fetchFn(`${apiUrl}/api/user/auth/verify-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -14,12 +14,12 @@ async function verifyOtp(email: string, otp: string) {
 }
 
 export const actions = {
-    verify_otp: async ({ cookies, request, url }) => {
+    verify_otp: async ({ cookies, request, url, fetch: fetchFn }) => {
         const data = await request.formData();
         const email = data.get('email');
         const otp = data.get('otp');
 
-        const response = await verifyOtp(email as string, otp as string)
+        const response = await verifyOtp(email as string, otp as string, fetchFn)
         
         if (!response || !response.ok) {
             return fail(500, { message: 'Failed to verify OTP' })

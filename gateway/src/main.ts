@@ -22,10 +22,11 @@ const createServiceProxy = (serviceName: string, targetUrl: string) => {
     changeOrigin: true,
     logLevel: 'debug',
     pathRewrite: (path, req) => {
-      return path.replace(`/api/${serviceName}`, '');
+      // Don't rewrite the path - keep the full API path for the unified service
+      return path;
     },
     onProxyReq: (proxyReq, req, res) => {
-      console.log(`[${serviceName.toUpperCase()} →] ${req.method} ${req.url} -> ${targetUrl}${req.url.replace(`/api/${serviceName}`, '')}`);
+      console.log(`[${serviceName.toUpperCase()} →] ${req.method} ${req.url} -> ${targetUrl}${req.url}`);
       
       if (req.body && Object.keys(req.body).length > 0) {
         const bodyData = JSON.stringify(req.body);
