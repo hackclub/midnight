@@ -1,6 +1,6 @@
-import { PUBLIC_API_URL } from "$env/static/public";
+import { env } from "$env/dynamic/public";
 
-const apiUrl = PUBLIC_API_URL || '';
+const apiUrl = env.PUBLIC_API_URL || '';
 
 export async function checkAuthStatus() {
   const response = await fetch(`${apiUrl}/api/user/auth/me`, {
@@ -12,8 +12,8 @@ export async function checkAuthStatus() {
     return userData as {
         userId: string;
         email: string;
-        username: string;
-        name: string;
+        firstName: string;
+        lastName: string;
         birthday: Date;
         role: string;
         onboardComplete: boolean;
