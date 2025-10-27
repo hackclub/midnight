@@ -1,3 +1,15 @@
+-- CreateEnum
+CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'wildcard');
+
+-- CreateEnum
+CREATE TYPE "ApprovalStatus" AS ENUM ('pending', 'approved', 'rejected');
+
+-- CreateEnum
+CREATE TYPE "EditRequestType" AS ENUM ('project_update', 'user_update');
+
+-- CreateEnum
+CREATE TYPE "RequestStatus" AS ENUM ('pending', 'approved', 'rejected');
+
 -- CreateTable
 CREATE TABLE "users" (
     "user_id" SERIAL NOT NULL,
@@ -21,18 +33,6 @@ CREATE TABLE "users" (
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("user_id")
 );
-
--- CreateEnum
-CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'wildcard');
-
--- CreateEnum
-CREATE TYPE "ApprovalStatus" AS ENUM ('pending', 'approved', 'rejected');
-
--- CreateEnum
-CREATE TYPE "EditRequestType" AS ENUM ('project_update', 'user_update');
-
--- CreateEnum
-CREATE TYPE "RequestStatus" AS ENUM ('pending', 'approved', 'rejected');
 
 -- CreateTable
 CREATE TABLE "projects" (
@@ -88,32 +88,6 @@ CREATE TABLE "user_sessions" (
     CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
-
-
--- CreateIndex
-CREATE INDEX "idx_projects_user_id" ON "projects"("user_id");
-
--- CreateIndex
-CREATE INDEX "idx_submissions_project_id" ON "submissions"("project_id");
-
--- CreateIndex
-CREATE INDEX "idx_users_email" ON "users"("email");
-
-
--- CreateIndex
-CREATE INDEX "user_sessions_user_id_idx" ON "user_sessions"("user_id");
-
--- CreateIndex
-CREATE INDEX "user_sessions_otp_code_idx" ON "user_sessions"("otp_code");
-
--- AddForeignKey
-ALTER TABLE "projects" ADD CONSTRAINT "projects_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "submissions" ADD CONSTRAINT "submissions_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("project_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 -- CreateTable
 CREATE TABLE "edit_requests" (
     "request_id" SERIAL NOT NULL,
@@ -132,23 +106,109 @@ CREATE TABLE "edit_requests" (
     CONSTRAINT "edit_requests_pkey" PRIMARY KEY ("request_id")
 );
 
+-- CreateTable
+CREATE TABLE "admin_users" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "admin_users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admin_sessions" (
+    "id" TEXT NOT NULL,
+    "adminUserId" TEXT NOT NULL,
+    "otpCode" TEXT NOT NULL,
+    "otpExpiresAt" TIMESTAMP(3) NOT NULL,
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
+    "verifiedAt" TIMESTAMP(3),
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "admin_sessions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "email_jobs" (
+    "id" TEXT NOT NULL,
+    "recipientEmail" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "scheduledFor" TIMESTAMP(3),
+    "sentAt" TIMESTAMP(3),
+    "failedAt" TIMESTAMP(3),
+    "errorMessage" TEXT,
+    "metadata" JSONB,
+    "lockedBy" TEXT,
+    "lockedAt" TIMESTAMP(3),
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "email_jobs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sticker_tokens" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "rsvpNumber" INTEGER NOT NULL,
+    "isUsed" BOOLEAN NOT NULL DEFAULT false,
+    "usedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "sticker_tokens_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "hackatime_link_otps" (
+    "id" TEXT NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "email" TEXT NOT NULL,
+    "otp_code" TEXT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "is_used" BOOLEAN NOT NULL DEFAULT false,
+    "used_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "hackatime_link_otps_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE INDEX "idx_projects_user_id" ON "projects"("user_id");
+CREATE INDEX "idx_submissions_project_id" ON "submissions"("project_id");
+CREATE INDEX "idx_users_email" ON "users"("email");
+CREATE INDEX "user_sessions_user_id_idx" ON "user_sessions"("user_id");
+CREATE INDEX "user_sessions_otp_code_idx" ON "user_sessions"("otp_code");
 CREATE INDEX "edit_requests_user_id_idx" ON "edit_requests"("user_id");
-
--- CreateIndex
 CREATE INDEX "edit_requests_project_id_idx" ON "edit_requests"("project_id");
-
--- CreateIndex
 CREATE INDEX "edit_requests_status_idx" ON "edit_requests"("status");
+CREATE UNIQUE INDEX "admin_users_email_key" ON "admin_users"("email");
+CREATE INDEX "admin_sessions_adminUserId_idx" ON "admin_sessions"("adminUserId");
+CREATE INDEX "admin_sessions_otpCode_idx" ON "admin_sessions"("otpCode");
+CREATE INDEX "email_jobs_status_idx" ON "email_jobs"("status");
+CREATE INDEX "email_jobs_recipientEmail_idx" ON "email_jobs"("recipientEmail");
+CREATE INDEX "email_jobs_createdAt_idx" ON "email_jobs"("createdAt");
+CREATE INDEX "email_jobs_scheduledFor_idx" ON "email_jobs"("scheduledFor");
+CREATE INDEX "email_jobs_lockedBy_idx" ON "email_jobs"("lockedBy");
+CREATE UNIQUE INDEX "sticker_tokens_token_key" ON "sticker_tokens"("token");
+CREATE INDEX "sticker_tokens_token_idx" ON "sticker_tokens"("token");
+CREATE INDEX "sticker_tokens_email_idx" ON "sticker_tokens"("email");
+CREATE INDEX "hackatime_link_otps_user_id_idx" ON "hackatime_link_otps"("user_id");
+CREATE INDEX "hackatime_link_otps_otp_code_idx" ON "hackatime_link_otps"("otp_code");
 
 -- AddForeignKey
+ALTER TABLE "projects" ADD CONSTRAINT "projects_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "submissions" ADD CONSTRAINT "submissions_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("project_id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "edit_requests" ADD CONSTRAINT "edit_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "edit_requests" ADD CONSTRAINT "edit_requests_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("project_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "edit_requests" ADD CONSTRAINT "edit_requests_reviewed_by_fkey" FOREIGN KEY ("reviewed_by") REFERENCES "users"("user_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "admin_sessions" ADD CONSTRAINT "admin_sessions_adminUserId_fkey" FOREIGN KEY ("adminUserId") REFERENCES "admin_users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "hackatime_link_otps" ADD CONSTRAINT "hackatime_link_otps_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
