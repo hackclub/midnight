@@ -49,7 +49,7 @@
             href={'/app/projects/' + project.projectId}
           />
           {#if !user?.onboardComplete}
-            <img alt="this is your project!" src="/your_project.png" style="width: 140px; margin-top: 0px" />
+            <img alt="this is your project!" src="/handdrawn_text/your_project.png" style="width: 140px; margin-top: 0px" />
           {/if}
         </div>
       {/each}

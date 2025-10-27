@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
   import { getProject } from '$lib/auth';
   import type { Project } from '$lib/auth';
+    import Button from '$lib/Button.svelte';
   
   let project = $state<Project | null>(null);
   let loading = $state(true);
@@ -51,31 +52,29 @@
   {:else if error}
     <div class="error">Error: {error}</div>
   {:else if project}
-    <div class="project-content">
+    <div class="project-overview">
       <div class="project-card-preview">
         <img src="/card-blah.svg" alt={project.projectTitle} />
       </div>
       
-      <div class="project-details">
-        <h1 class="project-title">{project.projectTitle}</h1>
-        
-        <p class="project-time">time spent: 2 hours</p>
-        
-        <p class="project-description">
-          {project.projectDescription}
-        </p>
-        
-        <div class="submit-section">
-          <button class="submit-button" disabled={locked}>
-            SUBMIT →
-            {#if locked}
-              <div class="lock-indicator">
-                <img src="/lock-circle.svg" alt="Locked" class="lock-circle" />
-                <img src="/lock-icon.svg" alt="Locked" class="lock-icon" />
-              </div>
+      <div class="project-content">
+        <div class="project-details">
+          <div class="project-heading">
+            <h1 class="project-title">{project.projectTitle}</h1>
+            {#if project.nowHackatimeHours}
+              <h2 class="project-time">2 hours</h2>
             {/if}
-          </button>
+          </div>
+          
+          <p class="project-description">
+            {project.description}
+          </p>          
         </div>
+
+          <div class="submit-section">
+            <Button label="LINK HACKATIME" disabled={false} icon="link" />
+            <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
+          </div>       
       </div>
     </div>
   {/if}
@@ -122,7 +121,7 @@
     color: #f24b4b;
   }
 
-  .project-content {
+  .project-overview {
     display: flex;
     gap: 47px;
   }
@@ -138,9 +137,21 @@
     height: 100%;
   }
 
+  .project-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
   .project-details {
     flex: 1;
-    padding-top: 33px;
+  }
+
+  .project-heading {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
   }
 
   .project-title {
@@ -148,17 +159,18 @@
     font-size: 90px;
     color: white;
     letter-spacing: -0.99px;
-    margin: 0 0 10px 0;
-    line-height: 1.5;
+    margin: 0;
+    line-height: 1;
   }
 
   .project-time {
-    font-family: 'PT Serif', serif;
-    font-size: 32px;
+    font-family: 'Moga', serif;
+    font-size: 40px;
     color: white;
     letter-spacing: -0.352px;
-    margin: 0 0 16px 0;
-    line-height: 1.5;
+    margin: 0;
+    line-height: 1;
+    padding-bottom: 2px;
   }
 
   .project-description {
@@ -173,62 +185,15 @@
 
   .submit-section {
     position: relative;
-  }
-
-  .submit-button {
-    position: relative;
-    font-family: 'Moga', sans-serif;
-    font-size: 48px;
-    color: white;
-    background: #9a9a9a;
-    border: none;
-    padding: 0;
-    width: 227px;
-    height: 67px;
+    
     display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: -0.528px;
-    line-height: 1.5;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .submit-button:not(:disabled):hover {
-    background: #b0b0b0;
-  }
-
-  .submit-button:disabled {
-    cursor: not-allowed;
-  }
-
-  .lock-indicator {
-    position: absolute;
-    top: -12px;
-    right: -12px;
-    width: 48px;
-    height: 48px;
-    z-index: 1;
-  }
-
-  .lock-circle {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .lock-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 24px;
-    height: 24px;
+    flex-direction: row;
+    align-items: end;
+    gap: 4px;
   }
 
   @media (max-width: 1024px) {
-    .project-content {
+    .project-overview {
       flex-direction: column;
     }
 
@@ -261,12 +226,6 @@
     .project-description {
       font-size: 14px;
     }
-
-    .submit-button {
-      font-size: 36px;
-      width: 180px;
-      height: 56px;
-    }
   }
 
   @media (max-width: 480px) {
@@ -276,12 +235,6 @@
 
     .project-time {
       font-size: 20px;
-    }
-
-    .submit-button {
-      font-size: 28px;
-      width: 150px;
-      height: 48px;
     }
   }
 </style>

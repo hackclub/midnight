@@ -49,9 +49,10 @@ export type Project = {
   userId: string;
   projectTitle: string;
   projectType: 'personal_website' | 'platformer_game' | 'wildcard';
-  projectDescription: string;
+  description: string;
   createdAt: Date;
   updatedAt: Date;
+  nowHackatimeHours: number | null;
 };
 
 export async function createProject(data: {
