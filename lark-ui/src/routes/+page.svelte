@@ -429,13 +429,13 @@ function playClick() {
             <p class="font-['Moga',_serif] font-bold text-[#fee1c0] text-center text-[8vh] tracking-[3.84px]">How it works</p>
           </div>
           <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">Work on projects</p>
+            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">1. Work on projects</p>
           </div>
           <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">Collect your hours</p>
+            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">2. Collect your hours</p>
           </div>
           <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">Fly to Vienna, Austria</p>
+            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">3. Fly to Vienna, Austria</p>
           </div>
            <button 
               on:click={() => { playClick(); openModal(); }}
