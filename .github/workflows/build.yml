@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main, leafd/launch ]
+    branches: [ main, leafd/launch, manitej/app ]
 
 jobs:
   build:
@@ -24,24 +24,23 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: |
-          ghcr.io/${{ github.repository }}/owl-api
-          ghcr.io/${{ github.repository }}/lark-ui
-        tags: |
-          type=ref,event=branch
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+    - name: Set tag prefix
+      id: tag-prefix
+      run: |
+        if [ "${{ github.ref_name }}" = "main" ]; then
+          echo "prefix=prod-" >> $GITHUB_OUTPUT
+        else
+          echo "prefix=staging-" >> $GITHUB_OUTPUT
+        fi
           
     - name: Build and push owl-api
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./owl-api/Dockerfile
-        tags: ghcr.io/${{ github.repository }}/owl-api:latest,ghcr.io/${{ github.repository }}/owl-api:${{ github.sha }}
+        tags: |
+          ghcr.io/${{ github.repository }}/owl-api:latest
+          ghcr.io/${{ github.repository }}/owl-api:${{ steps.tag-prefix.outputs.prefix }}${{ github.sha }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -51,7 +50,9 @@ jobs:
       with:
         context: .
         file: ./lark-ui/Dockerfile
-        tags: ghcr.io/${{ github.repository }}/lark-ui:latest,ghcr.io/${{ github.repository }}/lark-ui:${{ github.sha }}
+        tags: |
+          ghcr.io/${{ github.repository }}/lark-ui:latest
+          ghcr.io/${{ github.repository }}/lark-ui:${{ steps.tag-prefix.outputs.prefix }}${{ github.sha }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
