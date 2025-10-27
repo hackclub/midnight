@@ -47,25 +47,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    @font-face {
-      font-family: 'Ws Paradose';
-      src: url('/font/Ws Paradose.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'Ws Paradose';
-      src: url('/font/Ws Paradose Italic.ttf') format('truetype');
-      font-weight: normal;
-      font-style: italic;
-    }
-    @font-face {
-      font-family: 'Moga';
-      src: url('/font/Moga.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-
     .copy-button {
       background: #000000;
       border: none;

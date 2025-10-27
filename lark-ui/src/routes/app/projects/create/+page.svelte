@@ -46,13 +46,17 @@
       description: projectDescription 
     });
 
-    await createProject({
+    const project = await createProject({
       projectTitle: projectName,
       projectType: projectType,
       projectDescription: projectDescription
     });
 
-    goto('/app/projects');
+    if (project) {
+      goto(`/app/projects/${project.projectId}`);
+    } else {
+      alert('Failed to create project');
+    }
   }
 </script>
 
@@ -60,15 +64,6 @@
   <title>Create Your Personal Website - Midnight</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-  <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    @font-face {
-      font-family: 'Moga';
-      src: url('/font/Moga.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
 </svelte:head>
 
 <div class="create-page">

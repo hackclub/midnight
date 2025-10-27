@@ -114,25 +114,6 @@
     rel="stylesheet"
   />
   <style>
-    @font-face {
-      font-family: "Ws Paradose";
-      src: url("/font/Ws Paradose.ttf") format("truetype");
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: "Ws Paradose";
-      src: url("/font/Ws Paradose Italic.ttf") format("truetype");
-      font-weight: normal;
-      font-style: italic;
-    }
-    @font-face {
-      font-family: "Moga";
-      src: url("/font/Moga.ttf") format("truetype");
-      font-weight: normal;
-      font-style: normal;
-    }
-
     .pushable {
       background: #000000;
       border: none;

@@ -4,16 +4,23 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { env } from '$env/dynamic/public';
-  import { getProjects, type Project } from '$lib/auth';
+  import { checkAuthStatus, getProjects, type Project, type User } from '$lib/auth';
     import BaseCard from '$lib/cards/BaseCard.svelte';
     import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
 
   let projects: Project[] = [];
   let loading = true;
   let error: string | null = null;
+  let user: User | null = null;
 
   onMount(async () => {
     try {
+      user = await checkAuthStatus();
+      
+      if (!user) {
+        await goto('/');
+      }
+
       projects = await getProjects();
 
       console.log('projects', projects);
@@ -35,11 +42,16 @@
   {:else}
     <div class="projects-grid">
       {#each projects as project (project.projectId)}
-        <ProjectCard
-          color="#FFBB31"
-          title={project.projectTitle}
-          href={'/app/projects/' + project.projectId}
-        />
+        <div>
+          <ProjectCard
+            color="#FFBB31"
+            title={project.projectTitle}
+            href={'/app/projects/' + project.projectId}
+          />
+          {#if !user?.onboardComplete}
+            <img alt="this is your project!" src="/your_project.png" style="width: 140px; margin-top: 0px" />
+          {/if}
+        </div>
       {/each}
       <NewProjectCard />
       </div>  

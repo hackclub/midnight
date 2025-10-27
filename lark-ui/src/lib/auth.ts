@@ -2,14 +2,7 @@ import { env } from "$env/dynamic/public";
 
 const apiUrl = env.PUBLIC_API_URL || '';
 
-export async function checkAuthStatus() {
-  const response = await fetch(`${apiUrl}/api/user/auth/me`, {
-    credentials: 'include'
-  });
-
-  if (response.ok) {
-    const userData = await response.json();
-    return userData as {
+export type User = {
       userId: string;
       email: string;
       firstName: string;
@@ -19,7 +12,16 @@ export async function checkAuthStatus() {
       onboardComplete: boolean;
       createdAt: string;
       updatedAt: string;
-    };
+};
+
+export async function checkAuthStatus() {
+  const response = await fetch(`${apiUrl}/api/user/auth/me`, {
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const userData = await response.json();
+    return userData as User;
   } else {
     return null;
   }
@@ -42,19 +44,6 @@ export async function updateUser(data: {
   });
 }
 
-export async function createProject(data: {
-  projectTitle: string;
-  projectType: string;
-  projectDescription: string;
-}) {
-  return await fetch(`${apiUrl}/api/projects/auth`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(data)
-  });
-}
-
 export type Project = {
   projectId: string;
   userId: string;
@@ -64,6 +53,26 @@ export type Project = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export async function createProject(data: {
+  projectTitle: string;
+  projectType: string;
+  projectDescription: string;
+}) {
+  const response = await fetch(`${apiUrl}/api/projects/auth`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+
+  if (response.ok) {
+    const project = await response.json();
+    return project as Project;
+  } else {
+    return null;
+  }
+}
 
 export async function getProjects() {
   const response = await fetch(`${apiUrl}/api/projects/auth`, {

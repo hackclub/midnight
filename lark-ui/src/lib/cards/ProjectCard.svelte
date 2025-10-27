@@ -38,6 +38,8 @@
     line-height: 0.9;
     margin: 0 0 20px 0;
     width: 152px;
+
+    overflow-wrap: break-word;
   }
 
   .title-line {

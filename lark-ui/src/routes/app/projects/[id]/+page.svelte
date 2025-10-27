@@ -41,29 +41,6 @@
   });
 </script>
 
-<svelte:head>
-  <style>
-    @font-face {
-      font-family: 'Moga';
-      src: url('/font/Moga.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'PT Sans';
-      src: url('/font/PTSans-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'PT Serif';
-      src: url('/font/PTSerif-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
-</svelte:head>
-
 <div class="project-page">
   <button class="back-button" onclick={goBack}>
     ← Back to Projects

@@ -5,17 +5,6 @@
   export let visible: boolean = true;
 </script>
 
-<svelte:head>
-  <style>
-    @font-face {
-      font-family: 'PT Sans';
-      src: url('/font/PTSans-Bold.ttf') format('truetype');
-      font-weight: bold;
-      font-style: normal;
-    }
-  </style>
-</svelte:head>
-
 <div class="dialogue-container" style="opacity: {visible ? 1 : 0};">
   <div class="dialogue-box">
     <div class="speaker-label">
@@ -24,7 +13,7 @@
     <div class="dialogue-text">
       <p>{text}</p>
     </div>
-    <button class="next-button" on:click={nextFn}>Next</button>
+    <button class="next-button" on:click={nextFn} style="display: {visible ? '' : 'none'};">Next</button>
   </div>
 </div>
 
@@ -35,6 +24,8 @@
     left: 0;
     width: 100%;
     height: 198px;
+
+    z-index: 100;
   }
 
   .dialogue-box {

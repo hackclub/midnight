@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { checkAuthStatus, updateUser } from '$lib/auth';
+    import CalculatorPass from '$lib/onboarding/CalculatorPass.svelte';
   import Dialogue from '$lib/onboarding/Dialogue.svelte';
   import ProjectTypeSelect from '$lib/onboarding/ProjectTypeSelect.svelte';
   import Texture from '$lib/Texture.svelte';
@@ -13,6 +14,7 @@
     '',
     'To earn your invite to Vienna, you must prove your skills. Code for 40 hours. Code additional hours to get your travel fully covered.',
     'Code additional hours to get your travel fully covered.  Enter your location ... And see how much a fully funded flight demands.',
+    '',
     'Hmm... [#hours] You can create as many projects as you want to hit this goal.',
     'Now... Let’s get started.',
     'Build a personal website, platformer game, or anything you want. Here’s a holographic sticker for your efforts.'
@@ -22,9 +24,12 @@
   let missingInfo = $state(false);
 
   let dialogueText = $state(dialogues[0]);
-  let visible = $state(true);
+
+  let dialogueVisible = $state(true);
   let formVisible = $state(false);
+  let calculatorVisible = $state(false);
   let projectTypeVisible = $state(false);
+  let overlayVisible = $state(true);
   
   let firstName = $state('');
   let lastName = $state('');
@@ -45,39 +50,63 @@
     nextStep();
   }
 
+  async function handleCalc(hours: number) {
+    console.log(hours);
+
+    nextStep();
+  }
+
   function nextStep() {
     step++;
 
-    if (step == 1) {
-      if (missingInfo) {
-        formVisible = true;
-      } else {
-        step = 4;
+    switch (step) {
+      case 1:
+        if (missingInfo) {
+          formVisible = true;
+        } else {
+          step = 4;
+          formVisible = false;
+        }
+        break;
+      
+      case 3:
+        dialogueVisible = false;
+        overlayVisible = false;
+        break;
+      
+      case 4:
         formVisible = false;
-      }
-    }
-    if (step == 3) {
-      visible = false;
-    }
-
-    if (step == 4) {
-      formVisible = false;
-      visible = true;
-    }
-
-    if (step == 8) {
-      projectTypeVisible = true;
+        dialogueVisible = true;
+        calculatorVisible = true;
+        overlayVisible = true;
+        break;
+      
+      case 6:
+        dialogueVisible = false;
+        overlayVisible = false;
+        break;
+      
+      case 7:
+        calculatorVisible = false;
+        dialogueVisible = true;
+        overlayVisible = true;
+        break;
+      
+      case 8:
+        projectTypeVisible = true;
+        break;
     }
 
     if (step >= dialogues.length) {
-      visible = false;
+      overlayVisible = false;
+      dialogueVisible = false;
       return;
     }
 
     dialogueText = dialogues[step];
   }
 
-  onMount(async () => {
+  onMount(async () => {    
     const authStatus = await checkAuthStatus();
 
     if (!authStatus) {
@@ -104,103 +133,113 @@
   });
 </script>
 
-<svelte:head>
-  <style>
-    @font-face {
-      font-family: 'PT Sans';
-      src: url('/font/PTSans-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'PT Sans';
-      src: url('/font/PTSans-Bold.ttf') format('truetype');
-      font-weight: bold;
-      font-style: normal;
-    }
-  </style>
-</svelte:head>
-
 <div class="onboarding-page">
-  <!-- <Texture /> -->
-
-  {#if formVisible}
-    <div class="form-container">
-      <form class="signup-form" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-        <div class="form-background"></div>
-        
-        <div class="form-content">
-          <h1 class="form-title">SIGN UP FOR MIDNIGHT</h1>
-          <p class="form-subtitle">For ages 13 to 18</p>
-          
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="firstName">First Name</label>
-              <input 
-                type="text" 
-                id="firstName" 
-                bind:value={firstName}
-                placeholder="William"
-                required
-              />
-            </div>
-            
-            <div class="form-field">
-              <label for="lastName">Last Name</label>
-              <input 
-                type="text" 
-                id="lastName" 
-                bind:value={lastName}
-                placeholder="Daniel"
-                required
-              />
-            </div>
-            
-            <div class="form-field">
-              <label for="email">Email</label>
-              <input 
-                type="email" 
-                id="email" 
-                bind:value={email}
-                placeholder="wdaniel@hackclub.com"
-                required
-              />
-            </div>
-            
-            <div class="form-field">
-              <label for="birthday">Birthday</label>
-              <input 
-                type="text" 
-                id="birthday" 
-                bind:value={birthday}
-                placeholder="mm/dd/yyyy"
-                required
-              />
-            </div>
-          </div>
-          
-          <button type="submit" class="submit-button">
-            <span>SUBMIT</span>
-            <img src="/quill-icon.svg" alt="" class="quill-icon" />
-          </button>
-        </div>
-      </form>
-    </div>
-  {/if}
-
-  {#if projectTypeVisible}
-    <ProjectTypeSelect />
-  {/if}
-
   <Dialogue
     speaker="MURDOCK"
     text={dialogueText}
     nextFn={nextStep}
-    visible={visible}
+    visible={dialogueVisible}
   />
+
+  <div class="content" style="pointer-events: {overlayVisible ? 'none' : 'auto'};">
+    <div id="overlay" style="display: {overlayVisible ? 'block' : 'none'};"></div>
+
+    {#if formVisible}
+      <div class="form-container">
+        <form class="signup-form" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+          <div class="form-background"></div>
+          
+          <div class="form-content">
+            <h1 class="form-title">SIGN UP FOR MIDNIGHT</h1>
+            <p class="form-subtitle">For ages 13 to 18</p>
+            
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="firstName">First Name</label>
+                <input 
+                  type="text" 
+                  id="firstName" 
+                  bind:value={firstName}
+                  placeholder="William"
+                  required
+                />
+              </div>
+              
+              <div class="form-field">
+                <label for="lastName">Last Name</label>
+                <input 
+                  type="text" 
+                  id="lastName" 
+                  bind:value={lastName}
+                  placeholder="Daniel"
+                  required
+                />
+              </div>
+              
+              <div class="form-field">
+                <label for="email">Email</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  bind:value={email}
+                  placeholder="wdaniel@hackclub.com"
+                  required
+                />
+              </div>
+              
+              <div class="form-field">
+                <label for="birthday">Birthday</label>
+                <input 
+                  type="text" 
+                  id="birthday" 
+                  bind:value={birthday}
+                  placeholder="mm/dd/yyyy"
+                  required
+                />
+              </div>
+            </div>
+            
+            <button type="submit" class="submit-button">
+              <span>SUBMIT</span>
+              <img src="/quill-icon.svg" alt="" class="quill-icon" />
+            </button>
+          </div>
+        </form>
+      </div>
+    {/if}
+
+    {#if projectTypeVisible}
+      <ProjectTypeSelect />
+    {/if}
+
+    {#if calculatorVisible}
+      <CalculatorPass handleCalc={handleCalc} />
+    {/if}
+  </div>
+
+  <!-- <Texture /> -->
 </div>
 
 <style>
+  #overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+
+    z-index: 50;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
   .onboarding-page {
     position: relative;
     width: 100%;
