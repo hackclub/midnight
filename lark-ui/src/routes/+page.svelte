@@ -418,11 +418,11 @@ function playClick() {
 
  <!-- Read More Section Start -->
   <section
-    class="relative flex justify-center items-center bg-[#443B61]  text-white py-16 px-4 sm:px-8"
+    class="relative flex flex-col md:flex-row justify-center items-center bg-[#443B61]  text-white py-16 px-4 sm:px-8"
   >
     <div class="flex flex-col gap-y-[1vw]">
 
-      <div class="flex items-center justify-center w-[80vw] gap-x-[1vw]">
+      <div class="flex flex-col md:flex-row items-center justify-center w-[95vw] md:w-[80vw] gap-x-[1vw]">
 
         <div class="flex flex-col w-full gap-y-[1vw] pb-[2vh]">
           <div class="bg-[#fee1c0]/0 rounded-xl w-full px-[2vw] py-[1vh]">
@@ -452,7 +452,7 @@ function playClick() {
         <img
         alt="The Hack Club Midnight Team"
         src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/7ada8a0621f0f84c5059b856cdea1bc1ab3e4bf0_group_photo.png"
-        class="rounded-xl mt-6 w-[37.5vw] object-cover"
+        class="rounded-xl mt-[1vh] md:mt-6 w-[90vw] md:w-[37.5vw] object-cover"
         />
 
       </div>
@@ -461,12 +461,12 @@ function playClick() {
         <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh] text-center">Build new projects, and learn with other highschoolers</p>
       </div>
 
-      <div class="w-[80vw] flex gap-[1vw]">
-        <div class="w-2/10 bg-[#fee1c0] rounded-xl flex items-center justify-center p-[2vw]">
-          <img alt="Midnight - A Murder Mystery" class="w-full h-auto block" style="object-fit: contain; background-repeat: no-repeat; background-size: contain;" src="/sad.png" />
+      <div class="w-[95vw] md:w-[80vw] flex gap-[1vw]">
+        <div class="w-2/10 bg-[#fee1c0] rounded-xl items-center justify-center p-[2vw] hidden md:flex">
+          <img alt="The Crow" class="w-full h-auto block" style="object-fit: contain; background-repeat: no-repeat; background-size: contain;" src="/sad.png" />
         </div>
 
-        <div class="bg-[#f24b4b] w-8/10 rounded-xl px-[2vw] py-[2.5vh] flex items-center justify-center text-left">
+        <div class="bg-[#f24b4b] w-full md:w-8/10 rounded-xl px-[2vw] py-[2.5vh] flex items-center justify-center text-left">
           <p class="text-[#fee1c0] font-['PT_Serif',_serif] font-bold text-[2.75vh]"> Hack Club Midnight is a two-month online-to-in-person hackathon in Vienna, bringing hackers together to build creative projects, connect through events, and experience a unique murder-mystery themed adventure.
           </p>
         </div>
