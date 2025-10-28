@@ -411,71 +411,10 @@ function playClick() {
 
     <div class="absolute bottom-8 md:bottom-12 lg:bottom-16 2xl:bottom-16 left-0 right-0 flex justify-center z-30">
       <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-lg md:text-2xl lg:text-3xl 2xl:text-[34px] text-center">
-        a strange letter arrives... <span class="inline-block animate-bounce ml-2">⌄</span>
+        you receive a strange transmission... <span class="inline-block animate-bounce ml-2">⌄</span>
       </p>
     </div>
   </section>
-
- <!-- Read More Section Start -->
-  <section
-    class="relative flex flex-col md:flex-row justify-center items-center bg-[#443B61]  text-white py-16 px-4 sm:px-8"
-  >
-    <div class="flex flex-col gap-y-[1vw]">
-
-      <div class="flex flex-col md:flex-row items-center justify-center w-[95vw] md:w-[80vw] gap-x-[1vw]">
-
-        <div class="flex flex-col w-full gap-y-[1vw] pb-[2vh]">
-          <div class="bg-[#fee1c0]/0 rounded-xl w-full px-[2vw] py-[1vh]">
-            <p class="font-['Moga',_serif] font-bold text-[#fee1c0] text-center text-[8vh] tracking-[3.84px]">How it works</p>
-          </div>
-          <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">1. Work on projects</p>
-          </div>
-          <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">2. Collect your hours</p>
-          </div>
-          <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-            <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh]">3. Fly to Vienna, Austria</p>
-          </div>
-           <button 
-              on:click={() => { playClick(); openModal(); }}
-              type="button"
-              class="pushable-blue"
-            >
-              <span class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-[6vh] text-center text-nowrap tracking-[3.84px] whitespace-pre">
-                Read More
-              </span>
-            </button>
-         
-        </div>
-        
-        <img
-        alt="The Hack Club Midnight Team"
-        src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/7ada8a0621f0f84c5059b856cdea1bc1ab3e4bf0_group_photo.png"
-        class="rounded-xl mt-[1vh] md:mt-6 w-[90vw] md:w-[37.5vw] object-cover"
-        />
-
-      </div>
-
-      <div class="bg-[#fee1c0] rounded-xl w-full px-[2vw] py-[1.5vh]">
-        <p class="font-['PT_Serif',_serif] font-bold text-[#443B61] text-[3.5vh] text-center">Build new projects, and learn with other highschoolers</p>
-      </div>
-
-      <div class="w-[95vw] md:w-[80vw] flex gap-[1vw]">
-        <div class="w-2/10 bg-[#fee1c0] rounded-xl items-center justify-center p-[2vw] hidden md:flex">
-          <img alt="The Crow" class="w-full h-auto block" style="object-fit: contain; background-repeat: no-repeat; background-size: contain;" src="/sad.png" />
-        </div>
-
-        <div class="bg-[#f24b4b] w-full md:w-8/10 rounded-xl px-[2vw] py-[2.5vh] flex items-center justify-center text-left">
-          <p class="text-[#fee1c0] font-['PT_Serif',_serif] font-bold text-[2.75vh]"> Hack Club Midnight is a two-month online-to-in-person hackathon in Vienna, bringing hackers together to build creative projects, connect through events, and experience a unique murder-mystery themed adventure.
-          </p>
-        </div>
-      </div>
-    
-  
-    </div>
-  </section>
-    <!-- Read More Section End -->
 
   <section class="w-full flex flex-col items-center overflow-x-hidden pt-12 md:pt-16">
   <div class="bg-[#2A2746] aspect-video w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 p-4 flex items-center justify-center mb-8 relative z-10">
@@ -494,6 +433,12 @@ function playClick() {
           FAQ
         </span>
       </button>
+    </div>
+    
+    <div class="absolute bottom-[5%] left-1/2 transform -translate-x-1/2 z-20">
+      <p class="font-['PT_Sans',_sans-serif] text-[#2A2746] text-xs md:text-sm lg:text-base opacity-70">
+        © 2025 Hack Club. Made with love by teenagers, for teenagers.
+      </p>
     </div>
   </div>
   </section>
