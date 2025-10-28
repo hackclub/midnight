@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { checkAuthStatus, updateUser } from '$lib/auth';
+    import Button from '$lib/Button.svelte';
     import CalculatorPass from '$lib/onboarding/CalculatorPass.svelte';
   import Dialogue from '$lib/onboarding/Dialogue.svelte';
   import ProjectTypeSelect from '$lib/onboarding/ProjectTypeSelect.svelte';
@@ -20,7 +21,7 @@
     'Build a personal website, platformer game, or anything you want. Here’s a holographic sticker for your efforts.'
   ]
 
-  let step = $state(0);
+  let step = $state(-1);
   let missingInfo = $state(false);
 
   let dialogueText = $state(dialogues[0]);
@@ -75,6 +76,13 @@
         break;
       
       case 4:
+        formVisible = false;
+        dialogueVisible = true;
+        calculatorVisible = true;
+        overlayVisible = true;
+        break;
+  
+      case 5:
         formVisible = false;
         dialogueVisible = true;
         calculatorVisible = true;
@@ -198,11 +206,10 @@
                 />
               </div>
             </div>
-            
-            <button type="submit" class="submit-button">
-              <span>SUBMIT</span>
-              <img src="/quill-icon.svg" alt="" class="quill-icon" />
-            </button>
+
+            <div class="submit-button">
+              <Button label="submit" icon="quill" type="submit" />
+            </div>
           </div>
         </form>
       </div>
@@ -342,35 +349,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    width: 300px;
-    height: 89px;
-    background: #f24b4b;
-    border: none;
-    border-radius: 16px;
-    margin: 0 auto;
-    cursor: pointer;
-    transition: opacity 0.2s;
+
+    scale: 1.2;
   }
 
   .submit-button:hover {
     opacity: 0.9;
   }
-
-  .submit-button span {
-    font-family: 'Moga', sans-serif;
-    font-size: 64px;
-    color: #fee1c0;
-    letter-spacing: 3.84px;
-    line-height: 1;
-  }
-
-  .quill-icon {
-    width: 31px;
-    height: 46px;
-    margin-top: 8px;
-  }
-
   @media (max-width: 900px) {
     .form-container {
       width: 95%;

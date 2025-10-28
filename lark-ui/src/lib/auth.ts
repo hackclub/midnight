@@ -57,6 +57,7 @@ export type Project = {
   createdAt: Date;
   updatedAt: Date;
   nowHackatimeHours: number | null;
+  nowHackatimeProjects: string[] | null;
 };
 
 export async function createProject(data: {
@@ -111,6 +112,10 @@ export async function getProject(id: string) {
 
 //hackatime
 
+export type HackatimeProject = {
+  name: string
+}
+
 export async function checkHackatimeAccount() {
   const response = await fetch(`${apiUrl}/api/user/hackatime-account`, {
     method: 'GET',
@@ -136,11 +141,48 @@ export async function getHackatimeProjects() {
   if (response.ok) {
     const data = await response.json();
     return data as {
-      projects: {
-        name: string
-      }[]
+      projects: HackatimeProject[]
     };
   } else {
     return null;
   }
+}
+
+export async function linkHackatimeProject(projectId: string, projectNames: string[]) {
+  const response = await fetch(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ projectNames })
+  });
+
+  if (response.ok) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// hackatime setup
+
+export async function sendHackatimeOtp(email: string) {
+  const response = await fetch(`${apiUrl}/api/user/auth/hackatime-link/send-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email })
+  });
+
+  return response.ok; 
+}
+
+export async function verifyHackatimeOtp(otp: string) {
+  const response = await fetch(`${apiUrl}/api/user/auth/hackatime-link/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ otp })
+  });
+
+  return response.ok;
 }

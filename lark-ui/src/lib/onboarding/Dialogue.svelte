@@ -22,7 +22,7 @@
   </style>
 </svelte:head>
 
-<div class="dialogue-container" style="opacity: {visible ? 1 : 0};">
+<div class="dialogue-container" style="pointer-events: {visible ? 'auto' : 'none'}; opacity: {visible ? 1 : 0};">
   <div class="dialogue-box">
     <div class="speaker-label">
       <img src="/speaker-label-bg.svg" alt="" class="label-bg" />

@@ -1,4 +1,6 @@
 <script lang="ts">
+    import Button from "$lib/Button.svelte";
+
   let hours = $state(50);
   let grant = $derived(hours * 10);
   
@@ -50,10 +52,9 @@
     </div>
     
     <p class="hours-needed">[{hours}hrs] extra needed!</p>
-    
-    <button class="submit-btn" onclick={handleCalcInner}>
-      SUBMIT
-      <img src="/quill-icon.svg" alt="" class="quill" />
+
+    <button class="submit-button">
+      <Button label="SUBMIT" onclick={handleCalcInner} icon="quill" />
     </button>
   </div>
 </div>
@@ -185,33 +186,14 @@
     letter-spacing: -0.2px;
   }
 
-  .submit-btn {
+  .submit-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    width: 270px;
-    height: 75px;
-    background: #f24b4b;
-    border: none;
-    border-radius: 16px;
-    font-family: 'Moga', sans-serif;
-    font-size: 52px;
-    color: #fee1c0;
-    letter-spacing: 3.2px;
-    cursor: pointer;
-    margin: 0;
-    transition: opacity 0.2s;
-  }
 
-  .submit-btn:hover {
-    opacity: 0.9;
-  }
-
-  .quill {
-    width: 26px;
-    height: 40px;
     margin-top: 4px;
+
+    scale: 1.2;
   }
 
   @media (max-width: 1100px) {

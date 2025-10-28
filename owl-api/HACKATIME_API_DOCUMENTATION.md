@@ -214,7 +214,7 @@ This method ensures that users can only link accounts they actually control.
 ## Troubleshooting
 
 ### "No Hackatime account linked" Error
-
+ 
 If you receive this error, it means:
 - No Hackatime account was found during initial signup, OR
 - The account was never manually linked via OTP

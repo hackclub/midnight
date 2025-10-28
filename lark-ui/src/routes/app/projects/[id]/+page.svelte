@@ -3,15 +3,17 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { getProject } from '$lib/auth';
+  import { checkHackatimeAccount, getProject, linkHackatimeProject } from '$lib/auth';
   import type { Project } from '$lib/auth';
-    import Button from '$lib/Button.svelte';
-    import HackatimeModal from '$lib/HackatimeModal.svelte';
-  
-  let project = $state<Project | null>(null);
+  import Button from '$lib/Button.svelte';
+  import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
+
   let loading = $state(true);
   let error = $state<string | null>(null);
   let locked = $state(true);
+
+  let hasHackatimeAccount = $state(false);
+  let project = $state<Project | null>(null);
 
   let openHackatimeModal = $state(false);
   
@@ -40,15 +42,21 @@
     goto('/app/projects');
   }
   
-  onMount(() => {
-    loadProject();
+  onMount(async () => {
+    await loadProject();
+
+    const data = await checkHackatimeAccount();
+
+    if (data && data.hasHackatimeAccount) {
+      hasHackatimeAccount = true;
+    }
   });
 </script>
 
 <div class="project-page">
-  <button class="back-button" onclick={goBack}>
-    ← Back to Projects
-  </button>
+  <div class="back-button">
+    <Button label="← Back to Projects" onclick={goBack} color='black' />
+  </div>
   
   {#if loading}
     <div class="loading">Loading project...</div>
@@ -68,22 +76,35 @@
               <h2 class="project-time">2 hours</h2>
             {/if}
           </div>
+
+          <div class="project-tags">
+            <span class="project-tag type">{project.projectType}</span>
+            {#each project.nowHackatimeProjects as hackatimeProjectName}
+              <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
+            {/each}
+          </div>
           
           <p class="project-description">
             {project.description}
           </p>          
         </div>
 
+        {#if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
           <div class="submit-section">
-            <Button label="LINK HACKATIME" disabled={false} icon="link" onclick={() => openHackatimeModal = true}/>
+            <Button label="EDIT" icon="edit" color="blue"/>
+          </div>
+        {:else}
+          <div class="submit-section">
+            <Button label="LINK HACKATIME Account" icon="link" onclick={() => openHackatimeModal = true}/>
             <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
-          </div>       
+          </div>
+        {/if}       
       </div>
     </div>
   {/if}
 
   {#if openHackatimeModal}
-    <HackatimeModal onClose={() => openHackatimeModal = false} />
+    <HackatimeAccountModal onClose={() => openHackatimeModal = false} />
   {/if}
 
   <BottomNavigation />
@@ -98,21 +119,7 @@
   }
 
   .back-button {
-    font-family: 'PT Sans', sans-serif;
-    font-size: 18px;
-    color: white;
-    background: transparent;
-    border: 2px solid white;
-    border-radius: 8px;
-    padding: 10px 20px;
     margin-bottom: 30px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .back-button:hover {
-    background: white;
-    color: #453b61;
   }
 
   .loading,
@@ -152,6 +159,23 @@
 
   .project-details {
     flex: 1;
+  }
+
+  .project-tags {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .project-tag {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 16px;
+    color: white;
+    letter-spacing: -0.176px;
+    line-height: 1.5;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
   }
 
   .project-heading {
