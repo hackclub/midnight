@@ -3,10 +3,11 @@
   import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { checkAuthStatus, checkHackatimeAccount, getProject, linkHackatimeProject } from '$lib/auth';
+  import { checkAuthStatus, getProject } from '$lib/auth';
   import type { Project, User } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
+  import HackatimeProjectModal from '$lib/hackatime/HackatimeProjectModal.svelte';
 
   let loading = $state(true);
   let error = $state<string | null>(null);
@@ -15,7 +16,8 @@
   let user = $state<User | null>(null);
   let project = $state<Project | null>(null);
 
-  let openHackatimeModal = $state(false);
+  let openHackatimeAccountModal = $state(false);
+  let openHackatimeProjectModal = $state(false);
   
   const projectId = $derived(page.params.id);
   
@@ -93,19 +95,16 @@
         {#if user && user.hackatimeAccount}
           {#if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
             <div class="submit-section">
-              <Button label="EDIT" icon="edit" color="blue"/>
+              <Button label="EDIT" icon="edit" color="blue" onclick={() => openHackatimeProjectModal = true}/>
             </div>
           {:else}
             <div class="submit-section">
-              <Button label="LINK HACKATIME Project" icon="link" color="blue"/>
+              <Button label="LINK HACKATIME Project" icon="link" color="blue" onclick={() => openHackatimeProjectModal = true}/>
             </div>
           {/if}
         {:else}
           <div class="submit-section">
-            <Button label="LINK HACKATIME Account" icon="link" onclick={async () => { 
-              user = await checkAuthStatus();
-              openHackatimeModal = true 
-            }}/>
+            <Button label="LINK HACKATIME Account" icon="link" onclick={() => openHackatimeAccountModal = true}/>
             <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
           </div>
         {/if}       
@@ -113,8 +112,22 @@
     </div>
   {/if}
 
-  {#if openHackatimeModal}
-    <HackatimeAccountModal onClose={() => openHackatimeModal = false} />
+  {#if openHackatimeAccountModal}
+    <HackatimeAccountModal onClose={async () => {
+      user = await checkAuthStatus();
+      openHackatimeAccountModal = false;
+    }} />
+  {/if}
+
+  {#if openHackatimeProjectModal && project}
+    <HackatimeProjectModal 
+      currentHackatimeProjects={project.nowHackatimeProjects}
+      onClose={async () => {
+        await loadProject();
+        openHackatimeProjectModal = false;
+      }} 
+      projectId={project.projectId} 
+    />
   {/if}
 
   <BottomNavigation />

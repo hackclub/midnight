@@ -47,6 +47,15 @@ export async function updateUser(data: {
   });
 }
 
+export async function completeOnboarding() {
+  return await fetch(`${apiUrl}/api/user/auth/complete-onboarding`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+}
+
+
 // projects
 
 export type Project = {
@@ -149,7 +158,7 @@ export async function getHackatimeProjects() {
   }
 }
 
-export async function linkHackatimeProject(projectId: string, projectNames: string[]) {
+export async function linkHackatimeProjects(projectId: string, projectNames: string[]) {
   const response = await fetch(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

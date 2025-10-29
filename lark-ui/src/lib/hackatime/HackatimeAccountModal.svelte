@@ -51,33 +51,6 @@
             page = 1;
         }
     });
-
-    let hackatimeProjects: ReturnType<typeof getHackatimeProjects> | null = null;
-    let selectedHackatimeProjects: string[] = $state([])
-
-    $effect(() => {
-        switch (page) {
-            case 3:
-                hackatimeProjects = getHackatimeProjects();
-                break;
-            // case 4:
-            //     onClose();
-            //     break;
-        }
-    });
-
-    function trackProject(projectName: string) {
-        selectedHackatimeProjects.push(projectName);
-
-        skipPage(3);
-    }
-
-    function removeProject(projectName: string) {
-        selectedHackatimeProjects = selectedHackatimeProjects.filter(
-            (project) => project !== projectName
-        );
-        skipPage(3);
-    }
 </script>
 
 <svelte:head>
