@@ -711,6 +711,13 @@ export class UserService {
 
     const user = await this.prisma.user.findUnique({
       where: { email: userEmail },
+      include: {
+        projects: {
+          select: {
+            nowHackatimeProjects: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -756,6 +763,40 @@ export class UserService {
       );
     }
 
-    return res.json();
+    const hackatimeProjects = await res.json();
+    const linkedProjectNames = new Set<string>();
+    
+    user.projects.forEach(project => {
+      if (project.nowHackatimeProjects) {
+        project.nowHackatimeProjects.forEach(name => linkedProjectNames.add(name));
+      }
+    });
+
+    if (Array.isArray(hackatimeProjects)) {
+      return hackatimeProjects.filter((project: any) => 
+        !linkedProjectNames.has(project.name || project.projectName || project)
+      );
+    }
+
+    if (hackatimeProjects.projects && Array.isArray(hackatimeProjects.projects)) {
+      return {
+        ...hackatimeProjects,
+        projects: hackatimeProjects.projects.filter((project: any) =>
+          !linkedProjectNames.has(project.name || project.projectName || project)
+        ),
+      };
+    }
+
+    if (hackatimeProjects.name || hackatimeProjects.projectName) {
+      const projectName = hackatimeProjects.name || hackatimeProjects.projectName;
+      if (linkedProjectNames.has(projectName)) {
+        throw new HttpException(
+          'All hackatime projects are already linked',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+
+    return hackatimeProjects;
   }
 }
