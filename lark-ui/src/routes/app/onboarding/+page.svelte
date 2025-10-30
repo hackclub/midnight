@@ -13,7 +13,7 @@
     'Obviously, I told her you’re not an idiot. Yet, here we are. ',
     'First... Sign up.',
     '',
-    'To earn your invite to Vienna, you must prove your skills. Code for 40 hours. Code additional hours to get your travel fully covered.',
+    'To earn your invite to Vienna, you must prove your skills. Code for 40 hours.',
     'Code additional hours to get your travel fully covered.  Enter your location ... And see how much a fully funded flight demands.',
     '',
     'Hmm... [#hours] You can create as many projects as you want to hit this goal.',
@@ -144,6 +144,10 @@
 
     if (authStatus.firstName == 'Temporary' || authStatus.lastName == 'User' || !authStatus.email || !authStatus.birthday) {
       missingInfo = true;
+      firstName = '';
+      lastName = '';
+      email = email;
+      birthday = '';
     }
 
     nextStep();
@@ -213,7 +217,7 @@
               <div class="form-field">
                 <label for="birthday">Birthday</label>
                 <input 
-                  type="text" 
+                  type="date" 
                   id="birthday" 
                   bind:value={birthday}
                   placeholder="mm/dd/yyyy"
