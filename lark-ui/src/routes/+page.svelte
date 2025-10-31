@@ -452,7 +452,7 @@
     <!-- Read More button positioned bottom-right -->
     <div class="absolute bottom-0 z-30 right-8 md:bottom-12 md:right-12 lg:bottom-16 lg:right-16">
       <button 
-        on:click={() => { playClick(); openModal(); }}
+        on:click={openModal}
         type="button"
         class="bg-[#fee1c0] px-[2vw] py-[1vh] rounded-xl cursor-pointer"
       >
@@ -505,7 +505,6 @@
         © 2025 Hack Club. Made with love by teenagers, for teenagers.
       </p>
     </div>
-  </div>
   </section>
 </div>
 

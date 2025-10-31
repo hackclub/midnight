@@ -211,9 +211,11 @@
                   type="email" 
                   id="email" 
                   bind:value={email}
+                  disabled
                   placeholder="wdaniel@hackclub.com"
                   required
                 />
+                <img src="/icons/lock.svg" alt="lock icon" class="lock-icon" />
               </div>
               
               <div class="form-field">
@@ -340,6 +342,7 @@
   }
 
   .form-field {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 7px;
@@ -364,6 +367,24 @@
 
   .form-field input::placeholder {
     color: rgba(0, 0, 0, 0.7);
+  }
+
+  .form-field input:disabled {
+    background: #c9c9c9;
+    color: #453b61;
+    cursor: not-allowed;
+  }
+
+  .form-field .lock-icon {
+    position: absolute;
+    filter: invert();
+
+    cursor: not-allowed;
+
+    right: 14px;
+    bottom: 14px;
+    width: 20px;
+    height: 20px;
   }
 
   .submit-button {
