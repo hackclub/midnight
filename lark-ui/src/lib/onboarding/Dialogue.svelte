@@ -19,7 +19,7 @@
 <div class="dialogue-container" style="pointer-events: {visible ? 'auto' : 'none'}; opacity: {visible ? 1 : 0};">
   <div class="dialogue-box">
     <div class="speaker-label">
-      <img src="/speaker-label-bg.svg" alt="" class="label-bg" />
+      <img src="/shapes/shape-label-1.svg" alt="" class="label-bg" />
       <p class="speaker-name">{speaker}</p>
     </div>
     <div class="content-wrapper">
