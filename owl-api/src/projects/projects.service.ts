@@ -26,6 +26,10 @@ export class ProjectsService {
     }
 
     try {
+      const existingProjectsCount = await this.prisma.project.count({
+        where: { userId },
+      });
+
       const project = await this.prisma.project.create({
         data: {
           userId,
@@ -43,6 +47,16 @@ export class ProjectsService {
           },
         },
       });
+
+      if (existingProjectsCount === 0) {
+        await this.prisma.user.update({
+          where: { userId },
+          data: {
+            onboardComplete: true,
+            onboardedAt: new Date(),
+          },
+        });
+      }
 
       return project;
     } finally {
