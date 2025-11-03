@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
     import { createProject } from '$lib/auth';
     import { goto } from '$app/navigation';
+    import Button from '$lib/Button.svelte';
   
   let projectName = '';
   let projectDescription = '';
@@ -79,6 +80,9 @@
 </svelte:head>
 
 <div class="create-page">
+  <div class="back-button">
+    <Button label="← BACK" onclick={() => goto('/app/projects/select')} color="black" />
+  </div>
   <div class="card">
     <h1 class="title">{config.title}</h1>
     <p class="subtitle">Don't worry about the perfect name, you can change it later!</p>
@@ -107,12 +111,20 @@
 
 <style>
   .create-page {
+    position: relative;
     min-height: 100vh;
     background-color: #453b61;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+  }
+
+  .back-button {
+    position: absolute;
+    top: 32px;
+    left: 66px;
+    translate: 0 -8px;
   }
 
   .card {
