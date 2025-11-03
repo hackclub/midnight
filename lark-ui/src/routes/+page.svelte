@@ -379,6 +379,12 @@
         </span>
       </button>
     </div>
+
+    <div class="absolute bottom-8 md:bottom-12 lg:bottom-16 2xl:bottom-16 left-0 right-0 flex justify-center z-30">
+      <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-lg md:text-2xl lg:text-3xl 2xl:text-[34px] text-center">
+        you receive a strange transmission... <span class="inline-block animate-bounce ml-2">⌄</span>
+      </p>
+    </div>
   </section>
 
   <section
