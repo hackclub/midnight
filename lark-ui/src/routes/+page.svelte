@@ -423,14 +423,6 @@
               </button>
             </div>
 
-            <button on:click={openModal} type="button" class="pushable-blue">
-              <span
-                class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre"
-              >
-                Read More
-              </span>
-            </button>
-
             {#if errorMessage}
               <p
                 class="text-[#fee1c0] font-['PT_Sans',_sans-serif] text-base md:text-lg 2xl:text-xl bg-red-900 bg-opacity-50 px-4 py-2 2xl:px-5 2xl:py-2 rounded-lg 2xl:rounded-lg"
