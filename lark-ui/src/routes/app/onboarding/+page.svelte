@@ -14,7 +14,7 @@
     'Obviously, I told her you’re not an idiot. Yet, here we are. ',
     'First... Sign up.',
     '',
-    'To earn your invite to Vienna, you must prove your skills. Code for 40 hours.',
+    'To earn your invite to Vienna, you must prove your skills. Code for 50 hours.',
     'Code additional hours to get your travel fully covered.  Enter your location ... And see how much a fully funded flight demands.',
     '',
     'Hmm... [#hours] You can create as many projects as you want to hit this goal.',
@@ -71,7 +71,7 @@
   async function handleCalc(hours: number) {
     console.log(hours);
 
-    dialogues[7] = `Hmm... ${hours + 40} hours. You can create as many projects as you want to hit this goal.`;
+    dialogues[7] = `Hmm... ${hours + 50} hours. You can create as many projects as you want to hit this goal.`;
 
     nextStep();
   }
