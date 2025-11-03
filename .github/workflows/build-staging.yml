@@ -1,0 +1,88 @@
+name: Build and Push Docker Images (Staging)
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: Path to service directory
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      path:
+        description: Path to service directory
+        required: false
+        type: string
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.package-info.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Extract version and service name
+        id: package-info
+        run: |
+          if [ -z "${{ inputs.path }}" ] || [ "${{ inputs.path }}" = "" ]; then
+            SERVICES='["owl-api", "lark-ui"]'
+          else
+            SERVICES="[\"${{ inputs.path }}\"]"
+          fi
+          
+          MATRIX="[]"
+          for SERVICE in $(echo "$SERVICES" | jq -r '.[]'); do
+            if [ -f "./$SERVICE/package.json" ]; then
+              VERSION=$(jq -r '.version' "./$SERVICE/package.json")
+              MATRIX=$(echo "$MATRIX" | jq --arg service "$SERVICE" --arg version "$VERSION" '. += [{"service": $service, "version": $version}]')
+            fi
+          done
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set tag prefix
+      id: tag-prefix
+      run: |
+        echo "prefix=staging-" >> $GITHUB_OUTPUT
+
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./${{ matrix.service }}/Dockerfile
+        tags: |
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:latest
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:${{ steps.tag-prefix.outputs.prefix }}${{ matrix.version }}
+        push: true
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+

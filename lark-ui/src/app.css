@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-3xl: 1920px;
+}
+
+:root {
+  overscroll-behavior: none;
+}
+
+body {
+  background-color: #F24B4B;
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+  border-radius: 10px;
+  margin: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #fee1c0;
+  border-radius: 10px;
+  border: 2px solid #000000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f5d5a8;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #f24b4b;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fee1c0 #000000;
+}

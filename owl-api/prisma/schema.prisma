@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId          Int           @id @default(autoincrement()) @map("user_id")
+  email           String        @unique
+  firstName       String        @map("first_name")
+  lastName        String        @map("last_name")
+  birthday        DateTime      @db.Date
+  role            String        @default("user")
+  onboardComplete Boolean       @default(false) @map("onboard_complete")
+  onboardedAt     DateTime?     @map("onboarded_at")
+  addressLine1    String?       @map("address_line_1")
+  addressLine2    String?       @map("address_line_2")
+  city            String?
+  state           String?
+  country         String?
+  zipCode         String?       @map("zip_code")
+  airtableRecId   String?       @map("airtable_rec_id")
+  hackatimeAccount String?      @map("hackatime_account")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  projects        Project[]
+  sessions        UserSession[]
+  editRequests    EditRequest[]
+  reviewedRequests EditRequest[] @relation("EditRequestReviewer")
+  hackatimeLinkOtps HackatimeLinkOtp[]
+
+  @@map("users")
+}
+
+model Project {
+  projectId          Int          @id @default(autoincrement()) @map("project_id")
+  userId             Int          @map("user_id")
+  projectType        ProjectType  @map("project_type")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  airtableRecId      String?      @map("airtable_rec_id")
+  approvedHours      Float?       @map("approved_hours")
+  description        String?      @db.VarChar(500)
+  hoursJustification String?      @map("hours_justification") @db.VarChar(500)
+  nowHackatimeHours  Float?       @map("now_hackatime_hours")
+  nowHackatimeProjects String[]   @map("now_hackatime_projects")
+  playableUrl        String?      @map("playable_url")
+  projectTitle       String       @map("project_title") @db.VarChar(30)
+  repoUrl            String?      @map("repo_url")
+  screenshotUrl      String?      @map("screenshot_url")
+  isLocked           Boolean      @default(false) @map("is_locked")
+  user               User         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  submissions        Submission[]
+  editRequests       EditRequest[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Submission {
+  submissionId     Int            @id @default(autoincrement()) @map("submission_id")
+  projectId        Int            @map("project_id")
+  playableUrl      String?        @map("playable_url")
+  screenshotUrl    String?        @map("screenshot_url")
+  description      String?        @db.VarChar(500)
+  repoUrl          String?        @map("repo_url")
+  approvedHours    Float?         @map("approved_hours")
+  hoursJustification String?      @map("hours_justification") @db.VarChar(500)
+  approvalStatus   ApprovalStatus @default(pending) @map("approval_status")
+  reviewedBy       String?        @map("reviewed_by")
+  reviewedAt       DateTime?      @map("reviewed_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  project          Project        @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("submissions")
+}
+
+model UserSession {
+  id           String    @id @default(uuid())
+  userId       Int       @map("user_id")
+  otpCode      String    @map("otp_code")
+  otpExpiresAt DateTime  @map("otp_expires_at")
+  isVerified   Boolean   @default(false) @map("is_verified")
+  verifiedAt   DateTime? @map("verified_at")
+  expiresAt    DateTime  @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  user         User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([otpCode])
+  @@map("user_sessions")
+}
+
+model EmailJob {
+  id             String    @id @default(uuid())
+  recipientEmail String
+  subject        String
+  status         String    @default("pending")
+  scheduledFor   DateTime?
+  sentAt         DateTime?
+  failedAt       DateTime?
+  errorMessage   String?
+  metadata       Json?
+  lockedBy       String?
+  lockedAt       DateTime?
+  attempts       Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([recipientEmail])
+  @@index([createdAt])
+  @@index([scheduledFor])
+  @@index([lockedBy])
+  @@map("email_jobs")
+}
+
+model AdminUser {
+  id        String         @id @default(uuid())
+  email     String         @unique
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  sessions  AdminSession[]
+
+  @@map("admin_users")
+}
+
+model AdminSession {
+  id           String    @id @default(uuid())
+  adminUserId  String
+  otpCode      String
+  otpExpiresAt DateTime
+  isVerified   Boolean   @default(false)
+  verifiedAt   DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([otpCode])
+  @@map("admin_sessions")
+}
+
+model StickerToken {
+  id         String    @id @default(uuid())
+  email      String
+  token      String    @unique
+  rsvpNumber Int
+  isUsed     Boolean   @default(false)
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([token])
+  @@index([email])
+  @@map("sticker_tokens")
+}
+
+model HackatimeLinkOtp {
+  id        String    @id @default(uuid())
+  userId    Int       @map("user_id")
+  email     String
+  otpCode   String    @map("otp_code")
+  expiresAt DateTime  @map("expires_at")
+  isUsed    Boolean   @default(false) @map("is_used")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([otpCode])
+  @@map("hackatime_link_otps")
+}
+
+model EditRequest {
+  requestId     Int            @id @default(autoincrement()) @map("request_id")
+  userId        Int            @map("user_id")
+  projectId     Int            @map("project_id")
+  requestType   EditRequestType @map("request_type")
+  currentData   Json           @map("current_data")
+  requestedData Json           @map("requested_data")
+  status        RequestStatus  @default(pending)
+  reason        String?        @db.VarChar(500)
+  reviewedBy    Int?           @map("reviewed_by")
+  reviewedAt    DateTime?      @map("reviewed_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  user          User           @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  project       Project        @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
+  reviewer      User?          @relation("EditRequestReviewer", fields: [reviewedBy], references: [userId])
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@map("edit_requests")
+}
+
+enum ProjectType {
+  personal_website
+  platformer_game
+  wildcard
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum EditRequestType {
+  project_update
+  user_update
+}
+
+enum RequestStatus {
+  pending
+  approved
+  rejected
+}

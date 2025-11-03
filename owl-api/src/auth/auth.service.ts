@@ -1,0 +1,428 @@
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
+import { LoginDto } from './dto/login.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { randomBytes, randomUUID } from 'crypto';
+import { Role } from '../enums/role.enum';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
+
+  async requestOtp(loginDto: LoginDto) {
+    const { email } = loginDto;
+    
+    const otp = this.generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    let session;
+    if (existingUser) {
+      await this.prisma.userSession.deleteMany({
+        where: { userId: existingUser.userId },
+      });
+      
+      session = await this.prisma.userSession.create({
+        data: {
+          userId: existingUser.userId,
+          otpCode: otp,
+          otpExpiresAt: expiresAt,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        },
+      });
+    } else {
+      const hackatimeAccount = await this.checkHackatimeAccount(email);
+      
+      const tempUser = await this.prisma.user.create({
+        data: {
+          email,
+          firstName: 'Temporary',
+          lastName: 'User',
+          birthday: new Date('2000-01-01'),
+          role: 'user',
+          hackatimeAccount: hackatimeAccount?.toString() || null,
+        },
+      });
+      
+      session = await this.prisma.userSession.create({
+        data: {
+          userId: tempUser.userId,
+          otpCode: otp,
+          otpExpiresAt: expiresAt,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+    }
+
+    await this.mailService.sendImmediateEmail(
+      email,
+      `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Your OTP Code</h2>
+          <p>Your one-time password is:</p>
+          <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+            ${otp}
+          </div>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+      'Your OTP Code'
+    );
+
+    return { message: 'OTP sent to your email', sessionId: session.id };
+  }
+
+  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+    const { email, otp } = verifyOtpDto;
+
+    const session = await this.prisma.userSession.findFirst({
+      where: {
+        otpCode: otp,
+        otpExpiresAt: { gt: new Date() },
+        isVerified: false,
+      },
+      include: { user: true },
+    });
+
+    if (!session) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    await this.prisma.userSession.update({
+      where: { id: session.id },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+      },
+    });
+
+    if (existingUser) {
+      // Update session with correct user ID
+      await this.prisma.userSession.update({
+        where: { id: session.id },
+        data: { userId: existingUser.userId },
+      });
+
+      return {
+        message: 'OTP verified successfully',
+        isNewUser: !existingUser.onboardComplete,
+        user: {
+          userId: existingUser.userId,
+          email: existingUser.email,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+        },
+        sessionId: session.id,
+      };
+    } else {
+      // New user - return session ID for profile completion
+      return {
+        message: 'OTP verified. Please complete your profile.',
+        sessionId: session.id,
+        isNewUser: true,
+        email: email, // Include email for profile completion
+      };
+    }
+  }
+
+  async completeProfile(completeProfileDto: CompleteProfileDto, sessionId: string, email: string) {
+    const { firstName, lastName, birthday, addressLine1, addressLine2, city, state, country, zipCode, airtableRecId } = completeProfileDto;
+
+    const session = await this.prisma.userSession.findUnique({
+      where: { id: sessionId },
+      include: { user: true },
+    });
+
+    if (!session || !session.isVerified) {
+      throw new UnauthorizedException('Invalid session');
+    }
+
+    if (!session.user) {
+      throw new BadRequestException('User not found in session');
+    }
+
+    // Check if this is a temporary user (first name is 'Temporary')
+    const isTemporaryUser = session.user.firstName === 'Temporary';
+    
+    if (!isTemporaryUser) {
+      throw new BadRequestException('User profile already completed');
+    }
+
+    // Update the existing temporary user
+    const user = await this.prisma.user.update({
+      where: { userId: session.user.userId },
+      data: {
+        firstName,
+        lastName,
+        birthday: new Date(birthday),
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        country,
+        zipCode,
+        airtableRecId,
+        onboardedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'Profile completed successfully',
+      user: {
+        userId: user.userId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    };
+  }
+
+  async getCurrentUser(sessionId: string) {
+    const session = await this.prisma.userSession.findUnique({
+      where: { id: sessionId },
+      include: { user: true },
+    });
+
+    if (!session || !session.isVerified || session.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired session');
+    }
+
+    return session.user;
+  }
+
+  async completeOnboarding(userId: number) {
+    const user = await this.prisma.user.update({
+      where: { userId },
+      data: { onboardComplete: true },
+    });
+
+    return {
+      message: 'Onboarding completed successfully',
+      user: {
+        userId: user.userId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        onboardComplete: user.onboardComplete,
+      },
+    };
+  }
+
+  async getOnboardingStatus(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { onboardComplete: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return {
+      onboardComplete: user.onboardComplete,
+    };
+  }
+
+  private generateOtp(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  async checkHackatimeAccount(email: string): Promise<number | null> {
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    console.log('=== CHECKING HACKATIME ACCOUNT ===');
+    console.log('Email:', email);
+    console.log('API Key configured:', !!HACKATIME_API_KEY);
+    console.log('API URL:', HACKATIME_ADMIN_API_URL);
+
+    if (!HACKATIME_API_KEY) {
+      console.warn('HACKATIME_API_KEY not configured, skipping Hackatime lookup');
+      return null;
+    }
+
+    try {
+      const searchQuery = {
+        query: `
+          SELECT
+            users.id,
+            users.username,
+            users.github_username,
+            users.slack_username,
+            email_addresses.email
+          FROM
+            users
+            INNER JOIN email_addresses ON users.id = email_addresses.user_id
+          WHERE
+            email_addresses.email = '${email}'
+          LIMIT 1;
+        `,
+      };
+
+      console.log('Sending query to Hackatime API...');
+
+      const res = await fetch(`${HACKATIME_ADMIN_API_URL}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${HACKATIME_API_KEY}`,
+        },
+        body: JSON.stringify(searchQuery),
+      });
+
+      console.log('Response status:', res.status);
+
+      if (!res.ok) {
+        console.error('Failed to check Hackatime account:', res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      console.log('Response data:', JSON.stringify(data, null, 2));
+      
+      if (data.rows && data.rows.length > 0) {
+        const hackatimeId = data.rows[0].id[1];
+        console.log(`✓ Found Hackatime account for ${email}: ${hackatimeId}`);
+        return hackatimeId;
+      }
+
+      console.log(`✗ No Hackatime account found for ${email}`);
+      return null;
+    } catch (error) {
+      console.error('Error checking Hackatime account:', error);
+      return null;
+    }
+  }
+
+  async sendHackatimeLinkOtp(userId: number, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const hackatimeAccountId = await this.checkHackatimeAccount(email);
+
+    if (!hackatimeAccountId) {
+      throw new BadRequestException('No Hackatime account found with this email');
+    }
+
+    const linkedUser = await this.prisma.user.findFirst({
+      where: {
+        hackatimeAccount: hackatimeAccountId.toString(),
+        NOT: { userId },
+      },
+      select: { userId: true },
+    });
+
+    if (linkedUser) {
+      throw new BadRequestException('This Hackatime account is already linked to another user');
+    }
+
+    const otp = this.generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    const existingOtp = await this.prisma.hackatimeLinkOtp.findFirst({
+      where: { userId },
+    });
+
+    if (existingOtp) {
+      await this.prisma.hackatimeLinkOtp.delete({
+        where: { id: existingOtp.id },
+      });
+    }
+
+    await this.prisma.hackatimeLinkOtp.create({
+      data: {
+        userId,
+        email,
+        otpCode: otp,
+        expiresAt,
+      },
+    });
+
+    console.log('=== SENDING HACKATIME LINK OTP ===');
+    console.log('Email:', email);
+    console.log('OTP:', otp);
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Link Your Hackatime Account</h2>
+        <p>Your verification code is:</p>
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+          ${otp}
+        </div>
+        <p>This code expires in 10 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      </div>
+    `;
+
+    console.log('Calling sendImmediateEmail with type: hackatime-link-otp');
+    await this.mailService.sendImmediateEmail(
+      email,
+      htmlContent,
+      'Link Your Hackatime Account',
+      {
+        type: 'hackatime-link-otp',
+      }
+    );
+    console.log('Email sent successfully');
+
+    return { message: 'Verification code sent to your email' };
+  }
+
+  async verifyHackatimeLinkOtp(userId: number, otp: string) {
+    const otpRecord = await this.prisma.hackatimeLinkOtp.findFirst({
+      where: {
+        userId,
+        otpCode: otp,
+        expiresAt: { gt: new Date() },
+        isUsed: false,
+      },
+    });
+
+    if (!otpRecord) {
+      throw new UnauthorizedException('Invalid or expired verification code');
+    }
+
+    const hackatimeAccount = await this.checkHackatimeAccount(otpRecord.email);
+
+    if (!hackatimeAccount) {
+      throw new BadRequestException('No Hackatime account found with this email');
+    }
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        hackatimeAccount: hackatimeAccount.toString(),
+      },
+    });
+
+    await this.prisma.hackatimeLinkOtp.update({
+      where: { id: otpRecord.id },
+      data: {
+        isUsed: true,
+        usedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'Hackatime account linked successfully',
+      hackatimeAccountId: hackatimeAccount,
+    };
+  }
+}
