@@ -41,7 +41,9 @@ jobs:
               MATRIX=$(echo "$MATRIX" | jq --arg service "$SERVICE" --arg version "$VERSION" '. += [{"service": $service, "version": $version}]')
             fi
           done
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix<<EOF" >> $GITHUB_OUTPUT
+          echo "$MATRIX" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   build:
     needs: prepare
@@ -84,8 +86,24 @@ jobs:
         context: .
         file: ./${{ matrix.service }}/Dockerfile
         tags: |
-          ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
-          ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.tag-prefix.outputs.prefix }}${{ matrix.version }}
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:latest
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:${{ matrix.version }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Trigger Flux webhook for owl-api
+      if: matrix.service == 'owl-api'
+      run: |
+        curl -X POST "${{ secrets.FLUX_BACKEND_WEBHOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.FLUX_WEBHOOK_TOKEN }}" \
+          -d '{"ref": "main"}'
+
+    - name: Trigger Flux webhook for lark-ui
+      if: matrix.service == 'lark-ui'
+      run: |
+        curl -X POST "${{ secrets.FLUX_FRONTEND_WEBHOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.FLUX_WEBHOOK_TOKEN }}" \
+          -d '{"ref": "main"}'

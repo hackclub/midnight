@@ -5,7 +5,7 @@ name: Release Please
   workflow_dispatch:
   push:
     branches:
-      - main
+      - staging
 
 concurrency:
   group: release-please
@@ -36,6 +36,6 @@ jobs:
     strategy:
       matrix:
         path: ${{ fromJSON(fromJSON(needs.release-please.outputs.manifest).paths_released) }}
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/build-staging.yaml
     with:
       path: ${{ matrix.path }}
