@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Put, Body, Req, Res, HttpCode, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { UserService } from './user.service';
 import { InitialRsvpDto } from './dto/initial-rsvp.dto';
 import { CompleteRsvpDto } from './dto/complete-rsvp.dto';
@@ -124,5 +125,22 @@ export class UserController {
   async updateUser(@Body() updateUserDto: UpdateUserDto, @Req() req: express.Request) {
     const userId = req.user.userId;
     return this.userService.updateUser(userId, updateUserDto);
+  }
+
+  @Get('api/user/hackatime-projects')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async getHackatimeProjects(@Req() req: express.Request) {
+    const userEmail = req.user.email;
+    return this.userService.getHackatimeProjects(userEmail);
+  }
+
+  @Get('api/user/hackatime-account')
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { ttl: 2000, limit: 1 } }) 
+  @HttpCode(200)
+  async checkHackatimeAccount(@Req() req: express.Request) {
+    const userEmail = req.user.email;
+    return this.userService.checkHackatimeAccountStatus(userEmail);
   }
 }

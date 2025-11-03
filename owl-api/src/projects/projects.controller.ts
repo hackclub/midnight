@@ -4,6 +4,7 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { UpdateHackatimeProjectsDto } from './dto/update-hackatime-projects.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('api/projects/auth')
@@ -55,5 +56,22 @@ export class ProjectsController {
     @Req() req: Request,
   ) {
     return this.projectsService.createEditRequest(id, updateProjectDto, req.user.userId);
+  }
+
+  @Put(':id/hackatime-projects')
+  async updateHackatimeProjects(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateHackatimeProjectsDto: UpdateHackatimeProjectsDto,
+    @Req() req: Request,
+  ) {
+    return this.projectsService.updateHackatimeProjects(id, updateHackatimeProjectsDto, req.user.userId);
+  }
+
+  @Get(':id/hackatime-projects')
+  async getHackatimeProjects(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    return this.projectsService.getHackatimeProjects(id, req.user.userId);
   }
 }

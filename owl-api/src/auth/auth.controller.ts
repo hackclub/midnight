@@ -69,6 +69,12 @@ export class AuthController {
     return this.authService.getCurrentUser(req.cookies.sessionId);
   }
 
+  @Post('verify-session')
+  async verifySession(@Body() body: { sessionId: string }) {
+    const sessionId = body.sessionId;
+    return this.authService.getCurrentUser(sessionId);
+  }
+
   @Post('logout')
   @UseGuards(AuthGuard)
   async logout(@Res({ passthrough: true }) res: Response) {
@@ -89,5 +95,19 @@ export class AuthController {
   async getOnboardingStatus(@Req() req: Request) {
     const userId = req.user.userId;
     return this.authService.getOnboardingStatus(userId);
+  }
+
+  @Post('hackatime-link/send-otp')
+  @UseGuards(AuthGuard)
+  async sendHackatimeLinkOtp(@Req() req: Request, @Body() body: { email: string }) {
+    const userId = req.user.userId;
+    return this.authService.sendHackatimeLinkOtp(userId, body.email);
+  }
+
+  @Post('hackatime-link/verify-otp')
+  @UseGuards(AuthGuard)
+  async verifyHackatimeLinkOtp(@Req() req: Request, @Body() body: { otp: string }) {
+    const userId = req.user.userId;
+    return this.authService.verifyHackatimeLinkOtp(userId, body.otp);
   }
 }

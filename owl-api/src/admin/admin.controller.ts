@@ -46,4 +46,25 @@ export class AdminController {
   ) {
     return this.adminService.unlockProject(id, req.user.userId);
   }
+
+  @Put('edit-requests/:id/approve')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async approveEditRequest(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    return this.adminService.approveEditRequest(id, req.user.userId);
+  }
+
+  @Put('edit-requests/:id/reject')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async rejectEditRequest(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { reason: string },
+    @Req() req: Request,
+  ) {
+    return this.adminService.rejectEditRequest(id, body.reason, req.user.userId);
+  }
 }

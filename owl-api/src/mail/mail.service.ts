@@ -180,6 +180,12 @@ export class MailService {
   }
 
   async sendImmediateEmail(email: string, htmlContent: string, subject: string, metadata: any = {}): Promise<{ success: boolean }> {
+    console.log('=== sendImmediateEmail CALLED ===');
+    console.log('Email:', email);
+    console.log('Subject:', subject);
+    console.log('Metadata type:', metadata.type);
+    console.log('HTML content length:', htmlContent.length);
+
     const fromEmail = process.env.EMAIL_FROM || 'noreply@midnight.hackclub.com';
     const from = `Midnight (Hack Club) <${fromEmail}>`;
 

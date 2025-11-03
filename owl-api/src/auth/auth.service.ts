@@ -39,14 +39,16 @@ export class AuthService {
         },
       });
     } else {
-      // For new users, create a temporary user first
+      const hackatimeAccount = await this.checkHackatimeAccount(email);
+      
       const tempUser = await this.prisma.user.create({
         data: {
           email,
-          firstName: 'Temporary', // Temporary first name
-          lastName: 'User', // Temporary last name
-          birthday: new Date('2000-01-01'), // Temporary birthday
-          role: 'user', // Default role
+          firstName: 'Temporary',
+          lastName: 'User',
+          birthday: new Date('2000-01-01'),
+          role: 'user',
+          hackatimeAccount: hackatimeAccount?.toString() || null,
         },
       });
       
@@ -115,6 +117,7 @@ export class AuthService {
 
       return {
         message: 'OTP verified successfully',
+        isNewUser: !existingUser.onboardComplete,
         user: {
           userId: existingUser.userId,
           email: existingUser.email,
@@ -234,5 +237,192 @@ export class AuthService {
 
   private generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  async checkHackatimeAccount(email: string): Promise<number | null> {
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    console.log('=== CHECKING HACKATIME ACCOUNT ===');
+    console.log('Email:', email);
+    console.log('API Key configured:', !!HACKATIME_API_KEY);
+    console.log('API URL:', HACKATIME_ADMIN_API_URL);
+
+    if (!HACKATIME_API_KEY) {
+      console.warn('HACKATIME_API_KEY not configured, skipping Hackatime lookup');
+      return null;
+    }
+
+    try {
+      const searchQuery = {
+        query: `
+          SELECT
+            users.id,
+            users.username,
+            users.github_username,
+            users.slack_username,
+            email_addresses.email
+          FROM
+            users
+            INNER JOIN email_addresses ON users.id = email_addresses.user_id
+          WHERE
+            email_addresses.email = '${email}'
+          LIMIT 1;
+        `,
+      };
+
+      console.log('Sending query to Hackatime API...');
+
+      const res = await fetch(`${HACKATIME_ADMIN_API_URL}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${HACKATIME_API_KEY}`,
+        },
+        body: JSON.stringify(searchQuery),
+      });
+
+      console.log('Response status:', res.status);
+
+      if (!res.ok) {
+        console.error('Failed to check Hackatime account:', res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      console.log('Response data:', JSON.stringify(data, null, 2));
+      
+      if (data.rows && data.rows.length > 0) {
+        const hackatimeId = data.rows[0].id[1];
+        console.log(`✓ Found Hackatime account for ${email}: ${hackatimeId}`);
+        return hackatimeId;
+      }
+
+      console.log(`✗ No Hackatime account found for ${email}`);
+      return null;
+    } catch (error) {
+      console.error('Error checking Hackatime account:', error);
+      return null;
+    }
+  }
+
+  async sendHackatimeLinkOtp(userId: number, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const hackatimeAccountId = await this.checkHackatimeAccount(email);
+
+    if (!hackatimeAccountId) {
+      throw new BadRequestException('No Hackatime account found with this email');
+    }
+
+    const linkedUser = await this.prisma.user.findFirst({
+      where: {
+        hackatimeAccount: hackatimeAccountId.toString(),
+        NOT: { userId },
+      },
+      select: { userId: true },
+    });
+
+    if (linkedUser) {
+      throw new BadRequestException('This Hackatime account is already linked to another user');
+    }
+
+    const otp = this.generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    const existingOtp = await this.prisma.hackatimeLinkOtp.findFirst({
+      where: { userId },
+    });
+
+    if (existingOtp) {
+      await this.prisma.hackatimeLinkOtp.delete({
+        where: { id: existingOtp.id },
+      });
+    }
+
+    await this.prisma.hackatimeLinkOtp.create({
+      data: {
+        userId,
+        email,
+        otpCode: otp,
+        expiresAt,
+      },
+    });
+
+    console.log('=== SENDING HACKATIME LINK OTP ===');
+    console.log('Email:', email);
+    console.log('OTP:', otp);
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Link Your Hackatime Account</h2>
+        <p>Your verification code is:</p>
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+          ${otp}
+        </div>
+        <p>This code expires in 10 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      </div>
+    `;
+
+    console.log('Calling sendImmediateEmail with type: hackatime-link-otp');
+    await this.mailService.sendImmediateEmail(
+      email,
+      htmlContent,
+      'Link Your Hackatime Account',
+      {
+        type: 'hackatime-link-otp',
+      }
+    );
+    console.log('Email sent successfully');
+
+    return { message: 'Verification code sent to your email' };
+  }
+
+  async verifyHackatimeLinkOtp(userId: number, otp: string) {
+    const otpRecord = await this.prisma.hackatimeLinkOtp.findFirst({
+      where: {
+        userId,
+        otpCode: otp,
+        expiresAt: { gt: new Date() },
+        isUsed: false,
+      },
+    });
+
+    if (!otpRecord) {
+      throw new UnauthorizedException('Invalid or expired verification code');
+    }
+
+    const hackatimeAccount = await this.checkHackatimeAccount(otpRecord.email);
+
+    if (!hackatimeAccount) {
+      throw new BadRequestException('No Hackatime account found with this email');
+    }
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        hackatimeAccount: hackatimeAccount.toString(),
+      },
+    });
+
+    await this.prisma.hackatimeLinkOtp.update({
+      where: { id: otpRecord.id },
+      data: {
+        isUsed: true,
+        usedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'Hackatime account linked successfully',
+      hackatimeAccountId: hackatimeAccount,
+    };
   }
 }

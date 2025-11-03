@@ -1,0 +1,64 @@
+<script lang="ts">
+    import { goto } from '$app/navigation';
+    import Button from '$lib/Button.svelte';
+    import ProjectType from '$lib/cards/ProjectType.svelte';
+    import { onMount } from 'svelte';
+</script>
+
+<svelte:head>
+  <title>Create Your Project - Midnight</title>
+</svelte:head>
+
+<div class="select-page">
+    <div class="header">
+        <div class="back-button">
+            <Button label="← BACK" onclick={() => goto('/app/projects')} color="black" />
+        </div>
+        <h1 class="page-title">Create A Project</h1>
+    </div>
+    <div class="project-types-grid">
+        <ProjectType type="website" />
+        <ProjectType type="game" />
+        <ProjectType type="cli" />
+        <ProjectType type="desktop_app" />
+        <ProjectType type="mobile_app" />
+        <ProjectType type="wildcard" />
+    </div>
+</div>
+
+<style>
+  .select-page {
+    position: relative;
+    min-height: 100vh;
+    background: #453b61;
+    padding: 32px 66px 200px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 32px;
+
+    margin: 0 0 16px 0;
+  }
+
+  .back-button {
+    translate: 0 -8px;
+  }
+
+  .page-title {
+    font-family: 'Moga', sans-serif;
+    font-size: 90px;
+    color: white;
+    letter-spacing: -1px;
+    line-height: 1.5;
+  }
+
+  .project-types-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 32px;
+  }
+</style>

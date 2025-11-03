@@ -1,78 +1,67 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   
+  const { onboarding = true } = $props();
+
   let activeTab = 'create';
   
   function navigateTo(tab: string) {
     activeTab = tab;
     switch(tab) {
       case 'create':
-        goto('/home');
+        goto('/app/projects');
         break;
       case 'explore':
-        goto('/explore');
+        goto('/app/explore');
         break;
       case 'shop':
-        goto('/shop');
-        break;
-      case 'login':
-        goto('/login');
+        goto('/app/shop');
         break;
     }
   }
 </script>
 
-<svelte:head>
-  <style>
-    @font-face {
-      font-family: 'Moga';
-      src: url('/font/Moga.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-  </style>
-</svelte:head>
-
 <div class="bottom-navigation">
-  <div class="create-container">
-    <img src="/createpop.svg" alt="Create dialogue bubble" class="create-bubble" />
+  <div class="nav-tabs">
     <button 
       class="nav-item" 
       class:active={activeTab === 'create'}
-      on:click={() => navigateTo('create')}
+      onclick={() => navigateTo('create')}
       role="tab"
       aria-selected={activeTab === 'create'}
     >
       Create
     </button>
+    <button 
+      class="nav-item {onboarding ? 'disabled' : 'enabled'}" 
+      class:active={activeTab === 'explore'}
+      onclick={() => navigateTo('explore')}
+      role="tab"
+      aria-selected={activeTab === 'explore'}
+    >
+      Explore
+      {#if onboarding}
+        <img class="lock" src="/icons/lock.svg" alt="Lock" />
+      {/if}
+    </button>
+    <button 
+      class="nav-item {onboarding ? 'disabled' : 'enabled'}" 
+      class:active={activeTab === 'shop'}
+      onclick={() => navigateTo('shop')}
+      role="tab"
+      aria-selected={activeTab === 'shop'}
+    >
+      Shop
+      {#if onboarding}
+        <img class="lock" src="/icons/lock.svg" alt="Lock" />
+      {/if}
+    </button>
   </div>
-  <button 
-    class="nav-item" 
-    class:active={activeTab === 'explore'}
-    on:click={() => navigateTo('explore')}
-    role="tab"
-    aria-selected={activeTab === 'explore'}
-  >
-    Explore
-  </button>
-  <button 
-    class="nav-item" 
-    class:active={activeTab === 'shop'}
-    on:click={() => navigateTo('shop')}
-    role="tab"
-    aria-selected={activeTab === 'shop'}
-  >
-    Shop
-  </button>
-  <button 
-    class="nav-item" 
-    class:active={activeTab === 'login'}
-    on:click={() => navigateTo('login')}
-    role="tab"
-    aria-selected={activeTab === 'login'}
-  >
-    LOGIN
-  </button>
+  <div class="tray">
+    {#if !onboarding}
+      <img src="/bell-icon.svg" alt="Notification" />
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -81,21 +70,27 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #453b61;
-    border-top: 4px solid #ffd3a8;
+    background: #2D273F;
     height: 137px;
+    padding: 0 120px;
+    z-index: 100;
+
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    padding: 0 2rem;
-    z-index: 100;
+    justify-content: space-between;
   }
   
+  .nav-tabs {
+    display: flex;
+    gap: 60px;
+  }
+
   .nav-item {
     font-family: 'Moga', sans-serif;
     font-size: 90px;
-    color: white;
+
     text-align: center;
+    text-box-trim: trim-both;
     cursor: pointer;
     transition: color 0.3s ease;
     letter-spacing: -0.99px;
@@ -104,6 +99,17 @@
     border: none;
     padding: 0;
     margin: 0;
+
+    position: relative;
+  }
+
+  .enabled {
+    color: white;
+  }
+
+  .disabled {
+    color: #7C7C7C;
+    pointer-events: none;
   }
   
   .nav-item.active {
@@ -113,23 +119,19 @@
   .nav-item:hover {
     opacity: 0.8;
   }
-  
-  .create-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .create-bubble {
+
+  .lock {
     position: absolute;
-    bottom: 100%;
+
+    bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    width: 208px;
-    height: 137px;
-    margin-bottom: -10px;
-    z-index: 1;
+    translate: -50% 0;
+
+    z-index: 20;
+
+    width: 24px;
+    height: 30px;
+    rotate: -10deg;
   }
   
   @media (max-width: 768px) {
@@ -141,11 +143,6 @@
       height: 80px;
       padding: 0 1rem;
     }
-    
-    .create-bubble {
-      width: 156px;
-      height: 103px;
-    }
   }
   
   @media (max-width: 480px) {
@@ -156,11 +153,6 @@
     .bottom-navigation {
       height: 60px;
       padding: 0 0.5rem;
-    }
-    
-    .create-bubble {
-      width: 104px;
-      height: 69px;
     }
   }
 </style>

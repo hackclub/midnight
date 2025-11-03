@@ -24,12 +24,14 @@ model User {
   country         String?
   zipCode         String?       @map("zip_code")
   airtableRecId   String?       @map("airtable_rec_id")
+  hackatimeAccount String?      @map("hackatime_account")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
   projects        Project[]
   sessions        UserSession[]
   editRequests    EditRequest[]
   reviewedRequests EditRequest[] @relation("EditRequestReviewer")
+  hackatimeLinkOtps HackatimeLinkOtp[]
 
   @@map("users")
 }
@@ -45,6 +47,7 @@ model Project {
   description        String?      @db.VarChar(500)
   hoursJustification String?      @map("hours_justification") @db.VarChar(500)
   nowHackatimeHours  Float?       @map("now_hackatime_hours")
+  nowHackatimeProjects String[]   @map("now_hackatime_projects")
   playableUrl        String?      @map("playable_url")
   projectTitle       String       @map("project_title") @db.VarChar(30)
   repoUrl            String?      @map("repo_url")
@@ -158,6 +161,22 @@ model StickerToken {
   @@index([token])
   @@index([email])
   @@map("sticker_tokens")
+}
+
+model HackatimeLinkOtp {
+  id        String    @id @default(uuid())
+  userId    Int       @map("user_id")
+  email     String
+  otpCode   String    @map("otp_code")
+  expiresAt DateTime  @map("expires_at")
+  isUsed    Boolean   @default(false) @map("is_used")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([otpCode])
+  @@map("hackatime_link_otps")
 }
 
 model EditRequest {

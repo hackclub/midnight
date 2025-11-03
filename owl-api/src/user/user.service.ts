@@ -602,4 +602,201 @@ export class UserService {
   getHealth() {
     return { status: 'ok', service: 'user-service' };
   }
+
+  async checkHackatimeAccountStatus(userEmail: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+      select: {
+        userId: true,
+        email: true,
+        hackatimeAccount: true,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Query hackatime database directly to check if account exists
+    const hackatimeId = await this.checkHackatimeAccount(userEmail);
+    
+    // Update user's hackatime account if found and different from stored value
+    if (hackatimeId && hackatimeId.toString() !== user.hackatimeAccount) {
+      await this.prisma.user.update({
+        where: { userId: user.userId },
+        data: { hackatimeAccount: hackatimeId.toString() },
+      });
+    }
+
+    return {
+      email: user.email,
+      hasHackatimeAccount: !!hackatimeId,
+      hackatimeAccountId: hackatimeId?.toString() || null,
+    };
+  }
+
+  private async checkHackatimeAccount(email: string): Promise<number | null> {
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    console.log('=== CHECKING HACKATIME ACCOUNT ===');
+    console.log('Email:', email);
+    console.log('API Key configured:', !!HACKATIME_API_KEY);
+    console.log('API URL:', HACKATIME_ADMIN_API_URL);
+
+    if (!HACKATIME_API_KEY) {
+      console.warn('HACKATIME_API_KEY not configured, skipping Hackatime lookup');
+      return null;
+    }
+
+    try {
+      const searchQuery = {
+        query: `
+          SELECT
+            users.id,
+            users.username,
+            users.github_username,
+            users.slack_username,
+            email_addresses.email
+          FROM
+            users
+            INNER JOIN email_addresses ON users.id = email_addresses.user_id
+          WHERE
+            email_addresses.email = '${email}'
+          LIMIT 1;
+        `,
+      };
+
+      console.log('Sending query to Hackatime API...');
+
+      const res = await fetch(`${HACKATIME_ADMIN_API_URL}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${HACKATIME_API_KEY}`,
+        },
+        body: JSON.stringify(searchQuery),
+      });
+
+      console.log('Response status:', res.status);
+
+      if (!res.ok) {
+        console.error('Failed to check Hackatime account:', res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      console.log('Response data:', JSON.stringify(data, null, 2));
+      
+      if (data.rows && data.rows.length > 0) {
+        const hackatimeId = data.rows[0].id[1];
+        console.log(`✓ Found Hackatime account for ${email}: ${hackatimeId}`);
+        return hackatimeId;
+      }
+
+      console.log(`✗ No Hackatime account found for ${email}`);
+      return null;
+    } catch (error) {
+      console.error('Error checking Hackatime account:', error);
+      return null;
+    }
+  }
+
+  async getHackatimeProjects(userEmail: string): Promise<any> {
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+      include: {
+        projects: {
+          select: {
+            nowHackatimeProjects: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (!user.hackatimeAccount) {
+      throw new HttpException(
+        'No Hackatime account linked to this user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (HACKATIME_API_KEY) {
+      headers['Authorization'] = `Bearer ${HACKATIME_API_KEY}`;
+    }
+
+    const res = await fetch(
+      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${user.hackatimeAccount}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new HttpException(
+          'Hackatime projects not found for this user',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      throw new HttpException(
+        'Failed to fetch hackatime projects',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const hackatimeProjects = await res.json();
+    const linkedProjectNames = new Set<string>();
+    
+    user.projects.forEach(project => {
+      if (project.nowHackatimeProjects) {
+        project.nowHackatimeProjects.forEach(name => linkedProjectNames.add(name));
+      }
+    });
+
+    if (Array.isArray(hackatimeProjects)) {
+      return hackatimeProjects.filter((project: any) => 
+        !linkedProjectNames.has(project.name || project.projectName || project)
+      );
+    }
+
+    if (hackatimeProjects.projects && Array.isArray(hackatimeProjects.projects)) {
+      return {
+        ...hackatimeProjects,
+        projects: hackatimeProjects.projects.filter((project: any) =>
+          !linkedProjectNames.has(project.name || project.projectName || project)
+        ),
+      };
+    }
+
+    if (hackatimeProjects.name || hackatimeProjects.projectName) {
+      const projectName = hackatimeProjects.name || hackatimeProjects.projectName;
+      if (linkedProjectNames.has(projectName)) {
+        throw new HttpException(
+          'All hackatime projects are already linked',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+
+    return hackatimeProjects;
+  }
 }

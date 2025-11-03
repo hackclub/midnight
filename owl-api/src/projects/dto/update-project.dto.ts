@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUrl, MaxLength, IsArray, ArrayMinSize } from 'class-validator';
 
 export class UpdateProjectDto {
   @IsString()
@@ -28,4 +28,10 @@ export class UpdateProjectDto {
   @IsString()
   @IsOptional()
   airtableRecId?: string;
+
+  @IsArray()
+  @IsOptional()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  nowHackatimeProjects?: string[];
 }

@@ -10,4 +10,8 @@ export class CreateProjectDto {
   @IsEnum(ProjectType)
   @IsNotEmpty()
   projectType: ProjectType;
+
+  @IsString()
+  @IsNotEmpty()
+  projectDescription: string;
 }

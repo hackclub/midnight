@@ -114,6 +114,7 @@ export class AdminService {
             repoUrl: submission.project.repoUrl,
             screenshotUrl: submission.project.screenshotUrl,
             nowHackatimeHours: submission.project.nowHackatimeHours,
+            nowHackatimeProjects: submission.project.nowHackatimeProjects,
           },
           submission: {
             description: submission.description,
@@ -186,6 +187,7 @@ export class AdminService {
             repoUrl: true,
             screenshotUrl: true,
             nowHackatimeHours: true,
+            nowHackatimeProjects: true,
             airtableRecId: true,
             isLocked: true,
             createdAt: true,
@@ -235,5 +237,157 @@ export class AdminService {
     });
 
     return updatedProject;
+  }
+
+  async approveEditRequest(requestId: number, adminUserId: number) {
+    const editRequest = await this.prisma.editRequest.findUnique({
+      where: { requestId },
+      include: {
+        project: true,
+        user: true,
+      },
+    });
+
+    if (!editRequest) {
+      throw new NotFoundException('Edit request not found');
+    }
+
+    if (editRequest.status !== 'pending') {
+      throw new ForbiddenException('Edit request has already been processed');
+    }
+
+    // Calculate hackatime hours if hackatime projects are being updated
+    let calculatedHours = editRequest.project.nowHackatimeHours;
+    if ((editRequest.requestedData as any).nowHackatimeProjects) {
+      // For now, we'll set a placeholder value. In a real implementation,
+      // you would fetch hours from the hackatime API based on project names
+      calculatedHours = ((editRequest.requestedData as any).nowHackatimeProjects as string[]).length * 10; // Placeholder calculation
+    }
+
+    // Update the project with the requested data
+    const updateData: any = {};
+    if ((editRequest.requestedData as any).projectTitle !== undefined) {
+      updateData.projectTitle = (editRequest.requestedData as any).projectTitle;
+    }
+    if ((editRequest.requestedData as any).description !== undefined) {
+      updateData.description = (editRequest.requestedData as any).description;
+    }
+    if ((editRequest.requestedData as any).playableUrl !== undefined) {
+      updateData.playableUrl = (editRequest.requestedData as any).playableUrl;
+    }
+    if ((editRequest.requestedData as any).repoUrl !== undefined) {
+      updateData.repoUrl = (editRequest.requestedData as any).repoUrl;
+    }
+    if ((editRequest.requestedData as any).screenshotUrl !== undefined) {
+      updateData.screenshotUrl = (editRequest.requestedData as any).screenshotUrl;
+    }
+    if ((editRequest.requestedData as any).airtableRecId !== undefined) {
+      updateData.airtableRecId = (editRequest.requestedData as any).airtableRecId;
+    }
+    if ((editRequest.requestedData as any).nowHackatimeProjects !== undefined) {
+      updateData.nowHackatimeProjects = (editRequest.requestedData as any).nowHackatimeProjects;
+      updateData.nowHackatimeHours = calculatedHours;
+    }
+
+    // Update the project
+    const updatedProject = await this.prisma.project.update({
+      where: { projectId: editRequest.projectId },
+      data: updateData,
+    });
+
+    // Update the edit request status
+    const updatedEditRequest = await this.prisma.editRequest.update({
+      where: { requestId },
+      data: {
+        status: 'approved',
+        reviewedBy: adminUserId,
+        reviewedAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        project: {
+          select: {
+            projectId: true,
+            projectTitle: true,
+            projectType: true,
+          },
+        },
+        reviewer: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: 'Edit request approved successfully.',
+      editRequest: updatedEditRequest,
+      project: updatedProject,
+    };
+  }
+
+  async rejectEditRequest(requestId: number, reason: string, adminUserId: number) {
+    const editRequest = await this.prisma.editRequest.findUnique({
+      where: { requestId },
+    });
+
+    if (!editRequest) {
+      throw new NotFoundException('Edit request not found');
+    }
+
+    if (editRequest.status !== 'pending') {
+      throw new ForbiddenException('Edit request has already been processed');
+    }
+
+    const updatedEditRequest = await this.prisma.editRequest.update({
+      where: { requestId },
+      data: {
+        status: 'rejected',
+        reason,
+        reviewedBy: adminUserId,
+        reviewedAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        project: {
+          select: {
+            projectId: true,
+            projectTitle: true,
+            projectType: true,
+          },
+        },
+        reviewer: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return {
+      message: 'Edit request rejected successfully.',
+      editRequest: updatedEditRequest,
+    };
   }
 }

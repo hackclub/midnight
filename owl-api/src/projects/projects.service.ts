@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { UpdateHackatimeProjectsDto } from './dto/update-hackatime-projects.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -14,6 +15,7 @@ export class ProjectsService {
         userId,
         projectTitle: createProjectDto.projectTitle,
         projectType: createProjectDto.projectType,
+        description: createProjectDto.projectDescription,
       },
       include: {
         user: {
@@ -99,7 +101,8 @@ export class ProjectsService {
     // Validate required project fields
     if (!project.projectTitle || !project.description || 
         project.nowHackatimeHours === null || project.nowHackatimeHours === undefined ||
-        !project.playableUrl || !project.repoUrl || !project.screenshotUrl) {
+        !project.playableUrl || !project.repoUrl || !project.screenshotUrl ||
+        !project.nowHackatimeProjects || project.nowHackatimeProjects.length === 0) {
       throw new ForbiddenException('Project incomplete. Please complete all required project fields first.');
     }
 
@@ -177,6 +180,8 @@ export class ProjectsService {
       repoUrl: project.repoUrl,
       screenshotUrl: project.screenshotUrl,
       airtableRecId: project.airtableRecId,
+      nowHackatimeProjects: project.nowHackatimeProjects,
+      nowHackatimeHours: project.nowHackatimeHours,
     };
 
     // Prepare requested data (only include fields that are being updated)
@@ -198,6 +203,10 @@ export class ProjectsService {
     }
     if (updateProjectDto.airtableRecId !== undefined) {
       requestedData.airtableRecId = updateProjectDto.airtableRecId;
+    }
+    if (updateProjectDto.nowHackatimeProjects !== undefined) {
+      requestedData.nowHackatimeProjects = updateProjectDto.nowHackatimeProjects;
+      requestedData.nowHackatimeHours = null; // Will be calculated by admin when approving
     }
 
     // Create edit request
@@ -231,6 +240,192 @@ export class ProjectsService {
     return {
       message: 'Edit request created successfully. Waiting for admin approval.',
       editRequest,
+    };
+  }
+
+  async updateHackatimeProjects(projectId: number, updateHackatimeProjectsDto: UpdateHackatimeProjectsDto, userId: number) {
+    const project = await this.prisma.project.findUnique({
+      where: { projectId },
+      include: {
+        submissions: true,
+        user: true,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    if (!project.user.hackatimeAccount) {
+      throw new BadRequestException('No Hackatime account linked to this user');
+    }
+
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (HACKATIME_API_KEY) {
+      headers['Authorization'] = `Bearer ${HACKATIME_API_KEY}`;
+    }
+
+    const res = await fetch(
+      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${project.user.hackatimeAccount}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+
+    if (!res.ok) {
+      throw new BadRequestException('Failed to fetch hackatime projects for validation');
+    }
+
+    const hackatimeProjects = await res.json();
+    const availableProjectNames = new Set<string>();
+
+    if (Array.isArray(hackatimeProjects)) {
+      hackatimeProjects.forEach((p: any) => {
+        availableProjectNames.add(p.name || p.projectName || p);
+      });
+    } else if (hackatimeProjects.projects && Array.isArray(hackatimeProjects.projects)) {
+      hackatimeProjects.projects.forEach((p: any) => {
+        availableProjectNames.add(p.name || p.projectName || p);
+      });
+    } else if (hackatimeProjects.name || hackatimeProjects.projectName) {
+      availableProjectNames.add(hackatimeProjects.name || hackatimeProjects.projectName);
+    }
+
+    for (const projectName of updateHackatimeProjectsDto.projectNames) {
+      if (!availableProjectNames.has(projectName)) {
+        throw new BadRequestException(`Project "${projectName}" is not a valid hackatime project`);
+      }
+    }
+
+    const allLinkedProjects = await this.prisma.project.findMany({
+      where: {
+        userId: { not: userId },
+      },
+      select: {
+        nowHackatimeProjects: true,
+      },
+    });
+
+    const linkedByOthers = new Set<string>();
+    allLinkedProjects.forEach(p => {
+      if (p.nowHackatimeProjects) {
+        p.nowHackatimeProjects.forEach(name => linkedByOthers.add(name));
+      }
+    });
+
+    const currentlyLinked = project.nowHackatimeProjects || [];
+    const updatingToAlreadyLinked = updateHackatimeProjectsDto.projectNames.filter(
+      name => linkedByOthers.has(name) && !currentlyLinked.includes(name)
+    );
+
+    if (updatingToAlreadyLinked.length > 0) {
+      throw new BadRequestException(
+        `Project(s) ${updatingToAlreadyLinked.join(', ')} are already linked to another project`
+      );
+    }
+
+    // If project is locked (has submissions), create an edit request instead of direct update
+    if (project.isLocked) {
+      // Check if user has made at least one submission for this project
+      if (project.submissions.length === 0) {
+        throw new ForbiddenException('You must submit at least one submission before requesting project edits.');
+      }
+
+      // Get current project data
+      const currentData = {
+        nowHackatimeProjects: project.nowHackatimeProjects,
+        nowHackatimeHours: project.nowHackatimeHours,
+      };
+
+      // Prepare requested data
+      const requestedData = {
+        nowHackatimeProjects: updateHackatimeProjectsDto.projectNames,
+        nowHackatimeHours: null, // Will be calculated by admin when approving
+      };
+
+      // Create edit request
+      const editRequest = await this.prisma.editRequest.create({
+        data: {
+          userId,
+          projectId,
+          requestType: 'project_update',
+          currentData,
+          requestedData,
+        },
+        include: {
+          user: {
+            select: {
+              userId: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          project: {
+            select: {
+              projectId: true,
+              projectTitle: true,
+              projectType: true,
+            },
+          },
+        },
+      });
+
+      return {
+        message: 'Edit request created successfully. Waiting for admin approval.',
+        editRequest,
+      };
+    }
+
+    // Direct update if project is not locked
+    const updatedProject = await this.prisma.project.update({
+      where: { projectId },
+      data: {
+        nowHackatimeProjects: updateHackatimeProjectsDto.projectNames,
+        nowHackatimeHours: null, // Will be calculated separately
+      },
+    });
+
+    return {
+      message: 'Hackatime projects updated successfully.',
+      project: updatedProject,
+    };
+  }
+
+  async getHackatimeProjects(projectId: number, userId: number) {
+    const project = await this.prisma.project.findUnique({
+      where: { projectId },
+      select: {
+        projectId: true,
+        nowHackatimeProjects: true,
+        nowHackatimeHours: true,
+        userId: true,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    return {
+      projectId: project.projectId,
+      hackatimeProjects: project.nowHackatimeProjects,
+      hackatimeHours: project.nowHackatimeHours,
     };
   }
 }

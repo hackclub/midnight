@@ -26,6 +26,7 @@ export class AirtableService {
       repoUrl: string;
       screenshotUrl: string;
       nowHackatimeHours: number;
+      nowHackatimeProjects: string[];
     };
     submission: {
       description: string;
@@ -63,6 +64,7 @@ export class AirtableService {
           }
         ],
         'Optional - Override Hours Spent': data.project.nowHackatimeHours,
+        'Hackatime Projects': data.project.nowHackatimeProjects.join(', '),
         'Automation - First Submitted At': new Date().toISOString(),
         'Automation - Submit to Unified YSWS': true,
       };
