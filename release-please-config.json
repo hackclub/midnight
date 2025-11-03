@@ -1,0 +1,13 @@
+{
+    "packages": {
+      "owl-api": {
+        "package-name": "Owl-API [Backend]",
+        "release-type": "node"
+      },
+      "lark-ui": {
+        "package-name": "Lark-UI [Frontend]",
+        "release-type": "node"
+      }
+    },
+    "separate-pull-requests": false
+  }

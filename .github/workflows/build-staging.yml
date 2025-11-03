@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: Build and Push Docker Images (Staging)
 
 on:
   workflow_call:
@@ -72,11 +72,7 @@ jobs:
     - name: Set tag prefix
       id: tag-prefix
       run: |
-        if [ "${{ github.ref_name }}" = "main" ]; then
-          echo "prefix=prod-" >> $GITHUB_OUTPUT
-        else
-          echo "prefix=staging-" >> $GITHUB_OUTPUT
-        fi
+        echo "prefix=staging-" >> $GITHUB_OUTPUT
 
     - name: Build and push image
       uses: docker/build-push-action@v5
@@ -84,8 +80,9 @@ jobs:
         context: .
         file: ./${{ matrix.service }}/Dockerfile
         tags: |
-          ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
-          ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ steps.tag-prefix.outputs.prefix }}${{ matrix.version }}
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:latest
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:${{ steps.tag-prefix.outputs.prefix }}${{ matrix.version }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
