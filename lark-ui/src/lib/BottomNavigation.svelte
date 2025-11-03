@@ -3,9 +3,22 @@
   
   const { onboarding = true } = $props();
 
-  let activeTab = 'create';
+  let activeTab = $state('create');
+  let shakingTab = $state('');
+  
+  function handleLockedClick(tab: string) {
+    shakingTab = tab;
+    setTimeout(() => {
+      shakingTab = '';
+    }, 800);
+  }
   
   function navigateTo(tab: string) {
+    if (onboarding && (tab === 'explore' || tab === 'shop')) {
+      handleLockedClick(tab);
+      return;
+    }
+    
     activeTab = tab;
     switch(tab) {
       case 'create':
@@ -35,6 +48,7 @@
     <button 
       class="nav-item {onboarding ? 'disabled' : 'enabled'}" 
       class:active={activeTab === 'explore'}
+      class:shake={shakingTab === 'explore'}
       onclick={() => navigateTo('explore')}
       role="tab"
       aria-selected={activeTab === 'explore'}
@@ -47,6 +61,7 @@
     <button 
       class="nav-item {onboarding ? 'disabled' : 'enabled'}" 
       class:active={activeTab === 'shop'}
+      class:shake={shakingTab === 'shop'}
       onclick={() => navigateTo('shop')}
       role="tab"
       aria-selected={activeTab === 'shop'}
@@ -109,7 +124,6 @@
 
   .disabled {
     color: #7C7C7C;
-    pointer-events: none;
   }
   
   .nav-item.active {
@@ -132,6 +146,16 @@
     width: 24px;
     height: 30px;
     rotate: -10deg;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  .nav-item.shake {
+    animation: shake 0.8s;
   }
   
   @media (max-width: 768px) {
