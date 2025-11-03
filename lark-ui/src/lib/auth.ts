@@ -55,6 +55,14 @@ export async function completeOnboarding() {
   });
 }
 
+export async function logout() {
+  return await fetch(`${apiUrl}/api/user/auth/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+}
+
 
 // projects
 

@@ -43,7 +43,7 @@ export const actions = {
 
                 // --> step 4
             } else {
-                return redirect(302, '/app/home');
+                return redirect(302, '/app/projects');
             }
 
         } else {
