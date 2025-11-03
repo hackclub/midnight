@@ -54,9 +54,21 @@
     <div class="loading">
       <img src="/loading/crow_fly.gif" alt="Loading..." />
     </div>
-  {:else if error}
+    {:else if error}
     <div class="error">Error: {error}</div>
-  {:else}
+    {:else if projects.length === 0}
+      <div class="no-projects">
+        <h2 class="font-bold">You have no projects yet...</h2>
+        <h3 class=""> Create one and it will appear here!</h3>
+          <button on:click={() => goto("/app/projects/create")} class="pushable-blue mt-[2vh]">
+            <span
+              class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-[4vh] py-[1vh] text-center text-nowrap tracking-[3.84px] whitespace-pre"
+            >
+              Create a Project
+            </span>
+          </button>
+      </div>
+    {:else}
     <div class="projects-grid">
       {#each projects as project (project.projectId)}
         <div>
@@ -135,6 +147,48 @@
 
   .error {
     color: #f24b4b;
+  }
+
+.no-projects {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 24px;
+    color: white;
+    text-align: center;
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .no-projects h2 {
+    font-family: 'PT_Serif', serif;
+    margin: 0;
+    font-size: 7vh;
+  }
+
+  .pushable-blue {
+    background: #000000;
+    border: none;
+    border-radius: 18px;
+    padding: 0;
+    cursor: pointer;
+    transform: translateY(8px) translateX(-8px);
+    width: fit-content;
+  }
+
+  .front-blue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    padding: 0 30px;
+    border-radius: 18px;
+    background: #4b9bf2;
+    color: #fee1c0;
+    transform: translateY(-8px) translateX(8px);
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+    width: fit-content;
   }
 
   @media (max-width: 1200px) {
