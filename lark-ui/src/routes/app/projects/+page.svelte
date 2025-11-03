@@ -1,10 +1,11 @@
 <script lang="ts">
   import BottomNavigation from '$lib/BottomNavigation.svelte';
   import ProjectCard from '$lib/cards/ProjectCard.svelte';
+  import Button from '$lib/Button.svelte';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { env } from '$env/dynamic/public';
-  import { checkAuthStatus, getProjects, type Project, type User } from '$lib/auth';
+  import { checkAuthStatus, getProjects, logout, type Project, type User } from '$lib/auth';
     import BaseCard from '$lib/cards/BaseCard.svelte';
     import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
 
@@ -12,6 +13,11 @@
   let loading = true;
   let error: string | null = null;
   let user: User | null = null;
+
+  async function handleLogout() {
+    await logout();
+    await goto('/');
+  }
 
   onMount(async () => {
     try {
@@ -33,7 +39,10 @@
 </script>
 
 <div class="projects-page">
-  <h1 class="page-title">YouR PROJECTS</h1>
+  <div class="header">
+    <h1 class="page-title">YouR PROJECTS</h1>
+    <Button label="Logout" onclick={handleLogout} color="red" />
+  </div>
   
   {#if loading}
     <div class="loading">Loading projects...</div>
@@ -68,12 +77,19 @@
     padding: 32px 66px 200px;
   }
 
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
   .page-title {
     font-family: 'Moga', sans-serif;
     font-size: 90px;
     color: white;
     letter-spacing: -0.99px;
-    margin: 0 0 16px 0;
+    margin: 0;
     line-height: 1.5;
   }
 
@@ -84,18 +100,8 @@
     margin-bottom: 60px;
   }
 
-  .card-wrapper {
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-
-  .card-wrapper:hover {
-    transform: translateY(-5px);
-  }
-
   .loading,
-  .error,
-  .empty {
+  .error {
     font-family: 'PT Sans', sans-serif;
     font-size: 24px;
     color: white;
@@ -116,6 +122,9 @@
   @media (max-width: 768px) {
     .page-title {
       font-size: 60px;
+    }
+
+    .header {
       margin-bottom: 40px;
     }
 
@@ -132,6 +141,9 @@
   @media (max-width: 480px) {
     .page-title {
       font-size: 40px;
+    }
+
+    .header {
       margin-bottom: 30px;
     }
 
