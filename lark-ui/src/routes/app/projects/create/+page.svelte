@@ -9,6 +9,8 @@
   let projectDescription = '';
   let projectType = 'website';
   let isSubmitting = false;
+  let backHref = '/app/projects/select';
+  let returnTo = '';
   
   $: formConfig = {
     personal_website: {
@@ -33,10 +35,24 @@
   onMount(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const typeParam = urlParams.get('type');
+    const fromParam = urlParams.get('from');
+    const returnParam = urlParams.get('return');
     if (typeParam && formConfig[typeParam as keyof typeof formConfig]) {
       projectType = typeParam;
     } else {
       projectType = 'wildcard';
+    }
+
+    if (fromParam === 'onboarding') {
+      if (returnParam === 'select' || (document.referrer && document.referrer.includes('/app/projects/select'))) {
+        backHref = '/app/projects/select?from=onboarding';
+      } else {
+        backHref = '/app/onboarding?from=create';
+      }
+    } else if (document.referrer && document.referrer.includes('/app/onboarding')) {
+      backHref = '/app/onboarding?from=create';
+    } else {
+      backHref = '/app/projects/select';
     }
   });
   
@@ -81,7 +97,7 @@
 
 <div class="create-page">
   <div class="back-button">
-    <Button label="← BACK" onclick={() => goto('/app/projects/select')} color="black" />
+    <Button label="← BACK" onclick={() => goto(backHref)} color="black" />
   </div>
   <div class="card">
     <h1 class="title">{config.title}</h1>

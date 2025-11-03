@@ -1,12 +1,10 @@
 <script lang="ts">
-    const { type } = $props();
+    const { type, fromOnboarding = false } = $props();
 
-    function createLink(projectType: string) {
-        return '/app/projects/create?type=' + encodeURIComponent(projectType);
-    }
+    const href = $derived('/app/projects/create?type=' + encodeURIComponent(type) + (fromOnboarding ? '&from=onboarding&return=select' : ''));
 </script>
 
-<a href="{createLink(type)}" class="card-link">
+<a href="{href}" class="card-link">
     <img src="/cards/{type}.svg" alt="Personal Website" class="card-svg" />
 </a>
 

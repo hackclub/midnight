@@ -25,11 +25,17 @@
       
       if (!user) {
         await goto('/');
+        return;
       }
 
       projects = await getProjects();
 
       console.log('projects', projects);
+
+      if (projects.length === 0) {
+        await goto('/app/onboarding?from=create');
+        return;
+      }
     } catch (err) {
       error = err as string;
     } finally {

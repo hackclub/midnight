@@ -7,6 +7,7 @@
   import ProjectTypeSelect from '$lib/onboarding/ProjectTypeSelect.svelte';
   import Texture from '$lib/Texture.svelte';
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   
   const dialogues = [
     'Greetings. I\'m Murdock. Your aunt\'s butler. She demanded I guide you through this process.',
@@ -39,6 +40,19 @@
   let lastName = $state('');
   let email = $state('');
   let birthday = $state('');
+  
+  // If we are returning from create, jump directly to the project type selection
+  if (browser) {
+    const initParams = new URLSearchParams(window.location.search);
+    if (initParams.get('from') === 'create') {
+      step = 8;
+      projectTypeVisible = true;
+      dialogueVisible = false;
+      overlayVisible = false;
+      dialogueText = dialogues[8];
+      butlerVariant = 1;
+    }
+  }
   
   async function handleSubmit() {
     // Submit form data
@@ -155,7 +169,19 @@
       birthday = '';
     }
 
-    nextStep();
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromParam = urlParams.get('from');
+    
+    if (fromParam === 'create') {
+      step = 8;
+      projectTypeVisible = true;
+      dialogueVisible = false;
+      overlayVisible = false;
+      dialogueText = dialogues[8];
+      butlerVariant = 1;
+    } else {
+      nextStep();
+    }
   });
 </script>
 
