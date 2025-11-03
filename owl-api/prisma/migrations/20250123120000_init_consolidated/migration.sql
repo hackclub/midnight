@@ -1,6 +1,6 @@
 -- CreateEnum (only if they don't exist)
 DO $$ BEGIN
-    CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'wildcard');
+    CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'website', 'game', 'terminal_cli', 'desktop_app', 'mobile_app', 'wildcard');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

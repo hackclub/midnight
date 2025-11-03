@@ -23,6 +23,36 @@
       namePlaceholder: 'Game Name',
       descriptionPlaceholder: 'Game Description'
     },
+    website: {
+      title: 'CREATE YOUR WEBSITE',
+      namePlaceholder: 'Website Name',
+      descriptionPlaceholder: 'Website Description'
+    },
+    game: {
+      title: 'CREATE YOUR GAME',
+      namePlaceholder: 'Game Name',
+      descriptionPlaceholder: 'Game Description'
+    },
+    terminal_cli: {
+      title: 'CREATE YOUR TERMINAL APP',
+      namePlaceholder: 'CLI App Name',
+      descriptionPlaceholder: 'CLI App Description'
+    },
+    cli: {
+      title: 'CREATE YOUR TERMINAL APP',
+      namePlaceholder: 'CLI App Name',
+      descriptionPlaceholder: 'CLI App Description'
+    },
+    desktop_app: {
+      title: 'CREATE YOUR DESKTOP APP',
+      namePlaceholder: 'Desktop App Name',
+      descriptionPlaceholder: 'Desktop App Description'
+    },
+    mobile_app: {
+      title: 'CREATE YOUR MOBILE APP',
+      namePlaceholder: 'Mobile App Name',
+      descriptionPlaceholder: 'Mobile App Description'
+    },
     wildcard: {
       title: 'CREATE YOUR PROJECT',
       namePlaceholder: 'Project Name',
@@ -31,6 +61,14 @@
   };
   
   $: config = formConfig[projectType as keyof typeof formConfig] || formConfig.wildcard;
+  
+  const typeMapping: Record<string, string> = {
+    cli: 'terminal_cli'
+  };
+  
+  function getApiProjectType(uiType: string): string {
+    return typeMapping[uiType] || uiType;
+  }
   
   onMount(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -74,7 +112,7 @@
 
       const project = await createProject({
         projectTitle: projectName,
-        projectType: projectType,
+        projectType: getApiProjectType(projectType),
         projectDescription: projectDescription
       });
 

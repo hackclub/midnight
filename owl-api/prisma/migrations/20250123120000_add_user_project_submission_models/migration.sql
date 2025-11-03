@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'wildcard');
+CREATE TYPE "ProjectType" AS ENUM ('personal_website', 'platformer_game', 'website', 'game', 'terminal_cli', 'desktop_app', 'mobile_app', 'wildcard');
 
 -- CreateEnum
 CREATE TYPE "ApprovalStatus" AS ENUM ('pending', 'approved', 'rejected');

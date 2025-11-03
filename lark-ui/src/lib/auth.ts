@@ -70,7 +70,7 @@ export type Project = {
   projectId: string;
   userId: string;
   projectTitle: string;
-  projectType: 'personal_website' | 'platformer_game' | 'wildcard';
+  projectType: 'personal_website' | 'platformer_game' | 'website' | 'game' | 'terminal_cli' | 'desktop_app' | 'mobile_app' | 'wildcard';
   description: string;
   createdAt: Date;
   updatedAt: Date;
