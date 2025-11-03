@@ -254,6 +254,8 @@ export class AuthService {
     }
 
     try {
+      const sanitizedEmail = email.replace(/'/g, "''");
+      
       const searchQuery = {
         query: `
           SELECT
@@ -266,7 +268,7 @@ export class AuthService {
             users
             INNER JOIN email_addresses ON users.id = email_addresses.user_id
           WHERE
-            email_addresses.email = '${email}'
+            email_addresses.email = '${sanitizedEmail}'
           LIMIT 1;
         `,
       };

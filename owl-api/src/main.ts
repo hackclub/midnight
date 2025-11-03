@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { AllExceptionsFilter } from './http-exception.filter';
@@ -13,6 +14,22 @@ if (process.env.NODE_ENV !== 'production') {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  }));
 
   app.use(cookieParser());
 

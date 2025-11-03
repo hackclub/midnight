@@ -496,6 +496,12 @@
   }
 
 
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   function displayProjects() {
     if (!browser) return;
     
@@ -513,9 +519,9 @@
       const projectDiv = document.createElement('div');
       projectDiv.innerHTML = `
         <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
-          <h4>${project.projectTitle}</h4>
-          <p><strong>Type:</strong> ${project.projectType}</p>
-          <p><strong>Created:</strong> ${new Date(project.createdAt).toLocaleDateString()}</p>
+          <h4>${escapeHtml(project.projectTitle)}</h4>
+          <p><strong>Type:</strong> ${escapeHtml(project.projectType)}</p>
+          <p><strong>Created:</strong> ${escapeHtml(new Date(project.createdAt).toLocaleDateString())}</p>
           <p><strong>Submissions:</strong> ${project.submissions?.length || 0}</p>
         </div>
       `;

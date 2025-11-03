@@ -21,25 +21,23 @@ export class AuthController {
     const result = await this.authService.verifyOtp(verifyOtpDto);
     
     if (result.sessionId) {
-      // Set secure HTTP-only cookie
-      res.cookie('sessionId', result.sessionId, {
+      const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Changed from 'strict' to 'lax' for cross-origin requests
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' as const : 'lax' as const,
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost', // Set domain for development
+        domain: process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? undefined : 'localhost'),
+      };
+
+      res.cookie('sessionId', result.sessionId, {
+        ...cookieOptions,
+        maxAge: 24 * 60 * 60 * 1000,
       });
       
-      // Set email cookie for new users
       if (result.isNewUser && result.email) {
         res.cookie('email', result.email, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax', // Changed from 'strict' to 'lax' for cross-origin requests
-          maxAge: 10 * 60 * 1000, // 10 minutes
-          path: '/',
-          domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost', // Set domain for development
+          ...cookieOptions,
+          maxAge: 10 * 60 * 1000,
         });
       }
     }
@@ -58,8 +56,15 @@ export class AuthController {
     
     const result = await this.authService.completeProfile(completeProfileDto, sessionId, email);
     
-    // Clear email cookie after profile completion
-    res.clearCookie('email');
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' as const : 'lax' as const,
+      path: '/',
+      domain: process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? undefined : 'localhost'),
+    };
+    
+    res.clearCookie('email', cookieOptions);
     
     return result;
   }
@@ -72,16 +77,25 @@ export class AuthController {
   }
 
   @Post('verify-session')
-  async verifySession(@Body() body: { sessionId: string }) {
-    const sessionId = body.sessionId;
+  @UseGuards(AuthGuard)
+  async verifySession(@Req() req: Request) {
+    const sessionId = req.cookies.sessionId;
     return this.authService.getCurrentUser(sessionId);
   }
 
   @Post('logout')
   @UseGuards(AuthGuard)
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('sessionId');
-    res.clearCookie('email');
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' as const : 'lax' as const,
+      path: '/',
+      domain: process.env.COOKIE_DOMAIN || (process.env.NODE_ENV === 'production' ? undefined : 'localhost'),
+    };
+
+    res.clearCookie('sessionId', cookieOptions);
+    res.clearCookie('email', cookieOptions);
     return { message: 'Logged out successfully' };
   }
 
