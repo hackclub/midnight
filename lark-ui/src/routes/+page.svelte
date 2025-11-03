@@ -490,14 +490,17 @@
           </span>
         </button>
       </div>
+
+      <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none">
+        <p class="font-['PT_Sans',_sans-serif] text-[#2A2746] text-xs md:text-sm lg:text-base opacity-70 text-center">
+          © 2025 Hack Club. Made with love by teenagers, for teenagers.
+        </p>
+      </div>
     </div>
     
-    <div class="absolute bottom-[5%] left-1/2 transform -translate-x-1/2 z-20">
-      <p class="font-['PT_Sans',_sans-serif] text-[#2A2746] text-xs md:text-sm lg:text-base opacity-70">
-        © 2025 Hack Club. Made with love by teenagers, for teenagers.
-      </p>
-    </div>
   </section>
+
+  
 </div>
 
 {#if showModal}
@@ -576,3 +579,4 @@
     </div>
   </div>
 {/if}
+

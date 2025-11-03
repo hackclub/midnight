@@ -1,18 +1,9 @@
 name: Build and Push Docker Images
 
 on:
-  workflow_call:
-    inputs:
-      path:
-        description: Path to service directory
-        required: false
-        type: string
-  workflow_dispatch:
-    inputs:
-      path:
-        description: Path to service directory
-        required: false
-        type: string
+  push:
+    branches:
+      - staging
 
 jobs:
   prepare:
@@ -71,14 +62,15 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Set tag prefix
-      id: tag-prefix
+    - name: Generate build ID
+      id: prep
       run: |
-        if [ "${{ github.ref_name }}" = "main" ]; then
-          echo "prefix=prod-" >> $GITHUB_OUTPUT
-        else
-          echo "prefix=staging-" >> $GITHUB_OUTPUT
-        fi
+        branch=${GITHUB_REF##*/}
+        sha=${GITHUB_SHA::8}
+        ts=$(date +%s)
+        build_id="${branch}-${sha}-${ts}"
+        echo "build_id=${build_id}" >> $GITHUB_OUTPUT
+        echo "timestamp=${ts}" >> $GITHUB_OUTPUT
 
     - name: Build and push image
       uses: docker/build-push-action@v5
@@ -87,7 +79,7 @@ jobs:
         file: ./${{ matrix.service }}/Dockerfile
         tags: |
           ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:latest
-          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:${{ matrix.version }}
+          ghcr.io/${{ github.repository }}/staging-${{ matrix.service }}:${{ steps.prep.outputs.build_id }}
         push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
