@@ -1,13 +1,14 @@
 {
-    "packages": {
-      "owl-api": {
-        "package-name": "Owl-API [Backend]",
-        "release-type": "node"
-      },
-      "lark-ui": {
-        "package-name": "Lark-UI [Frontend]",
-        "release-type": "node"
-      }
+  "packages": {
+    "owl-api": {
+      "release-type": "node",
+      "package-name": "owl-api"
     },
-    "separate-pull-requests": false
-  }
+    "lark-ui": {
+      "release-type": "node",
+      "package-name": "lark-ui"
+    }
+  },
+  "include-component-in-tag": true,
+  "tag-separator": "-"
+}
