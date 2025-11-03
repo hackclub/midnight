@@ -23,7 +23,7 @@
     }
 
     if (!email.trim()) {
-      goto('/rsvp');
+      errorMessage = 'Please enter your email address';
       return;
     }
 
