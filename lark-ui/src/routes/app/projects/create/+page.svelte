@@ -7,6 +7,7 @@
   let projectName = '';
   let projectDescription = '';
   let projectType = 'website';
+  let isSubmitting = false;
   
   $: formConfig = {
     personal_website: {
@@ -40,22 +41,33 @@
   
   async function handleSubmit(event: Event) {
     event.preventDefault();
-    console.log('Creating project:', { 
-      type: projectType,
-      name: projectName, 
-      description: projectDescription 
-    });
+    
+    if (isSubmitting) {
+      return;
+    }
+    
+    isSubmitting = true;
+    
+    try {
+      console.log('Creating project:', { 
+        type: projectType,
+        name: projectName, 
+        description: projectDescription 
+      });
 
-    const project = await createProject({
-      projectTitle: projectName,
-      projectType: projectType,
-      projectDescription: projectDescription
-    });
+      const project = await createProject({
+        projectTitle: projectName,
+        projectType: projectType,
+        projectDescription: projectDescription
+      });
 
-    if (project) {
-      goto(`/app/projects/${project.projectId}`);
-    } else {
-      alert('Failed to create project');
+      if (project) {
+        goto(`/app/projects/${project.projectId}`);
+      } else {
+        alert('Failed to create project');
+      }
+    } finally {
+      isSubmitting = false;
     }
   }
 </script>
@@ -86,8 +98,8 @@
         rows="8"
       ></textarea>
       
-      <button type="submit" class="submit-button">
-        Create Project
+      <button type="submit" class="submit-button" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating...' : 'Create Project'}
       </button>
     </form>
   </div>
@@ -195,6 +207,16 @@
 
   .submit-button:active {
     background: #d32f2f;
+  }
+
+  .submit-button:disabled {
+    background: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .submit-button:disabled:hover {
+    background: #999;
   }
 
   @media (max-width: 768px) {

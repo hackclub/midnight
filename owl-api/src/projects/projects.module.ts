@@ -3,10 +3,11 @@ import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 import { PrismaService } from '../prisma.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { RedisService } from '../redis.service';
 
 @Module({
   controllers: [ProjectsController],
-  providers: [ProjectsService, PrismaService, AuthGuard],
+  providers: [ProjectsService, PrismaService, AuthGuard, RedisService],
   exports: [ProjectsService],
 })
 export class ProjectsModule {}

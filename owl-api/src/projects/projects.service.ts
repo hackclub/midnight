@@ -4,31 +4,50 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateHackatimeProjectsDto } from './dto/update-hackatime-projects.dto';
+import { RedisService } from '../redis.service';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async createProject(createProjectDto: CreateProjectDto, userId: number) {
-    const project = await this.prisma.project.create({
-      data: {
-        userId,
-        projectTitle: createProjectDto.projectTitle,
-        projectType: createProjectDto.projectType,
-        description: createProjectDto.projectDescription,
-      },
-      include: {
-        user: {
-          select: {
-            userId: true,
-            firstName: true,
-            lastName: true,
+    const lockKey = `project-create-lock:${userId}`;
+    const lockValue = randomBytes(16).toString('hex');
+    const lockTTL = 10;
+
+    const lockAcquired = await this.redis.acquireLock(lockKey, lockValue, lockTTL);
+    
+    if (!lockAcquired) {
+      throw new BadRequestException('Project creation already in progress. Please wait a moment and try again.');
+    }
+
+    try {
+      const project = await this.prisma.project.create({
+        data: {
+          userId,
+          projectTitle: createProjectDto.projectTitle,
+          projectType: createProjectDto.projectType,
+          description: createProjectDto.projectDescription,
+        },
+        include: {
+          user: {
+            select: {
+              userId: true,
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return project;
+      return project;
+    } finally {
+      await this.redis.releaseLock(lockKey, lockValue);
+    }
   }
 
   async getUserProjects(userId: number) {
