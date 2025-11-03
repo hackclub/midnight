@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -64,6 +65,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @SkipThrottle()
   @UseGuards(AuthGuard)
   async getCurrentUser(@Req() req: Request) {
     return this.authService.getCurrentUser(req.cookies.sessionId);

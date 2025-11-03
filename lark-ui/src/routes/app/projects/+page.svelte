@@ -51,7 +51,9 @@
   </div>
   
   {#if loading}
-    <div class="loading">Loading projects...</div>
+    <div class="loading">
+      <img src="/loading/crow_fly.gif" alt="Loading..." />
+    </div>
   {:else if error}
     <div class="error">Error: {error}</div>
   {:else}
@@ -106,11 +108,27 @@
     margin-bottom: 60px;
   }
 
-  .loading,
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .loading img {
+    image-rendering: pixelated;
+    width: 250px;
+    height: auto;
+  }
+
   .error {
     font-family: 'PT Sans', sans-serif;
     font-size: 24px;
-    color: white;
+    color: #f24b4b;
     text-align: center;
     padding: 60px 20px;
   }
