@@ -4,6 +4,7 @@
     import ProjectType from '$lib/cards/ProjectType.svelte';
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
+    import BottomNavigation from '$lib/BottomNavigation.svelte';
 
     let backHref = '/app/projects';
     let fromOnboarding = $derived($page.url.searchParams.get('from') === 'onboarding');
@@ -34,8 +35,16 @@
         <ProjectType type="cli" fromOnboarding={fromOnboarding} />
         <ProjectType type="desktop_app" fromOnboarding={fromOnboarding} />
         <ProjectType type="mobile_app" fromOnboarding={fromOnboarding} />
-        <ProjectType type="wildcard" fromOnboarding={fromOnboarding} />
     </div>
+    <div class="wildcard">
+      <Button label="Or... Choose your own fate" onclick={() => {
+        goto('/app/projects/create?type=' + encodeURIComponent('wildcard') + (fromOnboarding ? '&from=onboarding&return=select' : ''));
+      }} />
+    </div>
+
+    {#if !fromOnboarding}
+        <BottomNavigation />
+    {/if}
 </div>
 
 <style>
@@ -72,5 +81,9 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 32px;
+  }
+
+  .wildcard {
+    margin-top: 32px;
   }
 </style>
