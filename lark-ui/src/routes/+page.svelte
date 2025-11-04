@@ -8,6 +8,15 @@
   let errorMessage = '';
   let showModal = false;
   let isSubmitting = false;
+  let referralCode: string | null = null;
+
+  onMount(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get("code");
+    if (codeParam) {
+      referralCode = codeParam;
+    }
+  });
 
   function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,14 +44,17 @@
     isSubmitting = true;
 
     try {
-      // send an otp to the user's email
       const apiUrl = env.PUBLIC_API_URL || "";
+      const requestBody: any = { email };
+      if (referralCode) {
+        requestBody.referralCode = referralCode;
+      }
 
       const response = await fetch(`${apiUrl}/api/user/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log("sent an OTP");
@@ -53,7 +65,10 @@
         return;
       } 
       
-      goto("/login?email=" + encodeURIComponent(email));
+      const loginUrl = referralCode 
+        ? `/login?email=${encodeURIComponent(email)}&code=${referralCode}`
+        : `/login?email=${encodeURIComponent(email)}`;
+      goto(loginUrl);
     } finally {
       isSubmitting = false;
     }

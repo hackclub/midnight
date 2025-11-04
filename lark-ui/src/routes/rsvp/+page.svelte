@@ -19,14 +19,16 @@
 
   onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get("code");
+    
+    if (codeParam) {
+      goto(`/?code=${codeParam}`);
+      return;
+    }
+
     const emailParam = urlParams.get("email");
     if (emailParam) {
       email = emailParam;
-    }
-
-    const codeParam = urlParams.get("code");
-    if (codeParam) {
-      referralCode = codeParam;
     }
 
     const apiUrl = env.PUBLIC_API_URL || "";
