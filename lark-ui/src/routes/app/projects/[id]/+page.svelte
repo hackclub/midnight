@@ -8,9 +8,7 @@
   import Button from '$lib/Button.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
   import HackatimeProjectModal from '$lib/hackatime/HackatimeProjectModal.svelte';
-    import BaseCard from '$lib/cards/BaseCard.svelte';
-    import ProjectCard from '$lib/cards/ProjectCard.svelte';
-    import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
+  import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
 
   let loading = $state(true);
   let error = $state<string | null>(null);
@@ -73,7 +71,7 @@
   {:else if project}
     <div class="project-overview">
       <div class="project-card-preview">
-        <ProjectCardPreview title={project.projectTitle} href="#" color="#081832" />
+        <ProjectCardPreview title={project.projectTitle} href="#" type={project.projectType} />
       </div>
       
       <div class="project-content">

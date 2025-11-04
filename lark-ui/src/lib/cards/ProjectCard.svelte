@@ -1,11 +1,32 @@
 <script lang="ts">
   import BaseCard from "./BaseCard.svelte";
  
- const { color, title, href }: {
-  color: string;
+ const { title, href, type }: {
+  type: string;
   title: string;
   href: string;
- } = $props();  
+ } = $props();
+ 
+ let color = $state('#F24B4B'); 
+
+ switch (type) {
+    case 'website':
+      color = '#FFBB31';
+      break;
+    case 'game':
+      color = '#ED0F7E';
+      break;
+    case 'cli':
+      color = '#1385F0';
+      break;
+    case 'desktop_app':
+      color = '#1DCDC2';
+      break;
+    case 'mobile_app':
+      color = '#A313F0';
+      break;
+ }
+
 </script>
 
 <BaseCard color={color} href={href}>
