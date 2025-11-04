@@ -16,7 +16,7 @@
     <h1 class="title">GET your entire flight covered</h1>
     
     <p class="subtitle">
-      Only need 40hrs to attend! Code extra hours to cover your flight & hotel
+      Only need 50hrs to attend! Code extra hours to cover your flight & hotel
     </p>
     
     <div class="slider-section">
