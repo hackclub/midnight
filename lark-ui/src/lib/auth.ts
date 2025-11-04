@@ -204,3 +204,19 @@ export async function verifyHackatimeOtp(otp: string) {
 
   return response;
 }
+
+// referral code
+export async function getReferralCode() {
+  const response = await fetch(`${apiUrl}/api/user/auth/raffle-pos`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data;
+  } else {
+    return null;
+  }
+}
