@@ -26,6 +26,7 @@ model User {
   airtableRecId   String?       @map("airtable_rec_id")
   hackatimeAccount String?      @map("hackatime_account")
   referralCode    String?       @map("referral_code")
+  rafflePos       String?       @map("raffle_pos")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
   projects        Project[]

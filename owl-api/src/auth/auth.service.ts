@@ -27,15 +27,46 @@ export class AuthService {
     if (!existingUser) {
       const hackatimeAccount = await this.checkHackatimeAccount(email);
       
+      let firstName = 'Temporary';
+      let lastName = 'User';
+      let rafflePos: string | null = null;
+      let birthday = new Date('2000-01-01');
+
+      try {
+        const airtableUser = await this.prisma.$queryRaw<Array<{
+          first_name: string;
+          last_name: string;
+          code: string;
+          birthday: Date;
+        }>>`
+          SELECT first_name, last_name, CAST(code AS TEXT) as code, birthday
+          FROM users_airtable
+          WHERE email = ${email}
+          LIMIT 1
+        `;
+
+        if (airtableUser && airtableUser.length > 0) {
+          firstName = airtableUser[0].first_name;
+          lastName = airtableUser[0].last_name;
+          rafflePos = airtableUser[0].code || null;
+          if (airtableUser[0].birthday) {
+            birthday = new Date(airtableUser[0].birthday);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking users_airtable:', error);
+      }
+      
       existingUser = await this.prisma.user.create({
         data: {
           email,
-          firstName: 'Temporary',
-          lastName: 'User',
-          birthday: new Date('2000-01-01'),
+          firstName,
+          lastName,
+          birthday,
           role: 'user',
           hackatimeAccount: hackatimeAccount?.toString() || null,
           referralCode: referralCode || null,
+          rafflePos,
         },
       });
     } else {

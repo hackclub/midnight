@@ -176,12 +176,43 @@ export class UserService {
       );
     }
 
+    let finalFirstName = firstName;
+    let finalLastName = lastName;
+    let rafflePos: string | null = null;
+    let finalBirthday = new Date('2000-01-01');
+
+    try {
+      const airtableUser = await this.prisma.$queryRaw<Array<{
+        first_name: string;
+        last_name: string;
+        code: string;
+        birthday: Date;
+      }>>`
+        SELECT first_name, last_name, CAST(code AS TEXT) as code, birthday
+        FROM users_airtable
+        WHERE email = ${email}
+        LIMIT 1
+      `;
+
+      if (airtableUser && airtableUser.length > 0) {
+        finalFirstName = airtableUser[0].first_name;
+        finalLastName = airtableUser[0].last_name;
+        rafflePos = airtableUser[0].code || null;
+        if (airtableUser[0].birthday) {
+          finalBirthday = new Date(airtableUser[0].birthday);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking users_airtable:', error);
+    }
+
     const user = await this.prisma.user.create({
       data: {
         email,
-        firstName,
-        lastName,
-        birthday: new Date('2000-01-01'), // Default birthday, can be updated later
+        firstName: finalFirstName,
+        lastName: finalLastName,
+        birthday: finalBirthday,
+        rafflePos,
       },
     });
 
