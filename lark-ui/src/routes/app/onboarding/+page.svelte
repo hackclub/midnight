@@ -82,7 +82,6 @@
     switch (step) {
       case 1:
         if (missingInfo) {
-          formVisible = true;
           butlerVariant = 3;
         } else {
           step = 4;
@@ -91,6 +90,7 @@
         break;
       
       case 2:
+        formVisible = true;
         butlerVariant = 1;
         break;
 
@@ -102,7 +102,6 @@
       case 4:
         formVisible = false;
         dialogueVisible = true;
-        calculatorVisible = true;
         overlayVisible = true;
         butlerVariant = 2;
         break;
@@ -303,7 +302,11 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    background: #453b61;
+
+    background-image: url('/onboarding_background.png');
+    background-size: contain;
+    background-position: center;
+
     overflow: hidden;
   }
 
