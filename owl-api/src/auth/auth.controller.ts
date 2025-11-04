@@ -126,4 +126,11 @@ export class AuthController {
     const userId = req.user.userId;
     return this.authService.verifyHackatimeLinkOtp(userId, body.otp);
   }
+
+  @Get('raffle-pos')
+  @UseGuards(AuthGuard)
+  async getRafflePos(@Req() req: Request) {
+    const userId = req.user.userId;
+    return this.authService.getRafflePos(userId);
+  }
 }

@@ -201,6 +201,35 @@ export class UserService {
         if (airtableUser[0].birthday) {
           finalBirthday = new Date(airtableUser[0].birthday);
         }
+      } else {
+        const maxUserCodeResult = await this.prisma.$queryRaw<Array<{
+          max_code: string | null;
+        }>>`
+          SELECT CAST(MAX(CAST(raffle_pos AS INTEGER)) AS TEXT) as max_code
+          FROM users
+          WHERE raffle_pos IS NOT NULL AND raffle_pos ~ '^[0-9]+$'
+        `;
+
+        const maxUserCode = maxUserCodeResult && maxUserCodeResult.length > 0 && maxUserCodeResult[0].max_code
+          ? parseInt(maxUserCodeResult[0].max_code, 10)
+          : null;
+
+        if (maxUserCode !== null) {
+          rafflePos = (maxUserCode + 1).toString();
+        } else {
+          const maxAirtableCodeResult = await this.prisma.$queryRaw<Array<{
+            max_code: string | null;
+          }>>`
+            SELECT CAST(MAX(code) AS TEXT) as max_code
+            FROM users_airtable
+          `;
+
+          const maxAirtableCode = maxAirtableCodeResult && maxAirtableCodeResult.length > 0 && maxAirtableCodeResult[0].max_code
+            ? parseInt(maxAirtableCodeResult[0].max_code, 10)
+            : 0;
+
+          rafflePos = (maxAirtableCode + 1).toString();
+        }
       }
     } catch (error) {
       console.error('Error checking users_airtable:', error);
