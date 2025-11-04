@@ -23,23 +23,8 @@
     
     if (codeParam) {
       goto(`/?code=${codeParam}`);
-      return;
-    }
-
-    const emailParam = urlParams.get("email");
-    if (emailParam) {
-      email = emailParam;
-    }
-
-    const apiUrl = env.PUBLIC_API_URL || "";
-    try {
-      const response = await fetch(`${apiUrl}/api/user/rsvp/count`);
-      if (response.ok) {
-        const data = await response.json();
-        rsvpCount = data.count || 0;
-      }
-    } catch (error) {
-      console.error("Failed to fetch RSVP count:", error);
+    } else {
+      goto(`/`);
     }
   });
 

@@ -41,7 +41,7 @@
     <mj-section padding="0">
       <mj-column>
         <mj-text color="#FEE1C0" font-size="1px" line-height="1px" padding="0">
-          Spend 70 hours building projects, earn a trip to Vienna, Austria
+          Spend 50 hours building projects, earn a trip to Vienna, Austria
         </mj-text>
       </mj-column>
     </mj-section>
@@ -100,7 +100,7 @@
           </mj-text>
           <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
             But I can’t trust you. Not yet. 
-            You have over two months to develop your skills and prove yourself: <strong> Spend 70 hours building projects to earn your stay at my Vienna estate. </strong>
+            You have over two months to develop your skills and prove yourself: <strong> Spend 50 hours building projects to earn your stay at my Vienna estate. </strong>
           </mj-text>
         </mj-column>
       </mj-section>
@@ -151,7 +151,7 @@
             I'm counting on you
           </mj-text>
           <mj-text align="center" font-size="15px" padding="0">
-            Spend 70 hours building projects, earn a trip to Vienna, Austria<br/>
+            Spend 50 hours building projects, earn a trip to Vienna, Austria<br/>
             and <span style="color: #f24b4b; font-weight: 700;">solve my impending murder</span>
           </mj-text>
         </mj-column>

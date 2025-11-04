@@ -406,7 +406,7 @@
           <p
             class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[30px] text-center leading-normal max-w-3xl 2xl:max-w-4xl"
           >
-            Spend 70 hours building personal projects, fly to a <br /><span
+            Spend 50 hours building personal projects, fly to a <br /><span
               class="text-[#f24b4b]">murder mystery</span
             > hackathon in Vienna, Austria - Jan 2026
           </p>
@@ -568,7 +568,7 @@
         </p>
 
         <p>
-          The premise is simple: Spend 70 hours building projects, get a
+          The premise is simple: Spend 50 hours building projects, get a
           guaranteed ticket to an all expense paid murder mystery hackathon in
           Vienna, Austria.
         </p>
