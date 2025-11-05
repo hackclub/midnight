@@ -1,11 +1,16 @@
 <script lang="ts">
     const {
         projectName,
+        projectHours,
+        projectRepo,
         action,
         actionFn,
         variant = "default",
     }: {
         projectName: string;
+        projectHours?: number;
+        projectRepo?: string;
+
         action?: 'add' | 'remove' | 'none';
         actionFn?: () => void;
         variant?: "default" | "empty";
@@ -21,11 +26,15 @@
         <div class="project-details">
             <h2 class="project-name">{projectName}</h2>
 
-            <p class="project-hours">
-                2 HOURS ALL TIME
-            </p>
+            {#if projectHours}
+                <p class="project-hours">
+                    {projectHours} HOURS ALL TIME
+                </p>
+            {/if}
 
-            <p class="project-path">/path/ • githubUrl</p>
+            {#if projectRepo}
+                <p class="project-path">{projectRepo}</p>
+            {/if}
         </div>
 
         {#if action === 'add'}
