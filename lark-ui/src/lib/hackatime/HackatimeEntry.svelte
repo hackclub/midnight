@@ -8,7 +8,7 @@
         variant = "default",
     }: {
         projectName: string;
-        projectHours?: number;
+        projectHours?: string;
         projectRepo?: string;
 
         action?: 'add' | 'remove' | 'none';

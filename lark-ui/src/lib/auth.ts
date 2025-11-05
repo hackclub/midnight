@@ -169,18 +169,12 @@ export async function getHackatimeProjects() {
 }
 
 export async function linkHackatimeProjects(projectId: string, projectNames: string[]) {
-  const response = await fetch(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
+  return await fetch(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ projectNames })
   });
-
-  if (response.ok) {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 // hackatime setup

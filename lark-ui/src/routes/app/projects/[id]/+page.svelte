@@ -19,7 +19,7 @@
 
   let openHackatimeAccountModal = $state(false);
   let openHackatimeProjectModal = $state(false);
-  
+
   const projectId = $derived(page.params.id);
   
   async function loadProject() {
@@ -124,7 +124,7 @@
 
   {#if openHackatimeProjectModal && project}
     <HackatimeProjectModal 
-      currentHackatimeProjects={project.nowHackatimeProjects}
+      currentHackatimeProjectNames={project.nowHackatimeProjects}
       onClose={async () => {
         await loadProject();
         openHackatimeProjectModal = false;

@@ -254,7 +254,7 @@
             {/if}
             {#if page == 21}
                 <h2 class="modal-title">Install Hackatime</h2>
-                <p>Follow the instructions on the hackatime website to install the hackatime app on your device.</p>
+                <p>Follow the instructions on the hackatime website to set up your hackatime account and install the hackatime extension for your IDE or text editor.</p>
                 <div class="multi-button">
                     <Button label="← Back" disabled={submitting} onclick={backPage}></Button>
                     <Button label={submitting ? "loading..." : "Next →"} disabled={submitting} onclick={async () => {
