@@ -20,7 +20,7 @@
     const referralCode = await getReferralCode();
 
     if (referralCode?.rafflePos) {
-      const referralLink = `https://midnight.1mp.dev/?code=${referralCode.rafflePos}`;
+      const referralLink = `https://midnight.hackclub.com/?code=${referralCode.rafflePos}`;
       navigator.clipboard.writeText(referralLink);
     }
 
