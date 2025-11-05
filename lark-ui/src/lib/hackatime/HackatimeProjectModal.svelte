@@ -11,11 +11,11 @@
     const {
         onClose,
         projectId,
-        currentHackatimeProjects = []
+        currentHackatimeProjectNames = []
     }: {
         onClose: () => void;
         projectId: string;
-        currentHackatimeProjects: string[] | null;
+        currentHackatimeProjectNames: string[] | null;
     } = $props();
 
     let page: number = $state(0);
@@ -35,20 +35,8 @@
         page = newPage;
     }
 
-    onMount(async () => {
-        const hackatimeData = await getHackatimeProjects();
-
-        if (hackatimeData) {
-            hackatimeProjects = hackatimeData.projects;
-        } else {
-            hackatimeProjects = [];
-        }
-
-        nextPage();
-    });
-
     let hackatimeProjects: HackatimeProject[] = $state([]);
-    let selectedHackatimeProjects: HackatimeProject[] = $state(currentHackatimeProjects ?? []);
+    let selectedHackatimeProjects: HackatimeProject[] = $state([]);
 
     function trackProject(project: HackatimeProject) {
         selectedHackatimeProjects.push(project);
@@ -65,7 +53,7 @@
 
     async function linkProjects() {
         submitting = true;
-        const success = await linkHackatimeProjects(projectId, selectedHackatimeProjects);
+        const success = await linkHackatimeProjects(projectId, selectedHackatimeProjects.map((project) => project.name));
 
         if (!success) {
             error = "Failed to link hackatime project";
@@ -75,6 +63,21 @@
 
         onClose();
     }
+
+    onMount(async () => {
+        const hackatimeData = await getHackatimeProjects();
+
+        if (hackatimeData) {
+            if (currentHackatimeProjectNames) {
+                selectedHackatimeProjects = hackatimeData.projects.filter((project) => currentHackatimeProjectNames.includes(project.name));
+            }
+            hackatimeProjects = hackatimeData.projects;
+        } else {
+            hackatimeProjects = [];
+        }
+
+        nextPage();
+    });
 </script>
 
 <div class="modal-overlay">
@@ -92,9 +95,12 @@
                     <div class="hackatime-projects">
                         {#each selectedHackatimeProjects as project}
                             <HackatimeEntry
-                                projectName={project.name}
                                 action="remove"
                                 actionFn={() => removeProject(project)}
+
+                                projectName={project.name}
+                                projectHours={(project.total_duration / 60 / 60).toFixed(1)}
+                                projectRepo={project.repo}
                             />
                         {/each}
                     </div>
