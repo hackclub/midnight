@@ -19,7 +19,7 @@
 
   let openHackatimeAccountModal = $state(false);
   let openHackatimeProjectModal = $state(false);
-  
+
   const projectId = $derived(page.params.id);
   
   async function loadProject() {

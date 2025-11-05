@@ -53,10 +53,10 @@
 
     async function linkProjects() {
         submitting = true;
-        const success = await linkHackatimeProjects(projectId, selectedHackatimeProjects.map((project) => project.name));
+        const response = await linkHackatimeProjects(projectId, selectedHackatimeProjects.map((project) => project.name));
 
-        if (!success) {
-            error = "Failed to link hackatime project";
+        if (!response.ok) {
+            error = (await response.json())?.error || 'Failed to link hackatime project';
             submitting = false;
             return;
         }
