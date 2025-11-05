@@ -48,17 +48,17 @@
     });
 
     let hackatimeProjects: HackatimeProject[] = $state([]);
-    let selectedHackatimeProjects: string[] = $state(currentHackatimeProjects ?? []);
+    let selectedHackatimeProjects: HackatimeProject[] = $state(currentHackatimeProjects ?? []);
 
-    function trackProject(projectName: string) {
-        selectedHackatimeProjects.push(projectName);
+    function trackProject(project: HackatimeProject) {
+        selectedHackatimeProjects.push(project);
 
         skipPage(1);
     }
 
-    function removeProject(projectName: string) {
+    function removeProject(project: HackatimeProject) {
         selectedHackatimeProjects = selectedHackatimeProjects.filter(
-            (project) => project !== projectName,
+            (project) => project !== project,
         );
         skipPage(1);
     }
@@ -92,7 +92,7 @@
                     <div class="hackatime-projects">
                         {#each selectedHackatimeProjects as project}
                             <HackatimeEntry
-                                projectName={project}
+                                projectName={project.name}
                                 action="remove"
                                 actionFn={() => removeProject(project)}
                             />
@@ -132,7 +132,9 @@
                                 <HackatimeEntry
                                     projectName={project.name}
                                     action="add"
-                                    actionFn={() => trackProject(project.name)}
+                                    actionFn={() => trackProject(project)}
+                                    projectHours={(project.total_duration / 60 / 60).toFixed(1)}
+                                    projectRepo={project.repo}
                                 />
                             {/each}
                         </div>

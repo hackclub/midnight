@@ -131,7 +131,9 @@ export async function getProject(id: string) {
 //hackatime
 
 export type HackatimeProject = {
-  name: string
+  name: string,
+  repo: string,
+  total_duration: number
 }
 
 export async function checkHackatimeAccount() {
