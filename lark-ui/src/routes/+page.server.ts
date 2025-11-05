@@ -1,0 +1,1 @@
+// todo: fetch cookies instead of hitting auth endpoint

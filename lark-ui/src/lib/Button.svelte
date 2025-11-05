@@ -1,11 +1,12 @@
 <script lang="ts">
-    let { label, disabled = false, icon = undefined, color = '#F24B4B', onclick = () => {}, type = 'button' }: {
+    let { label, disabled = false, icon = undefined, color = '#F24B4B', onclick = () => {}, type = 'button', variant = 'default' }: {
         label: string;
         disabled?: boolean;
         onclick?: () => void;
         icon?: string;
         color?: string;
         type?: 'button' | 'submit' | 'reset';
+        variant?: 'default' | 'landing';
     } = $props();
 
     switch (color) {
@@ -30,8 +31,8 @@
     }
 </script>
 
-<button class="pushable" disabled={disabled} onclick={onclick} style="--color: {color}" type={type}>
-    <span class="front">
+<button class="pushable pushable-{variant}" disabled={disabled} onclick={onclick} style="--color: {color}" type={type}>
+    <span class="front front-{variant}">
         <p>{label}</p>
         {#if icon}
             <img src="/icons/{icon}.svg" alt="icon" />
@@ -41,35 +42,33 @@
 
 <style>
     .pushable {
+      border: none;
+      cursor: pointer;
+
+      transform: translateY(8px) translateX(-8px);
+    }
+
+    .pushable-default {
+      padding: 0;
+
       background-image: url('/shapes/shape-button-1.svg');
       background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
 
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      transform: translateY(8px) translateX(-8px);
-
       rotate: -1deg;
+    }
+
+    .pushable-landing {
+        background: black;
+        border-radius: 14px;
     }
 
     .front {
         position: relative;
         font-family: "Moga", sans-serif;
-        font-size: 48px;
-        color: white;
 
         background: var(--color);
-
-        mask-image: url('/shapes/shape-button-1.svg');
-        mask-size: cover;
-        mask-repeat: no-repeat;
-        mask-position: center;
-        -webkit-mask-image: url('/shapes/shape-button-1.svg');
-        -webkit-mask-size: cover;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: center;
 
         padding: 0 24px;
 
@@ -81,10 +80,34 @@
         cursor: pointer;
         transition: background 0.2s;
 
-        height: 60px;
 
         transform: translateY(-6px) translateX(6px);
         transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);        
+    }
+
+    .front-default {
+        color: white;
+
+        font-size: 48px;
+        height: 60px;
+
+        mask-image: url('/shapes/shape-button-1.svg');
+        mask-size: cover;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-image: url('/shapes/shape-button-1.svg');
+        -webkit-mask-size: cover;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+    }
+
+    .front-landing {
+        color: #FEE1C0;
+
+        font-size: 64px;
+        padding: 8px 16px;
+
+        border-radius: 12px;
     }
 
     .front p {
@@ -97,7 +120,7 @@
         translate: 0 3px;
     }
 
-    .pushable:not(:disabled):hover .front {
+    .pushable:not(:disabled):hover .front, .pushable:not(:disabled):focus .front {
         filter: brightness(1.2);
         transform: translateY(-10px) translateX(10px);
         transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
@@ -114,8 +137,12 @@
         background: #b0b0b0;
     }    
 
-    .pushable:disabled:hover .front {
+    .pushable:disabled:hover .front, .pushable:disabled:focus .front {
         background: #c0c0c0;
         cursor: not-allowed;
+    }
+
+    .pushable:focus {
+        outline: none;
     }
 </style>

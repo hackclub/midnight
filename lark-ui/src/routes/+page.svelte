@@ -3,75 +3,36 @@
   import MidnightHeader from '$lib/MidnightHeader.svelte';
   import { env } from '$env/dynamic/public';
   import { onMount } from 'svelte';
+    import Button from '$lib/Button.svelte';
+    import { checkAuthStatus } from '$lib/auth';
   
   let email = '';
-  let errorMessage = '';
-  let showModal = false;
-  let isSubmitting = false;
+  let errorMessage = $state('');
+  let showModal = $state(false);
+
+  let loggedIn = $state(false);
+  let onboarded = $state(false);
+
   let referralCode: string | null = null;
 
-  onMount(() => {
+  onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const codeParam = urlParams.get("code");
     if (codeParam) {
       referralCode = codeParam;
     }
+
+    const authStatus = await checkAuthStatus();
+
+    if (authStatus) {
+      loggedIn = true;
+      onboarded = authStatus.onboardComplete;
+    };
   });
 
   function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  }
-
-  async function requestOTP(event: Event) {
-    event.preventDefault();
-    errorMessage = "";
-
-    if (isSubmitting) {
-      return;
-    }
-
-    if (!email.trim()) {
-      errorMessage = 'Please enter your email address';
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      errorMessage = 'Please enter a valid email address';
-      return;
-    }
-
-    isSubmitting = true;
-
-    try {
-      const apiUrl = env.PUBLIC_API_URL || "";
-      const requestBody: any = { email };
-      if (referralCode) {
-        requestBody.referralCode = referralCode;
-      }
-
-      const response = await fetch(`${apiUrl}/api/user/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log("sent an OTP");
-
-      if (!response || !response.ok) {
-        const data = await response.json();
-        errorMessage = data.message || "Failed to send OTP. Please try again.";
-        return;
-      } 
-      
-      const loginUrl = referralCode 
-        ? `/login?email=${encodeURIComponent(email)}&code=${referralCode}`
-        : `/login?email=${encodeURIComponent(email)}`;
-      goto(loginUrl);
-    } finally {
-      isSubmitting = false;
-    }
   }
 
   // async function handleNavigateToRsvp(event: Event) {
@@ -130,63 +91,6 @@
     rel="stylesheet"
   />
   <style>
-    .pushable {
-      background: #000000;
-      border: none;
-      border-radius: 18px;
-      padding: 0;
-      cursor: pointer;
-      transform: translateY(8px) translateX(-8px);
-    }
-
-    .front {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 60px;
-      padding: 0 30px;
-      border-radius: 18px;
-      background: #f24b4b;
-      color: #fee1c0;
-      transform: translateY(-8px) translateX(8px);
-      transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
-    }
-
-    @media (min-width: 768px) {
-      .front {
-        height: 66px;
-        padding: 0 40px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .front {
-        height: 72px;
-        padding: 0 50px;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      .front {
-        height: 78px;
-        padding: 0 55px;
-      }
-    }
-
-    .pushable:hover .front {
-      transform: translateY(-12px) translateX(12px);
-      transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
-    }
-
-    .pushable:active .front {
-      transform: translateY(-2px) translateX(4px);
-      transition: transform 34ms;
-    }
-
-    .pushable:focus:not(:focus-visible) {
-      outline: none;
-    }
-
     .pushable-blue {
       background: #000000;
       border: none;
@@ -207,6 +111,30 @@
       color: #fee1c0;
       transform: translateY(-8px) translateX(8px);
       transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+    }
+
+    .pushable-stamp {
+      background: #000000;
+      border: none;
+      border-radius: 200px;
+      padding: 0;
+      cursor: pointer;
+      transform: translateY(8px) translateX(-8px);
+    }
+
+    .front-stamp {
+      transform: translateY(-4px) translateX(4px);
+      transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+    }
+
+    .pushable-stamp:hover .front-stamp {
+      transform: translateY(-6px) translateX(6px);
+      transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+    }
+
+    .pushable-stamp:active .front-stamp {
+      transform: translateY(-2px) translateX(2px);
+      transition: transform 34ms;
     }
 
     @media (min-width: 768px) {
@@ -400,43 +328,27 @@
         </div>
 
         <form
-          on:submit={requestOTP}
-          class="flex flex-col items-center gap-4 2xl:gap-5 rotate-[-4.25deg]"
+          class="flex flex-col items-center gap-4 2xl:gap-5 rotate-[-4.25deg] mt-3"
         >
           <p
             class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[30px] text-center leading-normal max-w-3xl 2xl:max-w-4xl"
           >
             Spend 50 hours building personal projects, fly to a <br /><span
-              class="text-[#f24b4b]">murder mystery</span
+              class="md:text-[#f24b4b]">murder mystery</span
             > hackathon in Vienna, Austria - Jan 2026
           </p>
 
           <div
-            class="flex flex-col items-center gap-3 2xl:gap-4 w-full max-w-2xl 2xl:max-w-[52rem]"
+            class="flex flex-col items-center gap-3 2xl:gap-4 w-full max-w-2xl 2xl:max-w-[52rem] scale-75 md:scale-100"
           >
-            <div
-              class="flex flex-col md:flex-row items-center gap-3 md:gap-4 2xl:gap-5 w-full"
-            >
-              <input
-                type="email"
-                name="email"
-                bind:value={email}
-                placeholder="wdaniel@hackclub.com"
-                class="w-full md:flex-1 h-[60px] md:h-[66px] lg:h-[72px] 2xl:h-[78px] px-6 2xl:px-8 rounded-[18px] 2xl:rounded-[22px] bg-[#fee1c0] font-['PT_Sans',_sans-serif] text-[rgba(0,0,0,0.7)] text-xl md:text-2xl lg:text-[32px] 2xl:text-[36px] focus:outline-none focus:ring-2 focus:ring-[#fee1c0] focus:ring-opacity-50"
-              />
-
-              <button type="submit" class="pushable flex-shrink-0" disabled={isSubmitting}>
-                <span
-                  class="front font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre"
-                >
-                  {#if isSubmitting}
-                    SENDING...
-                  {:else}
-                    SEND OTP
-                  {/if}
-                </span>
-              </button>
-            </div>
+            <Button label={loggedIn ? "OPEN PLATFORM →" : "SIGN IN / SIGN UP →"} variant="landing" onclick={() => {
+              if (loggedIn) {
+                if (onboarded) goto('/app/projects');
+                else goto('/app/onboarding');
+              }
+              else if (referralCode) goto(`/login?code=${referralCode}`)
+              else goto('/login')
+            }}/>
 
             {#if errorMessage}
               <p
@@ -458,7 +370,7 @@
     
     <div class="absolute bottom-[72px] left-0 right-0 flex justify-center z-30 md:bottom-12 md:right-12 md:left-auto lg:bottom-16 lg:right-16">
       <button 
-        on:click={openModal}
+        onclick={openModal}
         type="button"
         class="bg-[#fee1c0] px-[2vw] py-[1vh] rounded-xl cursor-pointer"
       >
@@ -494,14 +406,10 @@
       <img alt="" class="w-full h-auto block" src="/envelope.svg" />
 
       <div
-        class="absolute top-[10%] left-1/2 transform -translate-x-1/2 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 rotate-[-4.25deg]"
+        class="absolute top-1/2 left-1/2 transform -translate-x-1/2 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 rotate-[-4.25deg]"
       >
-        <button on:click={() => goto("/faq")} class="pushable-blue">
-          <span
-            class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre"
-          >
-            FAQ
-          </span>
+        <button onclick={() => goto("/faq")} class="pushable-stamp" aria-label="FAQ">
+          <img src="/faq_stamp.svg" alt="FAQ" class="front-stamp"/>
         </button>
       </div>
 
@@ -520,18 +428,18 @@
 {#if showModal}
   <div
     class="modal-overlay"
-    on:click={closeModal}
-    on:keydown={handleKeydown}
+    onclick={closeModal}
+    onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     tabindex="0"
   >
     <div
       class="modal-content"
-      on:click={(e) => e.stopPropagation()}
+      onclick={(e) => e.stopPropagation()}
       role="document"
     >
-      <button class="modal-close" on:click={closeModal} aria-label="Close modal"
+      <button class="modal-close" onclick={closeModal} aria-label="Close modal"
         >×</button
       >
 

@@ -250,3 +250,13 @@ export async function getReferralCode() {
     return null;
   }
 }
+
+// OTP auth
+export async function requestOTP(email: string, referralCode?: string) {
+  return await fetch(`${apiUrl}/api/user/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, referralCode }),
+  });
+}

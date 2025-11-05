@@ -1,21 +1,18 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import MidnightHeader from "$lib/MidnightHeader.svelte";
-  import { env } from "$env/dynamic/public";
   import { onMount } from "svelte";
-  import type { PageData } from "../$types";
-  import type { ActionData } from "./$types";
-
-  let { data, form }: { data: PageData, form: ActionData } = $props();
+  import Button from "$lib/Button.svelte";
+  import { requestOTP } from "$lib/auth";
 
   let email = $state("");
+  let referralCode = $state("");
 
-  let message = "";
+  let requestingOTP = $state(true);
+  let verifyingOTP = $state(false);
 
-  let isSubmitting = false;
-  let submissionInProgress = false;
+  let error = $state("");
 
-  const apiUrl = env.PUBLIC_API_URL || "";
+  let isSubmitting = $state(false);
 
   onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -25,33 +22,35 @@
       email = emailParam;
     }
 
-    if (form) {
-      email = form.email;
+    const referralParam = urlParams.get("code");
+    if (referralParam) {
+      referralCode = referralParam;
     }
   });
-
-  function formatBirthday(input: string): string {
-    return input;
-  }
-
-  function calculateAge(birthdayString: string): number {
-    const formattedBirthday = formatBirthday(birthdayString);
-    const birthDate = new Date(formattedBirthday);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-    return age;
-  }
 
   function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  async function sendOTP() {
+    if (!isValidEmail(email)) {
+      error = "Please enter a valid email address.";
+      return;
+    }
+    
+    isSubmitting = true;
+    const response = await requestOTP(email, referralCode);
+
+    if (response.ok) {
+      error = "";
+      requestingOTP = false;
+      verifyingOTP = true;
+    } else {
+      error = "Failed to send OTP. Please try again later.";
+    }
+    
+    isSubmitting = false;
   }
 </script>
 
@@ -67,75 +66,20 @@
     rel="stylesheet"
   />
   <style>
-    .pushable {
-      background: #000000;
-      border: none;
-      border-radius: 18px;
-      padding: 0;
-      cursor: pointer;
-      transform: translateY(8px) translateX(-8px);
+    .letter {
+      animation: letterAnim 0.5s ease-out;
+      transform-origin: bottom left;
     }
 
-    .front {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 40px;
-      border-radius: 18px;
-      background: #f24b4b;
-      color: #fee1c0;
-      transform: translateY(-8px) translateX(8px);
-      transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
-    }
-
-    @media (min-width: 768px) {
-      .front {
-        padding: 12px 60px;
+    @keyframes letterAnim {
+      0% {
+        translate: 0 50px;
+        rotate: 1deg;
       }
-    }
-
-    @media (min-width: 1536px) {
-      .pushable {
-        border-radius: 22px;
-        transform: translateY(10px) translateX(-10px);
+      100% {
+        translate: 0 0;
+        rotate: 0;
       }
-      .front {
-        padding: 14px 80px;
-        border-radius: 22px;
-        transform: translateY(-10px) translateX(10px);
-      }
-      .pushable:hover .front {
-        transform: translateY(-14px) translateX(14px);
-      }
-    }
-
-    @media (min-width: 1920px) {
-      .pushable {
-        border-radius: 26px;
-        transform: translateY(12px) translateX(-12px);
-      }
-      .front {
-        padding: 16px 100px;
-        border-radius: 26px;
-        transform: translateY(-12px) translateX(12px);
-      }
-      .pushable:hover .front {
-        transform: translateY(-16px) translateX(16px);
-      }
-    }
-
-    .pushable:hover .front {
-      transform: translateY(-12px) translateX(12px);
-      transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
-    }
-
-    .pushable:active .front {
-      transform: translateY(-2px) translateX(4px);
-      transition: transform 34ms;
-    }
-
-    .pushable:focus:not(:focus-visible) {
-      outline: none;
     }
 
     @media (max-width: 1023px),
@@ -252,12 +196,12 @@
 </svelte:head>
 
 <section
-  class="bg-[#f24b4b] relative w-full h-screen flex flex-col items-center main-container"
+  class="bg-[#f24b4b] relative w-full h-screen flex flex-col items-center main-container overflow-hidden"
 >
   <MidnightHeader />
 
   <!-- Mobile/Tablet Card Layout -->
-  <div class="mobile-card-container" style="overflow-y: visible;">
+  <!-- <div class="mobile-card-container" style="overflow-y: visible;">
     <div class="mobile-card">
       <form method="POST" action="?/verify_otp" class="flex flex-col w-full">
         <div class="form-content">
@@ -349,10 +293,10 @@
         </div>
       </form>
     </div>
-  </div>
+  </div> -->
 
   <!-- Desktop Layout -->
-  <div
+  <!-- <div
     class="desktop-layout relative flex-col items-center justify-center md:justify-end flex-1 w-full px-4 overflow-hidden hidden lg:flex"
   >
     <img
@@ -446,6 +390,98 @@
           </button>
         </div>
       </form>
+    </div>
+  </div> -->
+
+  <div
+    class="letter absolute bottom-0 left-50%"
+  >
+    <img
+      src="/letter.svg"
+      alt="Letter"
+    />
+    <div class="absolute top-0 left-0 p-12 w-full">
+      <h1
+        class="font-['Moga',_sans-serif] text-[60px] text-black leading-[1.1] mb-[0.6vh]"
+      >
+        <span>SIGN UP / SIGN INTO</span> <span class="text-[#f24b4b]">MIDNIGHT</span>
+      </h1>
+
+      {#if requestingOTP} 
+        <form
+          class="flex flex-col w-full items-center justify-center h-full mt-6"
+        >
+          <div class="flex flex-col gap-[1.5vh] w-full max-w-[400px]">
+            <label
+              for="email"
+              class="font-['PT_Sans',_sans-serif] text-[24px] text-black leading-[1.2] text-center"
+            >
+              Enter your email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              name="email"
+              autocomplete="email"
+              class="w-full h-[clamp(48px,_4vh,_72px)] px-[1vw] py-[1vh] rounded-[0.6vw] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[24px] text-black text-center leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
+              disabled={isSubmitting}
+              bind:value={email}
+              placeholder="wdaniel@hackclub.com"
+            />
+
+            <Button label={isSubmitting ? "sending..." : "Next →"} disabled={isSubmitting} onclick={sendOTP}/>
+
+            {#if error}
+              <p
+                class="text-white font-['PT_Sans',_sans-serif] text-[16px] bg-red-900 bg-opacity-50 px-[1vw] py-[1vh] rounded-lg text-center mt-2"
+              >
+                {error}
+              </p>
+            {/if}
+          </div>
+        </form>
+      {:else if verifyingOTP}
+        <form
+          method="POST"
+          action="?/verify_otp"
+          class="flex flex-col w-full items-center justify-center h-full mt-6"
+        >
+          <div class="flex flex-col gap-[1.5vh] w-full max-w-[400px]">
+            <label
+              for="otp"
+              class="font-['PT_Sans',_sans-serif] text-[24px] text-black leading-[1.2] text-center"
+            >
+              We sent you a code to <span class="text-[#f24b4b]">{email}</span>. Enter it below.
+            </label>
+            <input
+              type="hidden"
+              name="email"
+              bind:value={email}
+            />
+            <input
+              type="text"
+              name="otp"
+
+              required
+              autocomplete="one-time-code"
+              class="w-full h-[clamp(48px,_4vh,_72px)] px-[1vw] py-[1vh] rounded-[0.6vw] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[24px] text-black text-center leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
+              disabled={isSubmitting}
+              placeholder="000000"
+            />
+
+            {#if error}
+              <p
+                class="text-white font-['PT_Sans',_sans-serif] text-[16px] bg-red-900 bg-opacity-50 px-[1vw] py-[1vh] rounded-lg text-center"
+              >
+                {error}
+              </p>
+            {/if}
+
+            <Button label="Sign In" type="submit"/>
+          </div>
+        </form>
+      {/if}
     </div>
   </div>
 </section>

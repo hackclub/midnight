@@ -18,6 +18,8 @@ export const actions = {
     verify_otp: async ({ cookies, request, url, fetch: fetchFn }) => {
         const data = await request.formData();
 
+        console.log('data', data);
+
         const email = data.get('email');
         const otp = data.get('otp');
 
