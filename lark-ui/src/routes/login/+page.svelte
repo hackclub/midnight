@@ -257,104 +257,53 @@
   <MidnightHeader />
 
   <!-- Mobile/Tablet Card Layout -->
-  <!-- <div class="mobile-card-container" style="overflow-y: visible;">
+  <div class="mobile-card-container" style="overflow-y: visible;">
     <div class="mobile-card">
-      <form on:submit={handleSubmit} class="flex flex-col w-full">
+      <form method="POST" action="?/verify_otp" class="flex flex-col w-full">
         <div class="form-content">
           <h1
             class="font-['Moga',_sans-serif] text-[60px] text-black leading-[1.1] mb-[0.6vh]"
           >
-            <span>RSVP FoR</span> <span class="text-[#f24b4b]">MIDNIGHT</span>
+            <span>SIGN INTO</span> <span class="text-[#f24b4b]">MIDNIGHT</span>
           </h1>
 
           <p
             class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-[1.2] mb-[8px]"
           >
-            Midnight is for teenagers 18 and under
+            Enter the one-time passcode sent to your email
           </p>
 
           <div class="grid grid-cols-1 gap-y-[12px] mb-[16px]">
             <div class="flex flex-col gap-[8px]">
               <label
-                for="firstName-mobile"
+                for="passcode-mobile"
                 class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-[1.2]"
               >
-                First Name
+                One-Time Passcode
               </label>
               <input
-                id="firstName-mobile"
-                type="text"
-                bind:value={firstName}
-                required
-                autocomplete="given-name"
-                class="w-full h-[48px] px-[14px] py-[10px] rounded-[8px] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[18px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
-                disabled={isSubmitting}
-                placeholder="William"
-              />
-            </div>
-
-            <div class="flex flex-col gap-[8px]">
-              <label
-                for="lastName-mobile"
-                class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-[1.2]"
-              >
-                Last Name
-              </label>
-              <input
-                id="lastName-mobile"
-                type="text"
-                bind:value={lastName}
-                required
-                autocomplete="family-name"
-                class="w-full h-[48px] px-[14px] py-[10px] rounded-[8px] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[18px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
-                disabled={isSubmitting}
-                placeholder="Daniel"
-              />
-            </div>
-
-            <div class="flex flex-col gap-[8px]">
-              <label
-                for="email-mobile"
-                class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-[1.2]"
-              >
-                Email
-              </label>
-              <input
-                id="email-mobile"
-                type="email"
+                type="hidden"
+                name="email"
                 bind:value={email}
-                required
-                autocomplete="email"
-                class="w-full h-[48px] px-[14px] py-[10px] rounded-[8px] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[18px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
-                disabled={isSubmitting}
-                placeholder="wdaniel@hackclub.com"
               />
-            </div>
-
-            <div class="flex flex-col gap-[8px]">
-              <label
-                for="birthday-mobile"
-                class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-[1.2]"
-              >
-                Birthday
-              </label>
               <input
-                id="birthday-mobile"
-                type="date"
-                bind:value={birthday}
+                id="passcode-mobile"
+                type="text"
+                name="otp"
                 required
-                autocomplete="bday"
+                autocomplete="one-time-code"
                 class="w-full h-[48px] px-[14px] py-[10px] rounded-[8px] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[18px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
                 disabled={isSubmitting}
+                placeholder="000000"
               />
             </div>
           </div>
 
-          {#if errorMessage}
+          {#if message}
             <p
               class="text-white font-['PT_Sans',_sans-serif] text-lg bg-red-900 bg-opacity-50 px-4 py-3 rounded-lg mb-6 text-center"
             >
-              {errorMessage}
+              {message}
             </p>
           {/if}
 
@@ -396,57 +345,11 @@
                 {/if}
               </span>
             </button>
-
-            <div
-              class="p-4 bg-[#fffbf6] rounded-[8px] w-full max-w-140 leading-[1.2]"
-            >
-              <div class="flex justify-between items-center mb-[0.5vh]">
-                <span class="mb-1">
-                  <span
-                    class="font-['PT_Sans',_sans-serif] text-[14px] text-black font-semibold"
-                  >
-                    {rsvpCount.toLocaleString()} out of {maxRsvps.toLocaleString()}
-                    sticker sheets claimed
-                  </span><br />
-                  <span
-                    class="font-['PT_Sans',_sans-serif] text-[12px] text-black"
-                  >
-                    Refer 2 friends, get a sticker sheet!<br />
-                    + Each referral counts as a ticket toward a raffle for a
-                    <strong>Framework 12 Laptop</strong>!
-                  </span>
-                </span>
-              </div>
-              <div
-                class="w-full h-[clamp(10px,_1vh,_16px)] bg-[#fffbf6] rounded-full overflow-hidden border-2 border-black"
-              >
-                <div
-                  class="h-full bg-[#f24b4b] transition-all duration-500 ease-out rounded-full"
-                  style="width: {progressPercentage}%"
-                ></div>
-              </div>
-            </div>
-
-            <a
-              href="/faq"
-              class="px-[18px] py-[8px] bg-[#fffbf6] rounded-[8px] text-center flex flex-col"
-            >
-              <span
-                class="font-['PT_Serif',_sans-serif] font-bold text-[12px] text-[#3c3765] leading-[1.2]"
-              >
-                seems like your aunt left you another letter...
-              </span>
-              <span
-                class="font-['PT_Serif',_sans-serif] font-bold text-[16px] text-[#1385f0] leading-[1.2] underline"
-              >
-                read the faq
-              </span>
-            </a>
           </div>
         </div>
       </form>
     </div>
-  </div> -->
+  </div>
 
   <!-- Desktop Layout -->
   <div
