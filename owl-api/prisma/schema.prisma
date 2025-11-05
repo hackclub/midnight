@@ -231,3 +231,13 @@ enum RequestStatus {
   approved
   rejected
 }
+
+model UsersAirtable {
+  email      String    @unique @map("email")
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  code       Int?
+  birthday   DateTime? @db.Date
+
+  @@map("users_airtable")
+}
