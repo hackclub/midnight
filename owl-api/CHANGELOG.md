@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/hackclub/midnight/compare/owl-api-v1.0.2...owl-api-v1.0.3) (2025-11-05)
+
+
+### Bug Fixes
+
+* remove placeholders ([#17](https://github.com/hackclub/midnight/issues/17)) ([03c0bd9](https://github.com/hackclub/midnight/commit/03c0bd9c5100a769e99734f36e724fe6e8cc0fa1))
+
 ## [1.0.2](https://github.com/hackclub/midnight/compare/owl-api-v1.0.1...owl-api-v1.0.2) (2025-11-05)
 
 
