@@ -217,29 +217,34 @@ export class AuthService {
       throw new BadRequestException('User not found in session');
     }
 
-    // Check if this is a temporary user (first name is 'Temporary')
+    const defaultBirthday = new Date('2000-01-01');
     const isTemporaryUser = session.user.firstName === 'Temporary';
+    const needsBirthday = session.user.birthday.getTime() === defaultBirthday.getTime();
     
-    if (!isTemporaryUser) {
+    if (!isTemporaryUser && !needsBirthday) {
       throw new BadRequestException('User profile already completed');
     }
 
-    // Update the existing temporary user
+    const updateData: any = {
+      birthday: new Date(birthday),
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      country,
+      zipCode,
+      airtableRecId,
+      onboardedAt: new Date(),
+    };
+
+    if (isTemporaryUser) {
+      updateData.firstName = firstName;
+      updateData.lastName = lastName;
+    }
+
     const user = await this.prisma.user.update({
       where: { userId: session.user.userId },
-      data: {
-        firstName,
-        lastName,
-        birthday: new Date(birthday),
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        country,
-        zipCode,
-        airtableRecId,
-        onboardedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return {
@@ -300,15 +305,27 @@ export class AuthService {
   async getOnboardingStatus(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
-      select: { onboardComplete: true },
+      select: { 
+        onboardComplete: true,
+        firstName: true,
+        lastName: true,
+        birthday: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
+    const defaultBirthday = new Date('2000-01-01');
+    const needsBirthday = user.birthday.getTime() === defaultBirthday.getTime();
+    const isTemporaryUser = user.firstName === 'Temporary';
+
     return {
       onboardComplete: user.onboardComplete,
+      needsBirthday,
+      isTemporaryUser,
+      hasPrefilledData: !isTemporaryUser && !needsBirthday,
     };
   }
 

@@ -160,11 +160,18 @@
     email = authStatus.email;
     birthday = authStatus.birthday;
 
-    if (authStatus.firstName == 'Temporary' || authStatus.lastName == 'User' || !authStatus.email || !authStatus.birthday) {
+    const isTemporaryUser = authStatus.firstName == 'Temporary' || authStatus.lastName == 'User';
+    const defaultBirthday = '2000-01-01';
+    const needsBirthday = !birthday || birthday.startsWith(defaultBirthday);
+    
+    if (isTemporaryUser || !authStatus.email) {
       missingInfo = true;
       firstName = '';
       lastName = '';
       email = email;
+      birthday = '';
+    } else if (needsBirthday) {
+      missingInfo = true;
       birthday = '';
     }
 
