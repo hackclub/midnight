@@ -91,7 +91,7 @@
             How do I get invited?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            To participate in Midnight you must spend 50 hours building projects. And, that's it! The first 100 folks who do so will be invited. Travel stipends will be available.
+            To participate in Midnight you must spend 50 hours building projects. And, that's it! Travel stipends will be available.
           </p>
         </section>
 
