@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import {
-        getHackatimeProjects,
+    getLinkedHackatimeProjects,
+    getUnlinkedHackatimeProjects,
         linkHackatimeProjects,
         type HackatimeProject,
     } from "$lib/auth";
@@ -11,11 +12,9 @@
     const {
         onClose,
         projectId,
-        currentHackatimeProjectNames = []
     }: {
         onClose: () => void;
         projectId: string;
-        currentHackatimeProjectNames: string[] | null;
     } = $props();
 
     let page: number = $state(0);
@@ -35,25 +34,26 @@
         page = newPage;
     }
 
-    let hackatimeProjects: HackatimeProject[] = $state([]);
-    let selectedHackatimeProjects: HackatimeProject[] = $state([]);
+    let unlinkedHackatimeProjects: HackatimeProject[] = $state([]);
+    let linkedHackatimeProjects: HackatimeProject[] = $state([]);
 
     function trackProject(project: HackatimeProject) {
-        selectedHackatimeProjects.push(project);
+        linkedHackatimeProjects.push(project);
+        unlinkedHackatimeProjects = unlinkedHackatimeProjects.filter((p) => p.name !== project.name);
 
         skipPage(1);
     }
 
     function removeProject(project: HackatimeProject) {
-        selectedHackatimeProjects = selectedHackatimeProjects.filter(
-            (project) => project !== project,
-        );
+        linkedHackatimeProjects = linkedHackatimeProjects.filter((p) => p.name !== project.name);
+        unlinkedHackatimeProjects.push(project);
+
         skipPage(1);
     }
 
     async function linkProjects() {
         submitting = true;
-        const response = await linkHackatimeProjects(projectId, selectedHackatimeProjects.map((project) => project.name));
+        const response = await linkHackatimeProjects(projectId, linkedHackatimeProjects.map((project) => project.name));
 
         if (!response.ok) {
             error = (await response.json())?.error || 'Failed to link hackatime project';
@@ -65,16 +65,8 @@
     }
 
     onMount(async () => {
-        const hackatimeData = await getHackatimeProjects();
-
-        if (hackatimeData) {
-            if (currentHackatimeProjectNames) {
-                selectedHackatimeProjects = hackatimeData.projects.filter((project) => currentHackatimeProjectNames.includes(project.name));
-            }
-            hackatimeProjects = hackatimeData.projects;
-        } else {
-            hackatimeProjects = [];
-        }
+        unlinkedHackatimeProjects = (await getUnlinkedHackatimeProjects())?.projects || [];
+        linkedHackatimeProjects = (await getLinkedHackatimeProjects(projectId))?.projects || [];
 
         nextPage();
     });
@@ -91,9 +83,9 @@
                 <div></div>
             {/if}
             {#if page == 1}
-                {#if selectedHackatimeProjects.length}
+                {#if linkedHackatimeProjects.length > 0}
                     <div class="hackatime-projects">
-                        {#each selectedHackatimeProjects as project}
+                        {#each linkedHackatimeProjects as project}
                             <HackatimeEntry
                                 action="remove"
                                 actionFn={() => removeProject(project)}
@@ -119,7 +111,7 @@
                     />
                     <Button
                         label={submitting ? 'loading...' : "Next →" }
-                        disabled={selectedHackatimeProjects.length === 0 || submitting}
+                        disabled={linkedHackatimeProjects.length === 0 || submitting}
                         onclick={linkProjects}
                     />
                 </div>
@@ -128,7 +120,7 @@
                 {/if}
             {/if}
             {#if page == 2}
-                {#await hackatimeProjects}
+                {#await unlinkedHackatimeProjects}
                     <p class="modal-text">getting hackatime projects...</p>
                     <div></div>
                 {:then projects}

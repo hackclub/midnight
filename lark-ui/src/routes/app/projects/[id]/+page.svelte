@@ -124,7 +124,6 @@
 
   {#if openHackatimeProjectModal && project}
     <HackatimeProjectModal 
-      currentHackatimeProjectNames={project.nowHackatimeProjects}
       onClose={async () => {
         await loadProject();
         openHackatimeProjectModal = false;

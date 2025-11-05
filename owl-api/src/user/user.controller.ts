@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, Req, Res, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Req, Res, HttpCode, UseGuards, Param, BadRequestException } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { UserService } from './user.service';
 import { InitialRsvpDto } from './dto/initial-rsvp.dto';
@@ -127,12 +127,34 @@ export class UserController {
     return this.userService.updateUser(userId, updateUserDto);
   }
 
-  @Get('api/user/hackatime-projects')
+  @Get('api/user/hackatime-projects/unlinked')
   @UseGuards(AuthGuard)
   @HttpCode(200)
   async getHackatimeProjects(@Req() req: express.Request) {
     const userEmail = req.user.email;
-    return this.userService.getHackatimeProjects(userEmail);
+    return this.userService.getUnlinkedHackatimeProjects(userEmail);
+  }
+
+  @Get('api/user/hackatime-projects/linked/:id')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async getHackatimeProject(@Param('id') id: string, @Req() req: express.Request) {
+    const userEmail = req.user.email;
+    const projectId = parseInt(id);
+
+    if (isNaN(projectId)) {
+      throw new BadRequestException('Invalid project ID');
+    }
+
+    return this.userService.getLinkedHackatimeProjects(userEmail, projectId);
+  }
+
+  @Get('api/user/hackatime-projects/all')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async getAllHackatimeProjects(@Req() req: express.Request) {
+    const userEmail = req.user.email;
+    return this.userService.getAllHackatimeProjects(userEmail);
   }
 
   @Get('api/user/hackatime-account')

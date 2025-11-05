@@ -151,8 +151,42 @@ export async function checkHackatimeAccount() {
   }
 }
 
-export async function getHackatimeProjects() {
-  const response = await fetch(`${apiUrl}/api/user/hackatime-projects`, {
+export async function getAllHackatimeProjects() {
+  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/all`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data as {
+      projects: HackatimeProject[]
+    };
+  } else {
+    return null;
+  }
+}
+
+export async function getLinkedHackatimeProjects(projectId: string) {
+  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/linked/${projectId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data as {
+      projects: HackatimeProject[]
+    };
+  } else {
+    return null;
+  }
+}
+
+export async function getUnlinkedHackatimeProjects() {
+  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/unlinked`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { checkHackatimeAccount, getHackatimeProjects, sendHackatimeOtp, verifyHackatimeOtp } from "$lib/auth";
+    import { checkHackatimeAccount, sendHackatimeOtp, verifyHackatimeOtp } from "$lib/auth";
     import Button from "../Button.svelte";
     import HackatimeEntry from "./HackatimeEntry.svelte";
 

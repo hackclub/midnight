@@ -509,4 +509,160 @@ export class UserService {
 
     return hackatimeProjects;
   }
+
+  async getAllHackatimeProjects(userEmail: string): Promise<any> {
+    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (!user.hackatimeAccount) {
+      throw new HttpException(
+        'No Hackatime account linked to this user',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (HACKATIME_API_KEY) {
+      headers['Authorization'] = `Bearer ${HACKATIME_API_KEY}`;
+    }
+
+    const res = await fetch(
+      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${user.hackatimeAccount}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new HttpException(
+          'Hackatime projects not found for this user',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      throw new HttpException(
+        'Failed to fetch hackatime projects',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return res.json();
+  }
+
+  async getLinkedHackatimeProjects(userEmail: string, projectId: number): Promise<any> {
+    const allProjects = await this.getAllHackatimeProjects(userEmail);
+
+    const project = await this.prisma.project.findUnique({
+      where: { projectId },
+      select: {
+        nowHackatimeProjects: true,
+      },
+    });
+
+    if (!project) {
+      throw new HttpException(
+        'Project not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const linkedProjectNames = new Set<string>(project.nowHackatimeProjects || []);
+
+    if (Array.isArray(allProjects)) {
+      return allProjects.filter((project: any) => 
+        linkedProjectNames.has(project.name || project.projectName || project)
+      );
+    }
+
+    if (allProjects.projects && Array.isArray(allProjects.projects)) {
+      return {
+        ...allProjects,
+        projects: allProjects.projects.filter((project: any) =>
+          linkedProjectNames.has(project.name || project.projectName || project)
+        ),
+      };
+    }
+
+    if (allProjects.name || allProjects.projectName) {
+      const projectName = allProjects.name || allProjects.projectName;
+      if (linkedProjectNames.has(projectName)) {
+        return allProjects;
+      }
+      return Array.isArray(allProjects) ? [] : { ...allProjects, projects: [] };
+    }
+
+    return allProjects;
+  }
+
+  async getUnlinkedHackatimeProjects(userEmail: string): Promise<any> {
+    const allProjects = await this.getAllHackatimeProjects(userEmail);
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: userEmail },
+      include: {
+        projects: {
+          select: {
+            nowHackatimeProjects: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const linkedProjectNames = new Set<string>();
+    
+    user.projects.forEach(project => {
+      if (project.nowHackatimeProjects) {
+        project.nowHackatimeProjects.forEach(name => linkedProjectNames.add(name));
+      }
+    });
+
+    if (Array.isArray(allProjects)) {
+      return allProjects.filter((project: any) => 
+        !linkedProjectNames.has(project.name || project.projectName || project)
+      );
+    }
+
+    if (allProjects.projects && Array.isArray(allProjects.projects)) {
+      return {
+        ...allProjects,
+        projects: allProjects.projects.filter((project: any) =>
+          !linkedProjectNames.has(project.name || project.projectName || project)
+        ),
+      };
+    }
+
+    if (allProjects.name || allProjects.projectName) {
+      const projectName = allProjects.name || allProjects.projectName;
+      if (linkedProjectNames.has(projectName)) {
+        throw new HttpException(
+          'All hackatime projects are already linked',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+
+    return allProjects;
+  }
 }
