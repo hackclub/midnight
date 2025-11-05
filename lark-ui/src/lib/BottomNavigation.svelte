@@ -20,7 +20,8 @@
     const referralCode = await getReferralCode();
 
     if (referralCode?.rafflePos) {
-      navigator.clipboard.writeText(referralCode.rafflePos);
+      const referralLink = `https://midnight.1mp.dev/?code=${referralCode.rafflePos}`;
+      navigator.clipboard.writeText(referralLink);
     }
 
     referralPopover = true;

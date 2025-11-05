@@ -61,26 +61,23 @@ export class AuthService {
             WHERE raffle_pos IS NOT NULL AND raffle_pos ~ '^[0-9]+$'
           `;
 
+          const maxAirtableCodeResult = await this.prisma.$queryRaw<Array<{
+            max_code: string | null;
+          }>>`
+            SELECT CAST(MAX(code) AS TEXT) as max_code
+            FROM users_airtable
+          `;
+
           const maxUserCode = maxUserCodeResult && maxUserCodeResult.length > 0 && maxUserCodeResult[0].max_code
             ? parseInt(maxUserCodeResult[0].max_code, 10)
-            : null;
+            : 0;
 
-          if (maxUserCode !== null) {
-            rafflePos = (maxUserCode + 1).toString();
-          } else {
-            const maxAirtableCodeResult = await this.prisma.$queryRaw<Array<{
-              max_code: string | null;
-            }>>`
-              SELECT CAST(MAX(code) AS TEXT) as max_code
-              FROM users_airtable
-            `;
+          const maxAirtableCode = maxAirtableCodeResult && maxAirtableCodeResult.length > 0 && maxAirtableCodeResult[0].max_code
+            ? parseInt(maxAirtableCodeResult[0].max_code, 10)
+            : 0;
 
-            const maxAirtableCode = maxAirtableCodeResult && maxAirtableCodeResult.length > 0 && maxAirtableCodeResult[0].max_code
-              ? parseInt(maxAirtableCodeResult[0].max_code, 10)
-              : 0;
-
-            rafflePos = (maxAirtableCode + 1).toString();
-          }
+          const maxCode = Math.max(maxUserCode, maxAirtableCode);
+          rafflePos = (maxCode + 1).toString();
         }
       } catch (error) {
         console.error('Error checking users_airtable:', error);
