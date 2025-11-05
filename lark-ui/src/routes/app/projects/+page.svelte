@@ -73,7 +73,6 @@
       {#each projects as project (project.projectId)}
         <div>
           <ProjectCard
-            color="#FFBB31"
             title={project.projectTitle}
             type={project.projectType}
             href={'/app/projects/' + project.projectId}

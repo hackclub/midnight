@@ -9,26 +9,29 @@
         variant?: 'default' | 'landing';
     } = $props();
 
-    switch (color) {
-        case 'red':
-            color = '#F24B4B';
-            break;
-        case 'blue':
-            color = '#1385F0';
-            break;
-        case 'yellow':
-            color = '#FFBB31';
-            break;
-        case 'black':
-            color = '#2D273F';
-            break;
-        case 'white':
-            color = '#FEE1C0';
-            break;
-        case 'pink':
-            color = '#ED0F7E';
-            break;
-    }
+    $effect(() => {
+        switch (color) {
+            case 'red':
+                color = '#F24B4B';
+                break;
+            case 'blue':
+                color = '#1385F0';
+                break;
+            case 'yellow':
+                color = '#FFBB31';
+                break;
+            case 'black':
+                color = '#2D273F';
+                break;
+            case 'white':
+                color = '#FEE1C0';
+                break;
+            case 'pink':
+                color = '#ED0F7E';
+                break;
+        }
+    });
+
 </script>
 
 <button class="pushable pushable-{variant}" disabled={disabled} onclick={onclick} style="--color: {color}" type={type}>

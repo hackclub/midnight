@@ -2,9 +2,9 @@
   import { goto } from '$app/navigation';
     import { getReferralCode } from './auth';
   
-  const { onboarding = false } = $props();
-
-  let activeTab = $state('create');
+  const { onboarding = false, currentTab = 'create' } = $props();
+ 
+  let activeTab = $state(currentTab);
   let shakingTab = $state('');
 
   let referralPopover = $state(false);
@@ -59,6 +59,7 @@
       onclick={() => navigateTo('create')}
       role="tab"
       aria-selected={activeTab === 'create'}
+      class:enabled={true}
     >
       Create
     </button>
@@ -98,6 +99,13 @@
         {/if}
         <img src="/icons/link.svg" alt="Referral" />
       </button>
+      <a
+        class="settings"
+        class:active={activeTab === 'settings'}
+        href="/app/settings"
+      >
+        <img src="/icons/settings.svg" alt="Settings" />
+      </a>
     {/if}
   </div>
 </div>
@@ -259,5 +267,9 @@
       height: 60px;
       padding: 0 0.5rem;
     }
+  }
+
+  .settings.active {
+    filter: brightness(0) saturate(100%) invert(78%) sepia(88%) saturate(2130%) hue-rotate(330deg) brightness(101%) contrast(101%);
   }
 </style>
