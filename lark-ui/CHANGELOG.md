@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/hackclub/midnight/compare/lark-ui-v1.0.3...lark-ui-v1.0.4) (2025-11-05)
+
+
+### Bug Fixes
+
+* round 3 fixes to platform ([#19](https://github.com/hackclub/midnight/issues/19)) ([26fa06f](https://github.com/hackclub/midnight/commit/26fa06f594e45fa3039d251a199c89f43e9eacda))
+
 ## [1.0.3](https://github.com/hackclub/midnight/compare/lark-ui-v1.0.2...lark-ui-v1.0.3) (2025-11-05)
 
 
