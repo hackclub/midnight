@@ -34,10 +34,10 @@ export class AuthService {
 
       try {
         const airtableUser = await this.prisma.$queryRaw<Array<{
-          first_name: string;
-          last_name: string;
-          code: string;
-          birthday: Date;
+          first_name: string | null;
+          last_name: string | null;
+          code: string | null;
+          birthday: Date | null;
         }>>`
           SELECT first_name, last_name, CAST(code AS TEXT) as code, birthday
           FROM users_airtable
@@ -46,9 +46,9 @@ export class AuthService {
         `;
 
         if (airtableUser && airtableUser.length > 0) {
-          firstName = airtableUser[0].first_name;
-          lastName = airtableUser[0].last_name;
-          rafflePos = airtableUser[0].code || null;
+          firstName = airtableUser[0].first_name ?? firstName;
+          lastName = airtableUser[0].last_name ?? lastName;
+          rafflePos = airtableUser[0].code ?? null;
           if (airtableUser[0].birthday) {
             birthday = new Date(airtableUser[0].birthday);
           }
