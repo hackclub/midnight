@@ -3,10 +3,14 @@
   import { page } from '$app/stores';
     import { createProject } from '$lib/auth';
     import { goto } from '$app/navigation';
+    import Button from '$lib/Button.svelte';
   
   let projectName = '';
   let projectDescription = '';
   let projectType = 'website';
+  let isSubmitting = false;
+  let backHref = '/app/projects/select';
+  let returnTo = '';
   
   $: formConfig = {
     personal_website: {
@@ -19,6 +23,36 @@
       namePlaceholder: 'Game Name',
       descriptionPlaceholder: 'Game Description'
     },
+    website: {
+      title: 'CREATE YOUR WEBSITE',
+      namePlaceholder: 'Website Name',
+      descriptionPlaceholder: 'Website Description'
+    },
+    game: {
+      title: 'CREATE YOUR GAME',
+      namePlaceholder: 'Game Name',
+      descriptionPlaceholder: 'Game Description'
+    },
+    terminal_cli: {
+      title: 'CREATE YOUR TERMINAL APP',
+      namePlaceholder: 'CLI App Name',
+      descriptionPlaceholder: 'CLI App Description'
+    },
+    cli: {
+      title: 'CREATE YOUR TERMINAL APP',
+      namePlaceholder: 'CLI App Name',
+      descriptionPlaceholder: 'CLI App Description'
+    },
+    desktop_app: {
+      title: 'CREATE YOUR DESKTOP APP',
+      namePlaceholder: 'Desktop App Name',
+      descriptionPlaceholder: 'Desktop App Description'
+    },
+    mobile_app: {
+      title: 'CREATE YOUR MOBILE APP',
+      namePlaceholder: 'Mobile App Name',
+      descriptionPlaceholder: 'Mobile App Description'
+    },
     wildcard: {
       title: 'CREATE YOUR PROJECT',
       namePlaceholder: 'Project Name',
@@ -28,34 +62,67 @@
   
   $: config = formConfig[projectType as keyof typeof formConfig] || formConfig.wildcard;
   
+  const typeMapping: Record<string, string> = {
+    cli: 'terminal_cli'
+  };
+  
+  function getApiProjectType(uiType: string): string {
+    return typeMapping[uiType] || uiType;
+  }
+  
   onMount(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const typeParam = urlParams.get('type');
+    const fromParam = urlParams.get('from');
+    const returnParam = urlParams.get('return');
     if (typeParam && formConfig[typeParam as keyof typeof formConfig]) {
       projectType = typeParam;
     } else {
       projectType = 'wildcard';
     }
+
+    if (fromParam === 'onboarding') {
+      if (returnParam === 'select' || (document.referrer && document.referrer.includes('/app/projects/select'))) {
+        backHref = '/app/projects/select?from=onboarding';
+      } else {
+        backHref = '/app/onboarding?from=create';
+      }
+    } else if (document.referrer && document.referrer.includes('/app/onboarding')) {
+      backHref = '/app/onboarding?from=create';
+    } else {
+      backHref = '/app/projects/select';
+    }
   });
   
   async function handleSubmit(event: Event) {
     event.preventDefault();
-    console.log('Creating project:', { 
-      type: projectType,
-      name: projectName, 
-      description: projectDescription 
-    });
+    
+    if (isSubmitting) {
+      return;
+    }
+    
+    isSubmitting = true;
+    
+    try {
+      console.log('Creating project:', { 
+        type: projectType,
+        name: projectName, 
+        description: projectDescription 
+      });
 
-    const project = await createProject({
-      projectTitle: projectName,
-      projectType: projectType,
-      projectDescription: projectDescription
-    });
+      const project = await createProject({
+        projectTitle: projectName,
+        projectType: getApiProjectType(projectType),
+        projectDescription: projectDescription
+      });
 
-    if (project) {
-      goto(`/app/projects/${project.projectId}`);
-    } else {
-      alert('Failed to create project');
+      if (project) {
+        goto(`/app/projects/${project.projectId}`);
+      } else {
+        alert('Failed to create project');
+      }
+    } finally {
+      isSubmitting = false;
     }
   }
 </script>
@@ -67,6 +134,9 @@
 </svelte:head>
 
 <div class="create-page">
+  <div class="back-button">
+    <Button label="← BACK" onclick={() => goto(backHref)} color="black" />
+  </div>
   <div class="card">
     <h1 class="title">{config.title}</h1>
     <p class="subtitle">Don't worry about the perfect name, you can change it later!</p>
@@ -86,8 +156,8 @@
         rows="8"
       ></textarea>
       
-      <button type="submit" class="submit-button">
-        Create Project
+      <button type="submit" class="submit-button" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating...' : 'Create Project'}
       </button>
     </form>
   </div>
@@ -95,12 +165,20 @@
 
 <style>
   .create-page {
+    position: relative;
     min-height: 100vh;
     background-color: #453b61;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+  }
+
+  .back-button {
+    position: absolute;
+    top: 32px;
+    left: 66px;
+    translate: 0 -8px;
   }
 
   .card {
@@ -195,6 +273,16 @@
 
   .submit-button:active {
     background: #d32f2f;
+  }
+
+  .submit-button:disabled {
+    background: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .submit-button:disabled:hover {
+    background: #999;
   }
 
   @media (max-width: 768px) {

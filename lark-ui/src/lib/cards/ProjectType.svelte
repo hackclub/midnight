@@ -1,24 +1,26 @@
 <script lang="ts">
-    const { type } = $props();
+    const { type, fromOnboarding = false } = $props();
 
-    function createLink(projectType: string) {
-        return '/app/projects/create?type=' + encodeURIComponent(projectType);
-    }
+    const href = $derived('/app/projects/create?type=' + encodeURIComponent(type) + (fromOnboarding ? '&from=onboarding&return=select' : ''));
+
+    let randRot = $state(Math.random() > 0.5 ? 1 : -1);
 </script>
 
-<a href="{createLink(type)}" class="card-link">
+<a href="{href}" class="card-link" style="--rand-rot: {randRot}deg">
     <img src="/cards/{type}.svg" alt="Personal Website" class="card-svg" />
 </a>
 
 <style>
     .card-link {
         display: block;
-        transition: all 0.1s ease-in;
+
+        transition: all 250ms cubic-bezier(0.3, 0.7, 0.4, 1);
     }
 
     .card-link:hover {
-        translate: 0px -8px;
-        transition: all 0.1s ease-out;
+        scale: 1.035;
+        rotate: var(--rand-rot);
+        transition: all 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
         cursor: pointer;
     }
 </style>

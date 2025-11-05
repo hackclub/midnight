@@ -3,6 +3,19 @@
     import Button from '$lib/Button.svelte';
     import ProjectType from '$lib/cards/ProjectType.svelte';
     import { onMount } from 'svelte';
+    import { page } from '$app/stores';
+    import BottomNavigation from '$lib/BottomNavigation.svelte';
+
+    let backHref = '/app/projects';
+    let fromOnboarding = $derived($page.url.searchParams.get('from') === 'onboarding');
+
+    onMount(() => {
+        const params = new URLSearchParams(window.location.search);
+        const from = params.get('from');
+        if (from === 'onboarding' || (document.referrer && document.referrer.includes('/app/onboarding'))) {
+            backHref = '/app/onboarding?from=create';
+        }
+    });
 </script>
 
 <svelte:head>
@@ -12,18 +25,26 @@
 <div class="select-page">
     <div class="header">
         <div class="back-button">
-            <Button label="← BACK" onclick={() => goto('/app/projects')} color="black" />
+            <Button label="← BACK" onclick={() => goto(backHref)} color="black" />
         </div>
         <h1 class="page-title">Create A Project</h1>
     </div>
     <div class="project-types-grid">
-        <ProjectType type="website" />
-        <ProjectType type="game" />
-        <ProjectType type="cli" />
-        <ProjectType type="desktop_app" />
-        <ProjectType type="mobile_app" />
-        <ProjectType type="wildcard" />
+        <ProjectType type="website" fromOnboarding={fromOnboarding} />
+        <ProjectType type="game" fromOnboarding={fromOnboarding} />
+        <ProjectType type="cli" fromOnboarding={fromOnboarding} />
+        <ProjectType type="desktop_app" fromOnboarding={fromOnboarding} />
+        <ProjectType type="mobile_app" fromOnboarding={fromOnboarding} />
     </div>
+    <div class="wildcard">
+      <Button label="Or... Choose your own fate" onclick={() => {
+        goto('/app/projects/create?type=' + encodeURIComponent('wildcard') + (fromOnboarding ? '&from=onboarding&return=select' : ''));
+      }} />
+    </div>
+
+    {#if !fromOnboarding}
+        <BottomNavigation />
+    {/if}
 </div>
 
 <style>
@@ -60,5 +81,9 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 32px;
+  }
+
+  .wildcard {
+    margin-top: 32px;
   }
 </style>

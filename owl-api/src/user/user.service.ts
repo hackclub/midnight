@@ -85,70 +85,10 @@ export class UserService {
   }
 
   async createInitialRsvp(email: string, clientIP: string): Promise<void> {
-    if (!this.AIRTABLE_API_KEY) {
-      throw new HttpException(
-        'Server configuration error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    if (!email || !email.trim()) {
-      throw new HttpException(
-        'Email is required',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (!this.isValidEmail(email)) {
-      throw new HttpException(
-        'Please enter a valid email address',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    try {
-      console.log('Adding email to Email table:', email);
-      const response = await fetch(
-        `https://api.airtable.com/v0/${this.BASE_ID}/${this.EMAIL_TABLE_ID}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            records: [
-              {
-                fields: {
-                  Email: email,
-                },
-              },
-            ],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Airtable API error:', errorData);
-        throw new HttpException(
-          'Failed to save email',
-          response.status || HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const data = await response.json();
-      console.log('Successfully added email to Email table:', data.records[0].id);
-    } catch (error) {
-      console.error('Error saving email:', error);
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    throw new HttpException(
+      'rsvp is not enabled at this moment',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 
   private calculateAge(birthday: string): number {
@@ -166,303 +106,14 @@ export class UserService {
     data: { email: string; firstName: string; lastName: string; birthday: string; referralCode?: string },
     clientIP: string,
   ): Promise<{ rafflePosition: number }> {
-    console.log('====================================');
-    console.log('=== COMPLETE RSVP CALLED ===');
-    console.log(`Email: ${data.email}`);
-    console.log(`ReferralCode: ${data.referralCode}`);
-    console.log('====================================');
-    
-    if (!this.AIRTABLE_API_KEY) {
-      throw new HttpException(
-        'Server configuration error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    if (!data.email || !this.isValidEmail(data.email)) {
-      throw new HttpException(
-        'Valid email is required',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const age = this.calculateAge(data.birthday);
-    if (isNaN(age) || age < 0) {
-      throw new HttpException(
-        'Invalid birthday format',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (age >= 19) {
-      throw new HttpException(
-        'Midnight is for teenagers 18 and under. You must be 18 or younger to attend.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    try {
-      console.log('Checking for existing RSVP with email:', data.email);
-      const filterFormula = `{fldZCDn3M5M2F6AOX}="${data.email}"`;
-      const searchUrl = `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}`;
-      
-      const searchResponse = await fetch(searchUrl, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-        },
-      });
-
-      if (!searchResponse.ok) {
-        const errorData = await searchResponse.json().catch(() => ({}));
-        console.error('Airtable search error:', errorData);
-        throw new HttpException(
-          'Failed to check existing RSVPs',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      const searchData = await searchResponse.json();
-      
-      if (searchData.records && searchData.records.length > 1) {
-        console.warn(`Multiple RSVP records found for email: ${data.email}. Count: ${searchData.records.length}`);
-      }
-      
-      if (searchData.records && searchData.records.length > 0) {
-        console.log('=== EXISTING RECORD FOUND, UPDATING ===');
-        const existingRecord = searchData.records[0];
-        console.log('Existing record ID:', existingRecord.id);
-        const fields = existingRecord.fields;
-        
-        const hasFirstName = fields['First Name'] && fields['First Name'].trim() !== '';
-        const hasLastName = fields['Last Name'] && fields['Last Name'].trim() !== '';
-        const hasBirthday = fields['Birthday'] && fields['Birthday'].trim() !== '';
-        
-        if (hasFirstName && hasLastName && hasBirthday) {
-          console.log('Duplicate RSVP attempt detected for email:', data.email);
-          throw new HttpException(
-            'You can not RSVP at this time.',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        
-        console.log('=== UPDATING INCOMPLETE RSVP RECORD ===');
-        console.log('Record ID:', existingRecord.id);
-        const updateFields: any = {
-          fldLfzvf3xvXnLeIr: data.firstName,
-          fldfOBSrsWih4oHe6: data.lastName,
-          fldsYVJC0EpDMiSgY: data.birthday,
-          fldRmDEgOgxdjLcpR: clientIP,
-        };
-        console.log('Update fields:', JSON.stringify(updateFields, null, 2));
-        
-        if (data.referralCode) {
-          const parsedCode = parseInt(data.referralCode, 10);
-          if (!isNaN(parsedCode)) {
-            updateFields.fldsx18FJRxEA19do = parsedCode;
-          }
-        }
-        
-        const updateResponse = await fetch(
-          `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${existingRecord.id}`,
-          {
-            method: 'PATCH',
-            headers: {
-              Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fields: updateFields,
-            }),
-          },
-        );
-
-        if (!updateResponse.ok) {
-          const errorData = await updateResponse.json();
-          console.error('Airtable update error:', errorData);
-          throw new HttpException(
-            'Failed to update RSVP',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-        }
-
-        const updateData = await updateResponse.json();
-        console.log('=== UPDATE RESPONSE DEBUG ===');
-        console.log('Full updateData:', JSON.stringify(updateData, null, 2));
-        console.log('updateData.fields:', JSON.stringify(updateData.fields, null, 2));
-        console.log('Checking field by name:', updateData.fields?.['Loops - midnightRafflePosition']);
-        console.log('All field keys:', Object.keys(updateData.fields || {}));
-        let rafflePosition = updateData.fields?.['Loops - midnightRafflePosition'] || 0;
-        
-        if (!rafflePosition || rafflePosition === 0) {
-          console.log('Raffle position not in update response, fetching record again...');
-          const fetchResponse = await fetch(
-            `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${existingRecord.id}`,
-            {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-              },
-            },
-          );
-          if (fetchResponse.ok) {
-            const fetchData = await fetchResponse.json();
-            console.log('Fetched record fields:', JSON.stringify(fetchData.fields, null, 2));
-            rafflePosition = fetchData.fields?.['Loops - midnightRafflePosition'] || 0;
-            console.log('Raffle position from fetch:', rafflePosition);
-          }
-        }
-        
-        console.log('Successfully updated RSVP:', existingRecord.id, 'Raffle Position:', rafflePosition);
-        
-        this.sendRsvpEmailInBackground(data.email, rafflePosition).catch(error => {
-          console.error('Background email send failed:', error);
-        });
-
-        return { rafflePosition };
-      }
-
-      console.log('=== NO EXISTING RECORD, CREATING NEW RSVP ===');
-      console.log('Email:', data.email);
-      const createFields: any = {
-        fldZCDn3M5M2F6AOX: data.email,
-        fldLfzvf3xvXnLeIr: data.firstName,
-        fldfOBSrsWih4oHe6: data.lastName,
-        fldsYVJC0EpDMiSgY: data.birthday,
-        fldRmDEgOgxdjLcpR: clientIP,
-      };
-      console.log('Create fields:', JSON.stringify(createFields, null, 2));
-      
-      if (data.referralCode) {
-        const parsedCode = parseInt(data.referralCode, 10);
-        if (!isNaN(parsedCode)) {
-          createFields.fldsx18FJRxEA19do = parsedCode;
-        }
-      }
-      
-      const createResponse = await fetch(
-        `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            records: [
-              {
-                fields: createFields,
-              },
-            ],
-          }),
-        },
-      );
-
-      if (!createResponse.ok) {
-        const errorData = await createResponse.json();
-        console.error('Airtable API error:', errorData);
-        throw new HttpException(
-          'Failed to create RSVP',
-          createResponse.status || HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const createData = await createResponse.json();
-      const recordId = createData.records[0].id;
-      console.log('=== CREATE RESPONSE DEBUG ===');
-      console.log('Full createData:', JSON.stringify(createData, null, 2));
-      console.log('createData.records[0].fields:', JSON.stringify(createData.records[0].fields, null, 2));
-      console.log('Checking field by name:', createData.records[0].fields?.['Loops - midnightRafflePosition']);
-      console.log('All field keys:', Object.keys(createData.records[0].fields || {}));
-      let rafflePosition = createData.records[0].fields?.['Loops - midnightRafflePosition'] || 0;
-      
-      if (!rafflePosition || rafflePosition === 0) {
-        console.log('Raffle position not in create response, fetching record again...');
-        const fetchResponse = await fetch(
-          `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}/${recordId}`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-            },
-          },
-        );
-        if (fetchResponse.ok) {
-          const fetchData = await fetchResponse.json();
-          console.log('Fetched record fields:', JSON.stringify(fetchData.fields, null, 2));
-          rafflePosition = fetchData.fields?.['Loops - midnightRafflePosition'] || 0;
-          console.log('Raffle position from fetch:', rafflePosition);
-        }
-      }
-      
-      console.log('Successfully created RSVP:', recordId, 'Raffle Position:', rafflePosition);
-      
-      this.sendRsvpEmailInBackground(data.email, rafflePosition).catch(error => {
-        console.error('Background email send failed:', error);
-      });
-        
-      return { rafflePosition };
-      } catch (error) {
-        console.error('Error completing RSVP:', error);
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    throw new HttpException(
+      'rsvp is not enabled at this moment',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 
   async getRsvpCount(): Promise<{ count: number }> {
-    if (!this.AIRTABLE_API_KEY) {
-      throw new HttpException(
-        'Server configuration error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    try {
-      let totalCount = 0;
-      let offset: string | undefined;
-      
-      do {
-        const url = offset 
-          ? `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}?pageSize=100&offset=${offset}`
-          : `https://api.airtable.com/v0/${this.BASE_ID}/${this.TABLE_NAME}?pageSize=100`;
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Airtable count error:', errorData);
-          throw new HttpException(
-            'Failed to fetch RSVP count',
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
-        }
-
-        const data = await response.json();
-        totalCount += data.records?.length || 0;
-        offset = data.offset;
-      } while (offset);
-      
-      return { count: totalCount };
-    } catch (error) {
-      console.error('Error fetching RSVP count:', error);
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return { count: 0 };
   }
 
   async verifyStickerToken(token: string): Promise<{ valid: boolean; email?: string; rsvpNumber?: number }> {
@@ -525,12 +176,69 @@ export class UserService {
       );
     }
 
+    let finalFirstName = firstName;
+    let finalLastName = lastName;
+    let rafflePos: string | null = null;
+    let finalBirthday = new Date('2000-01-01');
+
+    try {
+      const airtableUser = await this.prisma.$queryRaw<Array<{
+        first_name: string;
+        last_name: string;
+        code: string;
+        birthday: Date;
+      }>>`
+        SELECT first_name, last_name, CAST(code AS TEXT) as code, birthday
+        FROM users_airtable
+        WHERE email = ${email}
+        LIMIT 1
+      `;
+
+      if (airtableUser && airtableUser.length > 0) {
+        finalFirstName = airtableUser[0].first_name;
+        finalLastName = airtableUser[0].last_name;
+        rafflePos = airtableUser[0].code || null;
+        if (airtableUser[0].birthday) {
+          finalBirthday = new Date(airtableUser[0].birthday);
+        }
+      } else {
+        const maxUserCodeResult = await this.prisma.$queryRaw<Array<{
+          max_code: string | null;
+        }>>`
+          SELECT CAST(MAX(CAST(raffle_pos AS INTEGER)) AS TEXT) as max_code
+          FROM users
+          WHERE raffle_pos IS NOT NULL AND raffle_pos ~ '^[0-9]+$'
+        `;
+
+        const maxAirtableCodeResult = await this.prisma.$queryRaw<Array<{
+          max_code: string | null;
+        }>>`
+          SELECT CAST(MAX(code) AS TEXT) as max_code
+          FROM users_airtable
+        `;
+
+        const maxUserCode = maxUserCodeResult && maxUserCodeResult.length > 0 && maxUserCodeResult[0].max_code
+          ? parseInt(maxUserCodeResult[0].max_code, 10)
+          : 0;
+
+        const maxAirtableCode = maxAirtableCodeResult && maxAirtableCodeResult.length > 0 && maxAirtableCodeResult[0].max_code
+          ? parseInt(maxAirtableCodeResult[0].max_code, 10)
+          : 0;
+
+        const maxCode = Math.max(maxUserCode, maxAirtableCode);
+        rafflePos = (maxCode + 1).toString();
+      }
+    } catch (error) {
+      console.error('Error checking users_airtable:', error);
+    }
+
     const user = await this.prisma.user.create({
       data: {
         email,
-        firstName,
-        lastName,
-        birthday: new Date('2000-01-01'), // Default birthday, can be updated later
+        firstName: finalFirstName,
+        lastName: finalLastName,
+        birthday: finalBirthday,
+        rafflePos,
       },
     });
 
@@ -653,6 +361,8 @@ export class UserService {
     }
 
     try {
+      const sanitizedEmail = email.replace(/'/g, "''");
+      
       const searchQuery = {
         query: `
           SELECT
@@ -665,7 +375,7 @@ export class UserService {
             users
             INNER JOIN email_addresses ON users.id = email_addresses.user_id
           WHERE
-            email_addresses.email = '${email}'
+            email_addresses.email = '${sanitizedEmail}'
           LIMIT 1;
         `,
       };

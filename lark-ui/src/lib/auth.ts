@@ -55,6 +55,14 @@ export async function completeOnboarding() {
   });
 }
 
+export async function logout() {
+  return await fetch(`${apiUrl}/api/user/auth/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+}
+
 
 // projects
 
@@ -62,7 +70,7 @@ export type Project = {
   projectId: string;
   userId: string;
   projectTitle: string;
-  projectType: 'personal_website' | 'platformer_game' | 'wildcard';
+  projectType: 'personal_website' | 'platformer_game' | 'website' | 'game' | 'terminal_cli' | 'desktop_app' | 'mobile_app' | 'wildcard';
   description: string;
   createdAt: Date;
   updatedAt: Date;
@@ -195,4 +203,20 @@ export async function verifyHackatimeOtp(otp: string) {
   });
 
   return response;
+}
+
+// referral code
+export async function getReferralCode() {
+  const response = await fetch(`${apiUrl}/api/user/auth/raffle-pos`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data;
+  } else {
+    return null;
+  }
 }

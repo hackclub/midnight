@@ -8,9 +8,7 @@
   import Button from '$lib/Button.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
   import HackatimeProjectModal from '$lib/hackatime/HackatimeProjectModal.svelte';
-    import BaseCard from '$lib/cards/BaseCard.svelte';
-    import ProjectCard from '$lib/cards/ProjectCard.svelte';
-    import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
+  import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
 
   let loading = $state(true);
   let error = $state<string | null>(null);
@@ -65,13 +63,15 @@
   </div>
   
   {#if loading}
-    <div class="loading">Loading project...</div>
+    <div class="loading">
+      <img src="/loading/crow_fly.gif" alt="Loading..." />
+    </div>
   {:else if error}
     <div class="error">Error: {error}</div>
   {:else if project}
     <div class="project-overview">
       <div class="project-card-preview">
-        <ProjectCardPreview title={project.projectTitle} href="#" color="#081832" />
+        <ProjectCardPreview title={project.projectTitle} href="#" type={project.projectType} />
       </div>
       
       <div class="project-content">
@@ -148,17 +148,29 @@
     margin-bottom: 30px;
   }
 
-  .loading,
-  .error {
-    font-family: 'PT Sans', sans-serif;
-    font-size: 24px;
-    color: white;
-    text-align: center;
-    padding: 60px 20px;
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .loading img {
+    image-rendering: pixelated;
+    width: 250px;
+    height: auto;
   }
 
   .error {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 24px;
     color: #f24b4b;
+    text-align: center;
+    padding: 60px 20px;
   }
 
   .project-overview {

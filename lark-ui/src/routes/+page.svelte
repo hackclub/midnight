@@ -8,6 +8,15 @@
   let errorMessage = '';
   let showModal = false;
   let isSubmitting = false;
+  let referralCode: string | null = null;
+
+  onMount(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get("code");
+    if (codeParam) {
+      referralCode = codeParam;
+    }
+  });
 
   function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +32,7 @@
     }
 
     if (!email.trim()) {
-      goto('/rsvp');
+      errorMessage = 'Please enter your email address';
       return;
     }
 
@@ -35,14 +44,17 @@
     isSubmitting = true;
 
     try {
-      // send an otp to the user's email
       const apiUrl = env.PUBLIC_API_URL || "";
+      const requestBody: any = { email };
+      if (referralCode) {
+        requestBody.referralCode = referralCode;
+      }
 
       const response = await fetch(`${apiUrl}/api/user/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log("sent an OTP");
@@ -53,7 +65,10 @@
         return;
       } 
       
-      goto("/login?email=" + encodeURIComponent(email));
+      const loginUrl = referralCode 
+        ? `/login?email=${encodeURIComponent(email)}&code=${referralCode}`
+        : `/login?email=${encodeURIComponent(email)}`;
+      goto(loginUrl);
     } finally {
       isSubmitting = false;
     }
@@ -391,7 +406,7 @@
           <p
             class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-xs md:text-xl lg:text-2xl xl:text-[28px] 2xl:text-[30px] text-center leading-normal max-w-3xl 2xl:max-w-4xl"
           >
-            Spend 70 hours building personal projects, fly to a <br /><span
+            Spend 50 hours building personal projects, fly to a <br /><span
               class="text-[#f24b4b]">murder mystery</span
             > hackathon in Vienna, Austria - Jan 2026
           </p>
@@ -423,14 +438,6 @@
               </button>
             </div>
 
-            <button on:click={openModal} type="button" class="pushable-blue">
-              <span
-                class="front-blue font-['Moga',_sans-serif] text-[#fee1c0] text-3xl md:text-4xl lg:text-5xl xl:text-[64px] 2xl:text-[64px] text-center text-nowrap tracking-[3.84px] whitespace-pre"
-              >
-                Read More
-              </span>
-            </button>
-
             {#if errorMessage}
               <p
                 class="text-[#fee1c0] font-['PT_Sans',_sans-serif] text-base md:text-lg 2xl:text-xl bg-red-900 bg-opacity-50 px-4 py-2 2xl:px-5 2xl:py-2 rounded-lg 2xl:rounded-lg"
@@ -442,15 +449,14 @@
         </form>
       </div>
     </div>
-
+    
     <div class="absolute bottom-8 md:bottom-12 lg:bottom-16 2xl:bottom-16 left-0 right-0 flex justify-center z-30">
       <p class="font-['PT_Serif',_serif] font-bold text-[#fee1c0] text-lg md:text-2xl lg:text-3xl 2xl:text-[34px] text-center">
         you receive a strange transmission... <span class="inline-block animate-bounce ml-2">⌄</span>
       </p>
     </div>
-
-    <!-- Read More button positioned bottom-right -->
-    <div class="absolute bottom-0 z-30 right-8 md:bottom-12 md:right-12 lg:bottom-16 lg:right-16">
+    
+    <div class="absolute bottom-[72px] left-0 right-0 flex justify-center z-30 md:bottom-12 md:right-12 md:left-auto lg:bottom-16 lg:right-16">
       <button 
         on:click={openModal}
         type="button"
@@ -498,14 +504,17 @@
           </span>
         </button>
       </div>
+
+      <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none">
+        <p class="font-['PT_Sans',_sans-serif] text-[#2A2746] text-xs md:text-sm lg:text-base opacity-70 text-center">
+          © 2025 Hack Club. Made with love by teenagers, for teenagers.
+        </p>
+      </div>
     </div>
     
-    <div class="absolute bottom-[5%] left-1/2 transform -translate-x-1/2 z-20">
-      <p class="font-['PT_Sans',_sans-serif] text-[#2A2746] text-xs md:text-sm lg:text-base opacity-70">
-        © 2025 Hack Club. Made with love by teenagers, for teenagers.
-      </p>
-    </div>
   </section>
+
+  
 </div>
 
 {#if showModal}
@@ -559,7 +568,7 @@
         </p>
 
         <p>
-          The premise is simple: Spend 70 hours building projects, get a
+          The premise is simple: Spend 50 hours building projects, get a
           guaranteed ticket to an all expense paid murder mystery hackathon in
           Vienna, Austria.
         </p>
@@ -584,3 +593,4 @@
     </div>
   </div>
 {/if}
+

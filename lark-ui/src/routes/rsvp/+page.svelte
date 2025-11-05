@@ -19,25 +19,12 @@
 
   onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const emailParam = urlParams.get("email");
-    if (emailParam) {
-      email = emailParam;
-    }
-
     const codeParam = urlParams.get("code");
+    
     if (codeParam) {
-      referralCode = codeParam;
-    }
-
-    const apiUrl = env.PUBLIC_API_URL || "";
-    try {
-      const response = await fetch(`${apiUrl}/api/user/rsvp/count`);
-      if (response.ok) {
-        const data = await response.json();
-        rsvpCount = data.count || 0;
-      }
-    } catch (error) {
-      console.error("Failed to fetch RSVP count:", error);
+      goto(`/?code=${codeParam}`);
+    } else {
+      goto(`/`);
     }
   });
 

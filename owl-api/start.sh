@@ -3,13 +3,33 @@
 # Function to wait for database connection
 wait_for_db() {
     echo "Waiting for database connection..."
+    echo "DATABASE_URL is set: $([ -n "$DATABASE_URL" ] && echo "yes" || echo "no")"
+    if [ -n "$DATABASE_URL" ]; then
+        echo "DATABASE_URL (masked): $(echo "$DATABASE_URL" | sed 's/:[^@]*@/:****@/')"
+    fi
     max_attempts=30
     attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if npx prisma db push --accept-data-loss --skip-generate > /dev/null 2>&1; then
+        echo "Attempt $attempt/$max_attempts: Testing database connection..."
+        
+        # Test connection with detailed error output
+        echo "  - Testing Prisma connection and schema push..."
+        TEST_OUTPUT=$(npx prisma db push --accept-data-loss --skip-generate 2>&1)
+        TEST_EXIT_CODE=$?
+        
+        if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "  ✓ Database connection successful!"
             echo "Database connection successful!"
             return 0
+        else
+            echo "  ✗ Connection test failed (exit code: $TEST_EXIT_CODE)"
+            echo "  Error output:"
+            echo "$TEST_OUTPUT" | head -30
+            if [ $attempt -eq $max_attempts ]; then
+                echo "  Full error output:"
+                echo "$TEST_OUTPUT"
+            fi
         fi
         
         echo "Attempt $attempt/$max_attempts: Database not ready, waiting 2 seconds..."
@@ -18,6 +38,18 @@ wait_for_db() {
     done
     
     echo "Failed to connect to database after $max_attempts attempts"
+    echo ""
+    echo "Attempting final diagnostic check..."
+    echo "  - Checking DATABASE_URL format..."
+    if echo "$DATABASE_URL" | grep -q "postgresql://"; then
+        echo "    ✓ DATABASE_URL appears to be a PostgreSQL connection string"
+        DB_HOST=$(echo "$DATABASE_URL" | sed -n 's/.*@\([^:]*\):.*/\1/p')
+        DB_PORT=$(echo "$DATABASE_URL" | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+        echo "    - Extracted host: ${DB_HOST:-unknown}"
+        echo "    - Extracted port: ${DB_PORT:-unknown}"
+    else
+        echo "    ✗ DATABASE_URL format may be incorrect"
+    fi
     return 1
 }
 
@@ -25,17 +57,43 @@ wait_for_db() {
 if ! wait_for_db; then
     echo "Database connection failed, starting application anyway..."
     echo "Note: Database migrations will need to be run manually"
+    echo "Attempting to continue with migration anyway..."
+    echo "Running: npx prisma migrate deploy"
+    MIGRATE_OUTPUT=$(npx prisma migrate deploy 2>&1)
+    MIGRATE_EXIT=$?
+    echo "$MIGRATE_OUTPUT"
+    if [ $MIGRATE_EXIT -eq 0 ]; then
+        echo "✓ Migrations completed successfully despite connection test failure"
+    else
+        echo "✗ Migration also failed (exit code: $MIGRATE_EXIT)"
+        echo "Check logs above for details."
+    fi
 else
     echo "Running database migrations..."
-    if npx prisma migrate deploy; then
-        echo "Migrations completed successfully"
+    echo "Checking migration status first..."
+    STATUS_OUTPUT=$(npx prisma migrate status 2>&1)
+    STATUS_EXIT=$?
+    echo "$STATUS_OUTPUT"
+    if [ $STATUS_EXIT -ne 0 ]; then
+        echo "⚠️  Migration status check failed (exit code: $STATUS_EXIT), continuing anyway..."
+    fi
+    echo ""
+    echo "Running: npx prisma migrate deploy"
+    MIGRATE_OUTPUT=$(npx prisma migrate deploy 2>&1)
+    MIGRATE_EXIT=$?
+    echo "$MIGRATE_OUTPUT"
+    if [ $MIGRATE_EXIT -eq 0 ]; then
+        echo "✓ Migrations completed successfully"
     else
-        echo "Migration failed. Attempting to resolve..."
+        echo "✗ Migration failed (exit code: $MIGRATE_EXIT). Attempting to resolve..."
+        echo "Migration error details shown above."
         
         # Try to resolve failed migrations
         echo "Checking migration status..."
-        if npx prisma migrate status; then
+        if npx prisma migrate status 2>&1; then
             echo "Migration status checked successfully"
+        else
+            echo "Migration status check failed, see output above"
         fi
         
         # Try to mark failed migrations as resolved (this is safe for most cases)

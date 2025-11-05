@@ -15,52 +15,112 @@ export class AuthService {
   ) {}
 
   async requestOtp(loginDto: LoginDto) {
-    const { email } = loginDto;
+    const { email, referralCode } = loginDto;
     
     const otp = this.generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const existingUser = await this.prisma.user.findUnique({
+    let existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
 
-    let session;
-    if (existingUser) {
-      await this.prisma.userSession.deleteMany({
-        where: { userId: existingUser.userId },
-      });
+    if (!existingUser) {
+      const hackatimeAccount = await this.checkHackatimeAccount(email);
       
-      session = await this.prisma.userSession.create({
+      let firstName = 'Temporary';
+      let lastName = 'User';
+      let rafflePos: string | null = null;
+      let birthday = new Date('2000-01-01');
+
+      try {
+        const airtableUser = await this.prisma.$queryRaw<Array<{
+          first_name: string;
+          last_name: string;
+          code: string;
+          birthday: Date;
+        }>>`
+          SELECT first_name, last_name, CAST(code AS TEXT) as code, birthday
+          FROM users_airtable
+          WHERE email = ${email}
+          LIMIT 1
+        `;
+
+        if (airtableUser && airtableUser.length > 0) {
+          firstName = airtableUser[0].first_name;
+          lastName = airtableUser[0].last_name;
+          rafflePos = airtableUser[0].code || null;
+          if (airtableUser[0].birthday) {
+            birthday = new Date(airtableUser[0].birthday);
+          }
+        } else {
+          const maxUserCodeResult = await this.prisma.$queryRaw<Array<{
+            max_code: string | null;
+          }>>`
+            SELECT CAST(MAX(CAST(raffle_pos AS INTEGER)) AS TEXT) as max_code
+            FROM users
+            WHERE raffle_pos IS NOT NULL AND raffle_pos ~ '^[0-9]+$'
+          `;
+
+          const maxAirtableCodeResult = await this.prisma.$queryRaw<Array<{
+            max_code: string | null;
+          }>>`
+            SELECT CAST(MAX(code) AS TEXT) as max_code
+            FROM users_airtable
+          `;
+
+          const maxUserCode = maxUserCodeResult && maxUserCodeResult.length > 0 && maxUserCodeResult[0].max_code
+            ? parseInt(maxUserCodeResult[0].max_code, 10)
+            : 0;
+
+          const maxAirtableCode = maxAirtableCodeResult && maxAirtableCodeResult.length > 0 && maxAirtableCodeResult[0].max_code
+            ? parseInt(maxAirtableCodeResult[0].max_code, 10)
+            : 0;
+
+          const maxCode = Math.max(maxUserCode, maxAirtableCode);
+          rafflePos = (maxCode + 1).toString();
+        }
+      } catch (error) {
+        console.error('Error checking users_airtable:', error);
+      }
+      
+      existingUser = await this.prisma.user.create({
         data: {
-          userId: existingUser.userId,
-          otpCode: otp,
-          otpExpiresAt: expiresAt,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          email,
+          firstName,
+          lastName,
+          birthday,
+          role: 'user',
+          hackatimeAccount: hackatimeAccount?.toString() || null,
+          referralCode: referralCode || null,
+          rafflePos,
         },
       });
     } else {
-      const hackatimeAccount = await this.checkHackatimeAccount(email);
+      const updateData: any = {};
+      if (referralCode && !existingUser.referralCode) {
+        updateData.referralCode = referralCode;
+      }
       
-      const tempUser = await this.prisma.user.create({
-        data: {
-          email,
-          firstName: 'Temporary',
-          lastName: 'User',
-          birthday: new Date('2000-01-01'),
-          role: 'user',
-          hackatimeAccount: hackatimeAccount?.toString() || null,
-        },
-      });
-      
-      session = await this.prisma.userSession.create({
-        data: {
-          userId: tempUser.userId,
-          otpCode: otp,
-          otpExpiresAt: expiresAt,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-      });
+      if (Object.keys(updateData).length > 0) {
+        existingUser = await this.prisma.user.update({
+          where: { userId: existingUser.userId },
+          data: updateData,
+        });
+      }
     }
+
+    await this.prisma.userSession.deleteMany({
+      where: { userId: existingUser.userId },
+    });
+    
+    const session = await this.prisma.userSession.create({
+      data: {
+        userId: existingUser.userId,
+        otpCode: otp,
+        otpExpiresAt: expiresAt,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    });
 
     await this.mailService.sendImmediateEmail(
       email,
@@ -108,31 +168,32 @@ export class AuthService {
       },
     });
 
-    if (existingUser) {
-      // Update session with correct user ID
-      await this.prisma.userSession.update({
-        where: { id: session.id },
-        data: { userId: existingUser.userId },
-      });
+    const user = session.user;
+    
+    if (!user) {
+      throw new BadRequestException('User not found in session');
+    }
 
-      return {
-        message: 'OTP verified successfully',
-        isNewUser: !existingUser.onboardComplete,
-        user: {
-          userId: existingUser.userId,
-          email: existingUser.email,
-          firstName: existingUser.firstName,
-          lastName: existingUser.lastName,
-        },
-        sessionId: session.id,
-      };
-    } else {
-      // New user - return session ID for profile completion
+    const isNewUser = !user.onboardComplete || user.firstName === 'Temporary';
+
+    if (isNewUser) {
       return {
         message: 'OTP verified. Please complete your profile.',
         sessionId: session.id,
         isNewUser: true,
-        email: email, // Include email for profile completion
+        email: user.email,
+      };
+    } else {
+      return {
+        message: 'OTP verified successfully',
+        isNewUser: false,
+        user: {
+          userId: user.userId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        sessionId: session.id,
       };
     }
   }
@@ -153,29 +214,34 @@ export class AuthService {
       throw new BadRequestException('User not found in session');
     }
 
-    // Check if this is a temporary user (first name is 'Temporary')
+    const defaultBirthday = new Date('2000-01-01');
     const isTemporaryUser = session.user.firstName === 'Temporary';
+    const needsBirthday = session.user.birthday.getTime() === defaultBirthday.getTime();
     
-    if (!isTemporaryUser) {
+    if (!isTemporaryUser && !needsBirthday) {
       throw new BadRequestException('User profile already completed');
     }
 
-    // Update the existing temporary user
+    const updateData: any = {
+      birthday: new Date(birthday),
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      country,
+      zipCode,
+      airtableRecId,
+      onboardedAt: new Date(),
+    };
+
+    if (isTemporaryUser) {
+      updateData.firstName = firstName;
+      updateData.lastName = lastName;
+    }
+
     const user = await this.prisma.user.update({
       where: { userId: session.user.userId },
-      data: {
-        firstName,
-        lastName,
-        birthday: new Date(birthday),
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        country,
-        zipCode,
-        airtableRecId,
-        onboardedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return {
@@ -202,6 +268,19 @@ export class AuthService {
     return session.user;
   }
 
+  async getRafflePos(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { rafflePos: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return { rafflePos: user.rafflePos };
+  }
+
   async completeOnboarding(userId: number) {
     const user = await this.prisma.user.update({
       where: { userId },
@@ -223,15 +302,27 @@ export class AuthService {
   async getOnboardingStatus(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
-      select: { onboardComplete: true },
+      select: { 
+        onboardComplete: true,
+        firstName: true,
+        lastName: true,
+        birthday: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
+    const defaultBirthday = new Date('2000-01-01');
+    const needsBirthday = user.birthday.getTime() === defaultBirthday.getTime();
+    const isTemporaryUser = user.firstName === 'Temporary';
+
     return {
       onboardComplete: user.onboardComplete,
+      needsBirthday,
+      isTemporaryUser,
+      hasPrefilledData: !isTemporaryUser && !needsBirthday,
     };
   }
 
@@ -254,6 +345,8 @@ export class AuthService {
     }
 
     try {
+      const sanitizedEmail = email.replace(/'/g, "''");
+      
       const searchQuery = {
         query: `
           SELECT
@@ -266,7 +359,7 @@ export class AuthService {
             users
             INNER JOIN email_addresses ON users.id = email_addresses.user_id
           WHERE
-            email_addresses.email = '${email}'
+            email_addresses.email = '${sanitizedEmail}'
           LIMIT 1;
         `,
       };

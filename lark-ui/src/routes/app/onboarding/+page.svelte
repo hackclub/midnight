@@ -7,13 +7,14 @@
   import ProjectTypeSelect from '$lib/onboarding/ProjectTypeSelect.svelte';
   import Texture from '$lib/Texture.svelte';
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   
   const dialogues = [
     'Greetings. I\'m Murdock. Your aunt\'s butler. She demanded I guide you through this process.',
     'Obviously, I told her you’re not an idiot. Yet, here we are. ',
     'First... Sign up.',
     '',
-    'To earn your invite to Vienna, you must prove your skills. Code for 40 hours.',
+    'To earn your invite to Vienna, you must prove your skills. Code for 50 hours.',
     'Code additional hours to get your travel fully covered.  Enter your location ... And see how much a fully funded flight demands.',
     '',
     'Hmm... [#hours] You can create as many projects as you want to hit this goal.',
@@ -40,6 +41,19 @@
   let email = $state('');
   let birthday = $state('');
   
+  // If we are returning from create, jump directly to the project type selection
+  if (browser) {
+    const initParams = new URLSearchParams(window.location.search);
+    if (initParams.get('from') === 'create') {
+      step = 8;
+      projectTypeVisible = true;
+      dialogueVisible = false;
+      overlayVisible = false;
+      dialogueText = dialogues[8];
+      butlerVariant = 1;
+    }
+  }
+  
   async function handleSubmit() {
     // Submit form data
     console.log({ firstName, lastName, birthday });
@@ -57,7 +71,7 @@
   async function handleCalc(hours: number) {
     console.log(hours);
 
-    dialogues[7] = `Hmm... ${hours + 40} hours. You can create as many projects as you want to hit this goal.`;
+    dialogues[7] = `Hmm... ${hours + 50} hours. You can create as many projects as you want to hit this goal.`;
 
     nextStep();
   }
@@ -68,7 +82,6 @@
     switch (step) {
       case 1:
         if (missingInfo) {
-          formVisible = true;
           butlerVariant = 3;
         } else {
           step = 4;
@@ -77,6 +90,7 @@
         break;
       
       case 2:
+        formVisible = true;
         butlerVariant = 1;
         break;
 
@@ -88,7 +102,6 @@
       case 4:
         formVisible = false;
         dialogueVisible = true;
-        calculatorVisible = true;
         overlayVisible = true;
         butlerVariant = 2;
         break;
@@ -147,15 +160,34 @@
     email = authStatus.email;
     birthday = authStatus.birthday;
 
-    if (authStatus.firstName == 'Temporary' || authStatus.lastName == 'User' || !authStatus.email || !authStatus.birthday) {
+    const isTemporaryUser = authStatus.firstName == 'Temporary' || authStatus.lastName == 'User';
+    const defaultBirthday = '2000-01-01';
+    const needsBirthday = !birthday || birthday.startsWith(defaultBirthday);
+    
+    if (isTemporaryUser || !authStatus.email) {
       missingInfo = true;
       firstName = '';
       lastName = '';
       email = email;
       birthday = '';
+    } else if (needsBirthday) {
+      missingInfo = true;
+      birthday = '';
     }
 
-    nextStep();
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromParam = urlParams.get('from');
+    
+    if (fromParam === 'create') {
+      step = 8;
+      projectTypeVisible = true;
+      dialogueVisible = false;
+      overlayVisible = false;
+      dialogueText = dialogues[8];
+      butlerVariant = 1;
+    } else {
+      nextStep();
+    }
   });
 </script>
 
@@ -277,7 +309,11 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    background: #453b61;
+
+    background-image: url('/onboarding_background.png');
+    background-size: contain;
+    background-position: center;
+
     overflow: hidden;
   }
 

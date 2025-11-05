@@ -1,11 +1,31 @@
 <script lang="ts">
-    import FlexCard from "./FlexCard.svelte";
+  import FlexCard from "./FlexCard.svelte";
  
-    const { color, title, href }: {
-        color: string;
-        title: string;
-        href: string;
-    } = $props();  
+  const { type, title, href }: {
+    title: string;
+    type: string;
+    href: string;
+  } = $props();  
+   
+  let color = $state('#F24B4B'); 
+
+  switch (type) {
+    case 'website':
+      color = '#FFBB31';
+      break;
+    case 'game':
+      color = '#ED0F7E';
+      break;
+    case 'cli':
+      color = '#1385F0';
+      break;
+    case 'desktop_app':
+      color = '#1DCDC2';
+      break;
+    case 'mobile_app':
+      color = '#A313F0';
+      break;
+  }
 </script>
 
 <FlexCard color={color} href={href}>
@@ -34,10 +54,10 @@
     font-size: 96px;
     color: white;
     text-align: center;
-    letter-spacing: -0.528px;
+    letter-spacing: -0.5px;
     line-height: 0.9;
     margin: 0 0 20px 0;
-    width: 152px;
+    width: 90%;
 
     overflow-wrap: break-word;
   }

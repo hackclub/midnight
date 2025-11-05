@@ -81,7 +81,7 @@
                         <p>We couldn't find a hackatime account associated with this email. Let's get you set up with hackatime.</p>
                         <br>
                         <strong>What is Hackatime?</strong>
-                        <p>blah blah blah blah insert useful description of hackatime for people to understand it blah blah </p>
+                        <p>Hackatime is an open-source time tracking platform that integrates with your development environment. Compatible with WakaTime extensions, it automatically tracks your coding activity across editors and IDEs including VS Code, PyCharm, IntelliJ, Sublime Text, and more.</p>
                     </div>
 
                     <div class="multi-button">

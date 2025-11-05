@@ -1,9 +1,11 @@
 <script lang="ts">
   let { children, color = '#081832', href = '#' } = $props();
+
+  let randRot = $state(Math.random() > 0.5 ? 1 : -1);
 </script>
 
 <a href={href}>
-  <div class="base-card">
+  <div class="base-card" style="--rand-rot: {randRot}deg">
     <div class="card-background" style="background-color: {color}"></div>
     <div class="card-border"></div>
     <div class="card-content">
@@ -18,12 +20,13 @@
     width: 207px;
     height: 308px;
 
-    transition: all 0.1s ease-in;
+    transition: all 250ms cubic-bezier(0.3, 0.7, 0.4, 1);
   }
 
   .base-card:hover {
-    translate: 0px -8px;
-    transition: all 0.1s ease-out;
+    scale: 1.035;
+    rotate: var(--rand-rot);
+    transition: all 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
     cursor: pointer;
   }
 

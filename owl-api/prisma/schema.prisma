@@ -25,6 +25,8 @@ model User {
   zipCode         String?       @map("zip_code")
   airtableRecId   String?       @map("airtable_rec_id")
   hackatimeAccount String?      @map("hackatime_account")
+  referralCode    String?       @map("referral_code")
+  rafflePos       String?       @map("raffle_pos")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
   projects        Project[]
@@ -205,6 +207,11 @@ model EditRequest {
 enum ProjectType {
   personal_website
   platformer_game
+  website
+  game
+  terminal_cli
+  desktop_app
+  mobile_app
   wildcard
 }
 
@@ -223,4 +230,14 @@ enum RequestStatus {
   pending
   approved
   rejected
+}
+
+model UsersAirtable {
+  email      String    @unique @map("email")
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  code       Int?
+  birthday   DateTime? @db.Date
+
+  @@map("users_airtable")
 }

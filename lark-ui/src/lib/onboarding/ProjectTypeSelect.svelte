@@ -5,7 +5,7 @@
   }
 
   function createLink(projectType: string) {
-    return '/app/projects/create?type=' + encodeURIComponent(projectType);
+    return '/app/projects/create?type=' + encodeURIComponent(projectType) + '&from=onboarding';
   }
 </script>
 
@@ -22,7 +22,7 @@
       <img src="/cards/platformer_game.svg" alt="Platformer Game" class="card-svg" />
     </a>
 
-    <a href="/app/projects/select" class="card-link" style="--rot-amt: {randomRot()}deg">
+    <a href="/app/projects/select?from=onboarding" class="card-link" style="--rot-amt: {randomRot()}deg">
       <img src="/cards/more_projects.svg" alt="More Projects" class="card-svg" />
     </a>
   </div>
