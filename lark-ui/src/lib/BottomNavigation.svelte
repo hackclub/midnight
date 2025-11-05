@@ -66,7 +66,6 @@
       class="nav-item {true ? 'disabled' : 'enabled'}" 
       class:active={activeTab === 'explore'}
       class:shake={shakingTab === 'explore'}
-      onclick={() => navigateTo('explore')}
       role="tab"
       aria-selected={activeTab === 'explore'}
     >
@@ -79,7 +78,6 @@
       class="nav-item {true ? 'disabled' : 'enabled'}" 
       class:active={activeTab === 'shop'}
       class:shake={shakingTab === 'shop'}
-      onclick={() => navigateTo('shop')}
       role="tab"
       aria-selected={activeTab === 'shop'}
     >
