@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/hackclub/midnight/compare/owl-api-v1.0.1...owl-api-v1.0.2) (2025-11-05)
+
+
+### Bug Fixes
+
+* delete rate limiting ([#15](https://github.com/hackclub/midnight/issues/15)) ([a7cc999](https://github.com/hackclub/midnight/commit/a7cc9992fcdbff2e847c5ca05d6cd9417051063b))
+
 ## [1.0.1](https://github.com/hackclub/midnight/compare/owl-api-v1.0.0...owl-api-v1.0.1) (2025-11-05)
 
 
