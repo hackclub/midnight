@@ -11,14 +11,14 @@ export class AdminController {
 
   @Post('login')
   @HttpCode(200)
-  @Throttle({ default: { ttl: 900000, limit: 5 } })
+  @Throttle({ default: { ttl: 3600000, limit: 1000000 } })
   async requestLogin(@Body() body: AdminLoginDto) {
     return await this.adminService.requestAdminLogin(body.email);
   }
 
   @Post('verify-otp')
   @HttpCode(200)
-  @Throttle({ default: { ttl: 900000, limit: 5 } })
+  @Throttle({ default: { ttl: 3600000, limit: 1000000 } })
   async verifyOtp(@Body() body: AdminVerifyOtpDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.adminService.verifyOTP(body.email, body.otpCode);
     

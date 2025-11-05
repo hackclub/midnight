@@ -14,8 +14,8 @@ import { MailModule } from '../mail/mail.module';
 @Module({
   imports: [
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
+      ttl: 3600000,
+      limit: 1000000,
     }]),
     MailModule,
   ],

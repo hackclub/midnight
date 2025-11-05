@@ -14,8 +14,8 @@ import { HealthModule } from "./health/health.module";
   imports: [
     ConfigModule.forRoot(),
     ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
+      ttl: 3600000,
+      limit: 1000000,
     }]),
     MailModule,
     UserModule,

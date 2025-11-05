@@ -137,7 +137,7 @@ export class UserController {
 
   @Get('api/user/hackatime-account')
   @UseGuards(AuthGuard)
-  @Throttle({ default: { ttl: 2000, limit: 1 } }) 
+  @Throttle({ default: { ttl: 3600000, limit: 1000000 } }) 
   @HttpCode(200)
   async checkHackatimeAccount(@Req() req: express.Request) {
     const userEmail = req.user.email;
