@@ -95,6 +95,7 @@
                     <div class="hackatime-projects">
                         {#each selectedHackatimeProjects as project}
                             <HackatimeEntry
+                                projectName={project.name}
                                 action="remove"
                                 actionFn={() => removeProject(project)}
 
