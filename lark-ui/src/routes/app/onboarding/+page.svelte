@@ -311,7 +311,7 @@
     min-height: 100vh;
 
     background-image: url('/onboarding_background.png');
-    background-size: contain;
+    background-size: cover;
     background-position: center;
 
     overflow: hidden;
