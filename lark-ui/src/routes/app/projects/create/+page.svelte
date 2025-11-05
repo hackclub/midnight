@@ -15,48 +15,48 @@
   $: formConfig = {
     personal_website: {
       title: 'CREATE YOUR WEBSITE',
-      namePlaceholder: 'Website Name',
-      descriptionPlaceholder: 'Website Description'
+      namePlaceholder: 'Website Name *',
+      descriptionPlaceholder: 'Website Description *'
     },
     platformer_game: {
       title: 'CREATE YOUR GAME',
-      namePlaceholder: 'Game Name',
-      descriptionPlaceholder: 'Game Description'
+      namePlaceholder: 'Game Name *',
+      descriptionPlaceholder: 'Game Description *'
     },
     website: {
       title: 'CREATE YOUR WEBSITE',
-      namePlaceholder: 'Website Name',
-      descriptionPlaceholder: 'Website Description'
+      namePlaceholder: 'Website Name *',
+      descriptionPlaceholder: 'Website Description *'
     },
     game: {
       title: 'CREATE YOUR GAME',
-      namePlaceholder: 'Game Name',
-      descriptionPlaceholder: 'Game Description'
+      namePlaceholder: 'Game Name *',
+      descriptionPlaceholder: 'Game Description *'
     },
     terminal_cli: {
       title: 'CREATE YOUR TERMINAL APP',
-      namePlaceholder: 'CLI App Name',
-      descriptionPlaceholder: 'CLI App Description'
+      namePlaceholder: 'CLI App Name *',
+      descriptionPlaceholder: 'CLI App Description *'
     },
     cli: {
       title: 'CREATE YOUR TERMINAL APP',
-      namePlaceholder: 'CLI App Name',
-      descriptionPlaceholder: 'CLI App Description'
+      namePlaceholder: 'CLI App Name *',
+      descriptionPlaceholder: 'CLI App Description *'
     },
     desktop_app: {
       title: 'CREATE YOUR DESKTOP APP',
-      namePlaceholder: 'Desktop App Name',
-      descriptionPlaceholder: 'Desktop App Description'
+      namePlaceholder: 'Desktop App Name *',
+      descriptionPlaceholder: 'Desktop App Description *'
     },
     mobile_app: {
       title: 'CREATE YOUR MOBILE APP',
-      namePlaceholder: 'Mobile App Name',
-      descriptionPlaceholder: 'Mobile App Description'
+      namePlaceholder: 'Mobile App Name *',
+      descriptionPlaceholder: 'Mobile App Description *'
     },
     wildcard: {
       title: 'CREATE YOUR PROJECT',
-      namePlaceholder: 'Project Name',
-      descriptionPlaceholder: 'Project Description'
+      namePlaceholder: 'Project Name *',
+      descriptionPlaceholder: 'Project Description *'
     }
   };
   
@@ -142,21 +142,35 @@
     <p class="subtitle">Don't worry about the perfect name, you can change it later!</p>
     
     <form on:submit={handleSubmit}>
-      <input 
-        type="text" 
-        class="input-field" 
-        placeholder={config.namePlaceholder}
-        bind:value={projectName}
-      />
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          class="input-field" 
+          placeholder={config.namePlaceholder}
+          bind:value={projectName}
+          maxlength="30"
+          required
+        />
+        <span class="char-count" class:limit={projectName.length >= 30}>
+          {projectName.length}/30
+        </span>
+      </div>
       
-      <textarea 
-        class="textarea-field" 
-        placeholder={config.descriptionPlaceholder}
-        bind:value={projectDescription}
-        rows="8"
-      ></textarea>
+      <div class="input-wrapper">
+        <textarea 
+          class="textarea-field" 
+          placeholder={config.descriptionPlaceholder}
+          bind:value={projectDescription}
+          rows="8"
+          maxlength="300"
+          required
+        ></textarea>
+        <span class="char-count" class:limit={projectDescription.length >= 300}>
+          {projectDescription.length}/300
+        </span>
+      </div>
       
-      <button type="submit" class="submit-button" disabled={isSubmitting}>
+      <button type="submit" class="submit-button" disabled={isSubmitting || !projectName.trim() || !projectDescription.trim()}>
         {isSubmitting ? 'Creating...' : 'Create Project'}
       </button>
     </form>
@@ -215,6 +229,25 @@
     display: flex;
     flex-direction: column;
     gap: 17px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .char-count {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    font-family: 'PT Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+
+  .char-count.limit {
+    color: #f24b4b;
+    font-weight: bold;
   }
 
   .input-field {
