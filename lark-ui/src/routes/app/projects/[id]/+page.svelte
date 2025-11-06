@@ -40,13 +40,7 @@
   }
 </script>
 
-<div class="project-overview">
-  <div class="project-card-preview">
-    <ProjectCardPreview title={project.projectTitle || ''} href="#" type={project.projectType} />
-  </div>
-  
-  <div class="project-content">
-    <div class="project-details">
+<div class="project-details">
       <div class="project-heading">
         <h1 class="project-title">{project.projectTitle}</h1>
 
@@ -65,9 +59,9 @@
       <p class="project-description">
         {project.description}
       </p>
-    </div>
+</div>
 
-    {#if user && user.hackatimeAccount}
+{#if user && user.hackatimeAccount}
       {#if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
         <div class="submit-section">
           <Button label="EDIT" icon="edit" color="blue" onclick={() => goto(`/app/projects/${project.projectId}/edit`)}/>
@@ -78,33 +72,14 @@
           <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
         </div>
       {/if}
-    {:else}
-      <div class="submit-section-inital">
-        <Button label="LINK HACKATIME Account" icon="link" onclick={openHackatimeAccountModal}/>
-        <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
-      </div>
-    {/if}
+{:else}
+  <div class="submit-section-inital">
+    <Button label="LINK HACKATIME Account" icon="link" onclick={openHackatimeAccountModal}/>
+    <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
   </div>
-</div>
+{/if}
 
 <style>
-  .project-overview {
-    display: flex;
-    gap: 48px;
-  }
-
-  .project-card-preview {
-    width: 367px;
-    height: 546px;
-    flex-shrink: 0;
-  }
-
-  .project-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
   .project-details {
     flex: 1;
   }

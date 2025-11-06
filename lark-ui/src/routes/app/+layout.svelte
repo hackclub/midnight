@@ -4,15 +4,32 @@
   import { page } from '$app/state';
 
   let { children } = $props();
+
+  let shouldShowLoader = $derived.by(() => {
+    const from = navigating.from?.url.pathname;
+    const to = navigating.to?.url.pathname;
+    
+    if (!from || !to) return true;
+    
+    // Don't show loader if navigating within same project (e.g., /app/projects/123 to /app/projects/123/edit)
+    const fromBase = from.split('/').slice(0, 4).join('/');
+    const toBase = to.split('/').slice(0, 4).join('/');
+    
+    return fromBase !== toBase;
+  });
 </script>
 
-{#await navigating.complete}
-  <div class="loading">
-    <img src="/loading/crow_fly.gif" alt="Loading..." />
-  </div>  
-{:then navigated} 
+{#if shouldShowLoader}
+  {#await navigating.complete}
+    <div class="loading">
+      <img src="/loading/crow_fly.gif" alt="Loading..." />
+    </div>
+  {:then}
+    {@render children()}
+  {/await}
+{:else}
   {@render children()}
-{/await}
+{/if}
 
 <BottomNavigation page={page.url.pathname} />
 

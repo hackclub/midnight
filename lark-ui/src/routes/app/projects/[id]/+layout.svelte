@@ -1,9 +1,11 @@
 <script lang="ts">
+  import BottomNavigation from '$lib/BottomNavigation.svelte';
   import { setContext } from 'svelte';
   import { goto } from '$app/navigation';
   import { getProject, checkAuthStatus } from '$lib/auth';
   import type { Project, User } from '$lib/auth';
   import Button from '$lib/Button.svelte';
+  import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
   import HackatimeProjectModal from '$lib/hackatime/HackatimeProjectModal.svelte';
 
@@ -45,7 +47,15 @@
     <Button label="← Back to Projects" onclick={goBack} color='black' />
   </div>
   
-  {@render children()}
+  <div class="project-overview">
+    <div class="project-card-preview">
+      <ProjectCardPreview title={project?.projectTitle || ''} href="#" type={project?.projectType} />
+    </div>
+    
+    <div class="project-content">
+      {@render children()}
+    </div>
+  </div>
 
   {#if openHackatimeAccountModal}
     <HackatimeAccountModal onClose={async () => {
@@ -76,6 +86,36 @@
 
   .back-button {
     margin-bottom: 30px;
+  }
+
+  .project-overview {
+    display: flex;
+    gap: 48px;
+  }
+
+  .project-card-preview {
+    width: 367px;
+    height: 546px;
+    flex-shrink: 0;
+  }
+
+  .project-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 1024px) {
+    .project-overview {
+      flex-direction: column;
+    }
+
+    .project-card-preview {
+      width: 100%;
+      max-width: 367px;
+      height: auto;
+      aspect-ratio: 367 / 546;
+    }
   }
 
   @media (max-width: 768px) {

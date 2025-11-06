@@ -79,92 +79,63 @@
   }
 </script>
 
-<div class="project-overview">
-  <div class="project-card-preview">
-    <ProjectCardPreview title={projectTitle} href="#" type={project.projectType} />
-  </div>
-  
-  <div class="project-content">
-    <div class="project-details">
-      <div class="project-heading">
-        <div class="edit-field-wrapper">
-          <input
-            class="edit project-title"
-            bind:value={projectTitle}
-            placeholder="Project Title"
-            maxlength={TITLE_MAX_LENGTH}
-            required
-          />
-          <div class="char-counter" class:max-reached={projectTitle.length >= TITLE_MAX_LENGTH}>{projectTitle.length}/{TITLE_MAX_LENGTH}</div>
-        </div>
-
-        {#if project.nowHackatimeHours}
-          <h2 class="project-time">{project.nowHackatimeHours} hours</h2>
-        {/if}
-      </div>
-
-      <div class="project-tags">
-        <span class="project-tag type">{friendlyProjectType}</span>
-        {#each project.nowHackatimeProjects as hackatimeProjectName}
-          <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
-        {/each}
-      </div>
-
-      <div class="edit-field-wrapper">
-        <textarea
-          class="edit project-description"
-          bind:value={projectDesc}
-          placeholder="Project Description"
-          maxlength={DESC_MAX_LENGTH}
-          required
-        ></textarea>
-        <div class="char-counter" class:max-reached={projectDesc.length >= DESC_MAX_LENGTH}>{projectDesc.length}/{DESC_MAX_LENGTH}</div>
-      </div>
-      <div class="edit-field-wrapper">
-        <input
-          class="edit project-url"
-          bind:value={projectRepoURL}
-          placeholder="Project Repo URL"
-          maxlength={DESC_MAX_LENGTH}
-        />
-        <div class="char-counter" class:max-reached={projectRepoURL.length >= DESC_MAX_LENGTH}>{projectRepoURL.length}/{DESC_MAX_LENGTH}</div>
-      </div>
-      <div class="edit-field-wrapper">
-        <input
-          class="edit project-url"
-          bind:value={projectPlayableURL}
-          placeholder="Project Playable URL"
-          maxlength={DESC_MAX_LENGTH}
-        />
-        <div class="char-counter" class:max-reached={projectPlayableURL.length >= DESC_MAX_LENGTH}>{projectPlayableURL.length}/{DESC_MAX_LENGTH}</div>
-      </div>
+<div class="project-details">
+  <div class="project-heading">
+    <div class="edit-field-wrapper">
+      <input
+        class="edit project-title"
+        bind:value={projectTitle}
+        placeholder="Project Title"
+        maxlength={TITLE_MAX_LENGTH}
+        required
+      />
+      <div class="char-counter" class:max-reached={projectTitle.length >= TITLE_MAX_LENGTH}>{projectTitle.length}/{TITLE_MAX_LENGTH}</div>
     </div>
-
-    <div class="submit-section">
-      <Button label="UPDATE HACKATIME PROEJCTS" icon="edit" color="blue" onclick={openHackatimeProjectModal}/>
-      <Button label={submittingEdits ? 'updating...' : incompleteEdits ? "Missing Fields" :  "FINISH"} disabled={incompleteEdits || submittingEdits} onclick={submitEdits}/>
-    </div>
+    {#if project.nowHackatimeHours}
+      <h2 class="project-time">{project.nowHackatimeHours} hours</h2>
+    {/if}
   </div>
+  <div class="project-tags">
+    <span class="project-tag type">{friendlyProjectType}</span>
+    {#each project.nowHackatimeProjects as hackatimeProjectName}
+      <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
+    {/each}
+  </div>
+  <div class="edit-field-wrapper">
+    <textarea
+      class="edit project-description"
+      bind:value={projectDesc}
+      placeholder="Project Description"
+      maxlength={DESC_MAX_LENGTH}
+      required
+    ></textarea>
+    <div class="char-counter" class:max-reached={projectDesc.length >= DESC_MAX_LENGTH}>{projectDesc.length}/{DESC_MAX_LENGTH}</div>
+  </div>
+  <div class="edit-field-wrapper">
+    <input
+      class="edit project-url"
+      bind:value={projectRepoURL}
+      placeholder="Project Repo URL"
+      maxlength={DESC_MAX_LENGTH}
+    />
+    <div class="char-counter" class:max-reached={projectRepoURL.length >= DESC_MAX_LENGTH}>{projectRepoURL.length}/{DESC_MAX_LENGTH}</div>
+  </div>
+  <div class="edit-field-wrapper">
+    <input
+      class="edit project-url"
+      bind:value={projectPlayableURL}
+      placeholder="Project Playable URL"
+      maxlength={DESC_MAX_LENGTH}
+    />
+    <div class="char-counter" class:max-reached={projectPlayableURL.length >= DESC_MAX_LENGTH}>{projectPlayableURL.length}/{DESC_MAX_LENGTH}</div>
+  </div>
+</div>
+<div class="submit-section">
+  <Button label="UPDATE HACKATIME PROEJCTS" icon="edit" color="blue" onclick={openHackatimeProjectModal}/>
+  <Button label={submittingEdits ? 'updating...' : incompleteEdits ? "Missing Fields" :  "FINISH"} disabled={incompleteEdits || submittingEdits} onclick={submitEdits}/>
 </div>
 
 <style>
-  .project-overview {
-    display: flex;
-    gap: 48px;
-  }
-
-  .project-card-preview {
-    width: 367px;
-    height: 546px;
-    flex-shrink: 0;
-  }
-
-  .project-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
   .project-details {
     flex: 1;
   }
