@@ -452,7 +452,7 @@
               for="otp"
               class="font-['PT_Sans',_sans-serif] text-[24px] text-black leading-[1.2] text-center"
             >
-              We sent you a code to <span class="text-[#f24b4b]">{email}</span>. Enter it below.
+              We sent you a code to <i>{email}</i>. Enter it below.
             </label>
             <input
               type="hidden"
