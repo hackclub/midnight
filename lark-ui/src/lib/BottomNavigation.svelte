@@ -35,7 +35,7 @@
   }
   
   function navigateTo(tab: string) {
-    if (onboarding && (tab === 'explore' || tab === 'shop')) {
+    if ((tab === 'explore' || tab === 'shop')) {
       handleLockedClick(tab);
       return;
     }
@@ -72,6 +72,7 @@
         role="tab"
         aria-selected={activeTab === 'create'}
         class:enabled={true}
+        class:shake={shakingTab === 'create'}
       >
         Create
       </button>
@@ -79,6 +80,7 @@
         class="nav-item {true ? 'disabled' : 'enabled'}" 
         class:active={activeTab === 'explore'}
         class:shake={shakingTab === 'explore'}
+        onclick={() => navigateTo('explore')}
         role="tab"
         aria-selected={activeTab === 'explore'}
       >
@@ -91,6 +93,7 @@
         class="nav-item {true ? 'disabled' : 'enabled'}" 
         class:active={activeTab === 'shop'}
         class:shake={shakingTab === 'shop'}
+        onclick={() => navigateTo('shop')}
         role="tab"
         aria-selected={activeTab === 'shop'}
       >
