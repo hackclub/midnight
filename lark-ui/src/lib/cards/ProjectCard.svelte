@@ -16,7 +16,7 @@
     case 'game':
       color = '#ED0F7E';
       break;
-    case 'cli':
+    case 'terminal_cli':
       color = '#1385F0';
       break;
     case 'desktop_app':
