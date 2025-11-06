@@ -2,6 +2,8 @@ import { env } from "$env/dynamic/public";
 
 const apiUrl = env.PUBLIC_API_URL || '';
 
+type FetchFunction = typeof fetch;
+
 //auth
 
 export type User = {
@@ -17,8 +19,8 @@ export type User = {
   hackatimeAccount: string | null;
 };
 
-export async function checkAuthStatus() {
-  const response = await fetch(`${apiUrl}/api/user/auth/me`, {
+export async function checkAuthStatus(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/auth/me`, {
     credentials: 'include'
   });
 
@@ -34,8 +36,8 @@ export async function updateUser(data: {
   firstName: string;
   lastName: string;
   birthday: string;
-}) {
-  return await fetch(`${apiUrl}/api/user`, {
+}, fetchFn: FetchFunction = fetch) {
+  return await fetchFn(`${apiUrl}/api/user`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -47,16 +49,16 @@ export async function updateUser(data: {
   });
 }
 
-export async function completeOnboarding() {
-  return await fetch(`${apiUrl}/api/user/auth/complete-onboarding`, {
+export async function completeOnboarding(fetchFn: FetchFunction = fetch) {
+  return await fetchFn(`${apiUrl}/api/user/auth/complete-onboarding`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   });
 }
 
-export async function logout() {
-  return await fetch(`${apiUrl}/api/user/auth/logout`, {
+export async function logout(fetchFn: FetchFunction = fetch) {
+  return await fetchFn(`${apiUrl}/api/user/auth/logout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -84,8 +86,8 @@ export async function createProject(data: {
   projectTitle: string;
   projectType: string;
   projectDescription: string;
-}) {
-  const response = await fetch(`${apiUrl}/api/projects/auth`, {
+}, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/projects/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -100,8 +102,8 @@ export async function createProject(data: {
   }
 }
 
-export async function getProjects() {
-  const response = await fetch(`${apiUrl}/api/projects/auth`, {
+export async function getProjects(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/projects/auth`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -115,8 +117,8 @@ export async function getProjects() {
   }
 }
 
-export async function getProject(id: string) {
-  const response = await fetch(`${apiUrl}/api/projects/auth/${id}`, {
+export async function getProject(id: string, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/projects/auth/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -130,8 +132,8 @@ export async function getProject(id: string) {
   }
 }
 
-export async function updateProject(projectId: string, project: Partial<Project>) {
-  const response = await fetch(`${apiUrl}/api/projects/auth/${projectId}`, {
+export async function updateProject(projectId: string, project: Partial<Project>, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/projects/auth/${projectId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -154,8 +156,8 @@ export type HackatimeProject = {
   total_duration: number
 }
 
-export async function checkHackatimeAccount() {
-  const response = await fetch(`${apiUrl}/api/user/hackatime-account`, {
+export async function checkHackatimeAccount(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/hackatime-account`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -169,8 +171,8 @@ export async function checkHackatimeAccount() {
   }
 }
 
-export async function getAllHackatimeProjects() {
-  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/all`, {
+export async function getAllHackatimeProjects(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/hackatime-projects/all`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -186,8 +188,8 @@ export async function getAllHackatimeProjects() {
   }
 }
 
-export async function getLinkedHackatimeProjects(projectId: string) {
-  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/linked/${projectId}`, {
+export async function getLinkedHackatimeProjects(projectId: string, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/hackatime-projects/linked/${projectId}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -203,8 +205,8 @@ export async function getLinkedHackatimeProjects(projectId: string) {
   }
 }
 
-export async function getUnlinkedHackatimeProjects() {
-  const response = await fetch(`${apiUrl}/api/user/hackatime-projects/unlinked`, {
+export async function getUnlinkedHackatimeProjects(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/hackatime-projects/unlinked`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -220,8 +222,8 @@ export async function getUnlinkedHackatimeProjects() {
   }
 }
 
-export async function linkHackatimeProjects(projectId: string, projectNames: string[]) {
-  return await fetch(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
+export async function linkHackatimeProjects(projectId: string, projectNames: string[], fetchFn: FetchFunction = fetch) {
+  return await fetchFn(`${apiUrl}/api/projects/auth/${projectId}/hackatime-projects`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -231,8 +233,8 @@ export async function linkHackatimeProjects(projectId: string, projectNames: str
 
 // hackatime setup
 
-export async function sendHackatimeOtp(email: string) {
-  const response = await fetch(`${apiUrl}/api/user/auth/hackatime-link/send-otp`, {
+export async function sendHackatimeOtp(email: string, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/auth/hackatime-link/send-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -242,8 +244,8 @@ export async function sendHackatimeOtp(email: string) {
   return response;
 }
 
-export async function verifyHackatimeOtp(otp: string) {
-  const response = await fetch(`${apiUrl}/api/user/auth/hackatime-link/verify-otp`, {
+export async function verifyHackatimeOtp(otp: string, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/auth/hackatime-link/verify-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -254,8 +256,8 @@ export async function verifyHackatimeOtp(otp: string) {
 }
 
 // referral code
-export async function getReferralCode() {
-  const response = await fetch(`${apiUrl}/api/user/auth/raffle-pos`, {
+export async function getReferralCode(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/auth/raffle-pos`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include'
@@ -270,8 +272,8 @@ export async function getReferralCode() {
 }
 
 // OTP auth
-export async function requestOTP(email: string, referralCode?: string) {
-  return await fetch(`${apiUrl}/api/user/auth/login`, {
+export async function requestOTP(email: string, referralCode?: string, fetchFn: FetchFunction = fetch) {
+  return await fetchFn(`${apiUrl}/api/user/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

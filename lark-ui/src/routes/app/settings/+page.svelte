@@ -1,5 +1,4 @@
 <script lang="ts">
-    import BottomNavigation from "$lib/BottomNavigation.svelte";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { checkAuthStatus, updateUser, type User } from "$lib/auth";
@@ -82,8 +81,6 @@
             <Button label={updating ? "Updating..." : updated ? "Updated!" : "Update"} disabled={updating} color={updating ? "blue" : updated ? "blue" : "red"} type='submit' />
         </div>
     </form>
-
-    <BottomNavigation currentTab="settings" />
 </div>
 
 <style>

@@ -1,13 +1,12 @@
 <script lang="ts">
-  import BottomNavigation from '$lib/BottomNavigation.svelte';
   import ProjectCard from '$lib/cards/ProjectCard.svelte';
   import Button from '$lib/Button.svelte';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { env } from '$env/dynamic/public';
   import { checkAuthStatus, getProjects, logout, type Project, type User } from '$lib/auth';
-    import BaseCard from '$lib/cards/BaseCard.svelte';
-    import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
+  import BaseCard from '$lib/cards/BaseCard.svelte';
+  import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
 
   let projects: Project[] = [];
   let loading = true;
@@ -85,8 +84,6 @@
       <NewProjectCard />
       </div>  
   {/if}
-  
-  <BottomNavigation />
 </div>
 
 <style>

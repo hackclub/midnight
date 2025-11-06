@@ -2,13 +2,20 @@
   import { goto } from '$app/navigation';
   import { getReferralCode, type User } from './auth';
   
-  const { onboarding = false, currentTab = 'create', user }: {
+  type Tab = 'create' | 'explore' | 'shop' | 'settings';
+
+  const { page, onboarding = false, user }: {
+    page: string;
     onboarding?: boolean;
-    currentTab?: string;
     user?: User;
   } = $props();
  
-  let activeTab = $state(currentTab);
+  let activeTab = $derived.by(() => {
+    if (page.startsWith('/app/projects')) return 'create';
+    if (page.startsWith('/app/settings')) return 'settings';
+    return 'create';
+  });
+  
   let shakingTab = $state('');
 
   let referralPopover = $state(false);

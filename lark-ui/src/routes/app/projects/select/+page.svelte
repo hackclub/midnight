@@ -4,7 +4,6 @@
     import ProjectType from '$lib/cards/ProjectType.svelte';
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    import BottomNavigation from '$lib/BottomNavigation.svelte';
 
     let backHref = '/app/projects';
     let fromOnboarding = $derived($page.url.searchParams.get('from') === 'onboarding');
@@ -41,10 +40,6 @@
         goto('/app/projects/create?type=' + encodeURIComponent('wildcard') + (fromOnboarding ? '&from=onboarding&return=select' : ''));
       }} />
     </div>
-
-    {#if !fromOnboarding}
-        <BottomNavigation />
-    {/if}
 </div>
 
 <style>
