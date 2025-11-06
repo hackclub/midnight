@@ -399,7 +399,7 @@
                 autocomplete="email"
                 class="w-full h-[48px] px-[14px] py-[10px] rounded-[8px] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[18px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
                 disabled={isSubmitting}
-                placeholder="wdaniel@hackclub.com"
+                placeholder="wdaniel@gmail.com"
               />
             </div>
 
@@ -596,7 +596,7 @@
               autocomplete="email"
               class="w-full h-[clamp(40px,_3.5vh,_68px)] px-[0.6vw] py-[0.5vh] rounded-[0.4vw] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[20px] text-black leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
               disabled={isSubmitting}
-              placeholder="wdaniel@hackclub.com"
+              placeholder="wdaniel@gmail.com"
             />
           </div>
 

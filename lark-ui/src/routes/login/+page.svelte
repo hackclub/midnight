@@ -427,7 +427,7 @@
               class="w-full h-[clamp(48px,_4vh,_72px)] px-[1vw] py-[1vh] rounded-[0.6vw] bg-[#fffbf6] font-['PT_Sans',_sans-serif] text-[24px] text-black text-center leading-[1.2] focus:outline-none focus:ring-2 focus:ring-black border-0"
               disabled={isSubmitting}
               bind:value={email}
-              placeholder="wdaniel@hackclub.com"
+              placeholder="wdaniel@gmail.com"
             />
 
             <Button label={isSubmitting ? "sending..." : "Next →"} disabled={isSubmitting} onclick={sendOTP}/>

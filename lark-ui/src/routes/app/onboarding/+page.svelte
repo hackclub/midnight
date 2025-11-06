@@ -247,7 +247,7 @@
                   id="email" 
                   bind:value={email}
                   disabled
-                  placeholder="wdaniel@hackclub.com"
+                  placeholder="wdaniel@gmail.com"
                   required
                 />
                 <img src="/icons/lock.svg" alt="lock icon" class="lock-icon" />
