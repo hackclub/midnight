@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { checkAuthStatus, getProject } from '$lib/auth';
+  import { checkAuthStatus, getProject, updateProject } from '$lib/auth';
   import type { Project, User } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
@@ -15,10 +15,23 @@
   let locked = $state(true);
 
   let user = $state<User | null>(null);
+
   let project = $state<Project | null>(null);
+  
+  let projectTitle = $derived(project?.projectTitle || '');
+  let projectDesc = $derived(project?.description || '');
+  let projectRepoURL = $derived(project?.repoUrl || '');
+  let projectPlayableURL = $derived(project?.playableUrl || '');
 
   let openHackatimeAccountModal = $state(false);
   let openHackatimeProjectModal = $state(false);
+
+  const TITLE_MAX_LENGTH = 30;
+  const DESC_MAX_LENGTH = 300;
+
+  let editing = $state(false);
+  let incompleteEdits = $state(true);
+  let submittingEdits = $state(false);
 
   const projectId = $derived(page.params.id);
   
@@ -66,6 +79,24 @@
   function goBack() {
     goto('/app/projects');
   }
+
+  async function submitEdits() {
+    if (!projectId) return;
+    submittingEdits = true; 
+    const updatedProject = {
+      projectTitle: projectTitle,
+      description: projectDesc,
+      repoUrl: projectRepoURL == '' ? null : projectRepoURL,
+      playableUrl: projectPlayableURL == '' ? null : projectPlayableURL,
+    };
+    await updateProject(projectId, updatedProject);
+    submittingEdits = false;
+    editing = false;
+  }
+
+  $effect(() => {
+    incompleteEdits = projectTitle.length === 0 || projectDesc.length === 0;
+  })
   
   onMount(async () => {
     user = await checkAuthStatus();
@@ -93,15 +124,29 @@
   {:else if project}
     <div class="project-overview">
       <div class="project-card-preview">
-        <ProjectCardPreview title={project.projectTitle} href="#" type={project.projectType} />
+        <ProjectCardPreview title={projectTitle} href="#" type={project.projectType} />
       </div>
       
       <div class="project-content">
         <div class="project-details">
           <div class="project-heading">
-            <h1 class="project-title">{project.projectTitle}</h1>
+            {#if editing}
+              <div class="edit-field-wrapper">
+                <input
+                  class="edit project-title"
+                  bind:value={projectTitle}
+                  placeholder="Project Title"
+                  maxlength={TITLE_MAX_LENGTH}
+                  required
+                />
+                <div class="char-counter" class:max-reached={projectTitle.length >= TITLE_MAX_LENGTH}>{projectTitle.length}/{TITLE_MAX_LENGTH}</div>
+              </div>
+            {:else}
+              <h1 class="project-title">{projectTitle}</h1>
+            {/if}
+
             {#if project.nowHackatimeHours}
-              <h2 class="project-time">2 hours</h2>
+              <h2 class="project-time">{project.nowHackatimeHours} hours</h2>
             {/if}
           </div>
 
@@ -111,16 +156,52 @@
               <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
             {/each}
           </div>
-          
-          <p class="project-description">
-            {project.description}
-          </p>          
+
+          {#if editing}
+            <div class="edit-field-wrapper">
+              <textarea
+                class="edit project-description"
+                bind:value={projectDesc}
+                placeholder="Project Description"
+                maxlength={DESC_MAX_LENGTH}
+                required
+              ></textarea>
+              <div class="char-counter" class:max-reached={projectDesc.length >= DESC_MAX_LENGTH}>{projectDesc.length}/{DESC_MAX_LENGTH}</div>
+            </div>
+            <div class="edit-field-wrapper">
+              <input
+                class="edit project-url"
+                bind:value={projectRepoURL}
+                placeholder="Project Repo URL"
+                maxlength={DESC_MAX_LENGTH}
+              />
+              <div class="char-counter" class:max-reached={projectRepoURL.length >= DESC_MAX_LENGTH}>{projectRepoURL.length}/{DESC_MAX_LENGTH}</div>
+            </div>
+            <div class="edit-field-wrapper">
+              <input
+                class="edit project-url"
+                bind:value={projectPlayableURL}
+                placeholder="Project Playable URL"
+                maxlength={DESC_MAX_LENGTH}
+              />
+              <div class="char-counter" class:max-reached={projectPlayableURL.length >= DESC_MAX_LENGTH}>{projectPlayableURL.length}/{DESC_MAX_LENGTH}</div>
+            </div>
+          {:else}
+            <p class="project-description">
+              {projectDesc}
+            </p>          
+          {/if}
         </div>
 
         {#if user && user.hackatimeAccount}
-          {#if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
+          {#if editing}
             <div class="submit-section">
-              <Button label="EDIT" icon="edit" color="blue" onclick={() => openHackatimeProjectModal = true}/>
+              <Button label="UPDATE HACKATIME PROEJCTS" icon="edit" color="blue" onclick={() => openHackatimeProjectModal = true}/>
+              <Button label={submittingEdits ? 'updating...' : incompleteEdits ? "Missing Fields" :  "FINISH"} disabled={incompleteEdits || submittingEdits} onclick={submitEdits}/>
+            </div>
+          {:else if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
+            <div class="submit-section">
+              <Button label="EDIT" icon="edit" color="blue" onclick={() => editing = true}/>
             </div>
           {:else}
             <div class="submit-section">
@@ -128,11 +209,11 @@
             </div>
           {/if}
         {:else}
-          <div class="submit-section">
+          <div class="submit-section-inital">
             <Button label="LINK HACKATIME Account" icon="link" onclick={() => openHackatimeAccountModal = true}/>
             <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
           </div>
-        {/if}       
+        {/if}
       </div>
     </div>
   {/if}
@@ -266,6 +347,17 @@
     line-height: 1.5;
     margin: 0 0 50px 0;
     max-width: 646px;
+    max-height: 160px;
+  }
+
+  .project-url {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 20px;
+    color: white;
+    letter-spacing: -0.2px;
+    line-height: 1.5;
+
+    width: 646px;
   }
 
   .submit-section {
@@ -274,7 +366,63 @@
     display: flex;
     flex-direction: row;
     align-items: end;
+    gap: 20px;
+  }
+
+  .submit-section-inital {
+    position: relative;
+    
+    display: flex;
+    flex-direction: row;
+    align-items: end;
     gap: 4px;
+  }
+
+  .edit {
+    background-color: #3B3153;
+    border-radius: 8px;
+
+    padding: 8px;
+  }
+
+  .project-title.edit {
+    margin-bottom: 12px;
+    width: 646px;
+  } 
+
+  .project-description.edit {
+    width: 646px;
+    height: 160px;
+    resize: none;
+    margin-bottom: 8px;
+  }
+
+  .edit-field-wrapper {
+    position: relative;
+    width: fit-content;
+    margin-bottom: 12px;
+  }
+
+  .edit-field-wrapper input.edit {
+    margin-bottom: 0;
+  }
+
+  .edit-field-wrapper :not(p) {
+    display: block;
+  }
+
+  .char-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-family: 'PT Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+  }
+
+  .char-counter.max-reached {
+    color: #f24b4b;
   }
 
   @media (max-width: 1024px) {

@@ -76,6 +76,8 @@ export type Project = {
   updatedAt: Date;
   nowHackatimeHours: number | null;
   nowHackatimeProjects: string[] | null;
+  repoUrl: string | null;
+  playableUrl: string | null;
 };
 
 export async function createProject(data: {
@@ -123,6 +125,22 @@ export async function getProject(id: string) {
   if (response.ok) {
     const project = await response.json();
     return project as Project;
+  } else {
+    return null;
+  }
+}
+
+export async function updateProject(projectId: string, project: Partial<Project>) {
+  const response = await fetch(`${apiUrl}/api/projects/auth/${projectId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(project)
+  });
+
+  if (response.ok) {
+    const updatedProject = await response.json();
+    return updatedProject as Project;
   } else {
     return null;
   }

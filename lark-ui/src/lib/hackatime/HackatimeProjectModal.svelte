@@ -104,13 +104,13 @@
                 {/if}
                 <div class="multi-button">
                     <Button
-                        label="+ Add Project"
+                        label="+ Another Project"
                         onclick={nextPage}
                         disabled={submitting}
                         color="blue"
                     />
                     <Button
-                        label={submitting ? 'loading...' : "Next →" }
+                        label={submitting ? 'loading...' : "FINISH →" }
                         disabled={linkedHackatimeProjects.length === 0 || submitting}
                         onclick={linkProjects}
                     />
@@ -148,9 +148,9 @@
                     {/if}
                 {/await}
             {/if}
-            <button onclick={onClose} class="close">
+            <!-- <button onclick={onClose} class="close">
                 <img src="/icons/remove.svg" alt="close" />
-            </button>
+            </button> -->
         </div>
     </div>
 </div>
