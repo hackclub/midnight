@@ -204,8 +204,9 @@
               <Button label="EDIT" icon="edit" color="blue" onclick={() => editing = true}/>
             </div>
           {:else}
-            <div class="submit-section">
+            <div class="submit-section-inital">
               <Button label="LINK HACKATIME Project" icon="link" color="blue" onclick={() => openHackatimeProjectModal = true}/>
+              <img alt="required!" src="/handdrawn_text/required.png" style="width: 140px;" />
             </div>
           {/if}
         {:else}
