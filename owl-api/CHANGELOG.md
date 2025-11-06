@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/hackclub/midnight/compare/owl-api-v1.0.3...owl-api-v1.0.4) (2025-11-06)
+
+
+### Bug Fixes
+
+* remove bit about the first 100 to come ([#22](https://github.com/hackclub/midnight/issues/22)) ([4bb4061](https://github.com/hackclub/midnight/commit/4bb40617f3799f640e01eacbff842678b3480888))
+
 ## [1.0.3](https://github.com/hackclub/midnight/compare/owl-api-v1.0.2...owl-api-v1.0.3) (2025-11-05)
 
 
