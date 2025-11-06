@@ -15,7 +15,7 @@
     'First... Sign up.',
     '',
     'To earn your invite to Vienna, you must prove your skills. Code for 50 hours.',
-    'Code additional hours to get your travel fully covered.  Enter your location ... And see how much a fully funded flight demands.',
+    'Code additional hours to get your travel fully covered. Use the slider to see how many hours you need to cover your travel. You can change this later if needed.',
     '',
     'Hmm... [#hours] You can create as many projects as you want to hit this goal.',
     'Now... Let’s get started.',
