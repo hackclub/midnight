@@ -1,8 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-    import { getReferralCode } from './auth';
+  import { getReferralCode, type User } from './auth';
   
-  const { onboarding = false, currentTab = 'create' } = $props();
+  const { onboarding = false, currentTab = 'create', user }: {
+    onboarding?: boolean;
+    currentTab?: string;
+    user?: User;
+  } = $props();
  
   let activeTab = $state(currentTab);
   let shakingTab = $state('');
@@ -52,80 +56,112 @@
 </script>
 
 <div class="bottom-navigation">
-  <div class="nav-tabs">
-    <button 
-      class="nav-item" 
-      class:active={activeTab === 'create'}
-      onclick={() => navigateTo('create')}
-      role="tab"
-      aria-selected={activeTab === 'create'}
-      class:enabled={true}
-    >
-      Create
-    </button>
-    <button 
-      class="nav-item {true ? 'disabled' : 'enabled'}" 
-      class:active={activeTab === 'explore'}
-      class:shake={shakingTab === 'explore'}
-      role="tab"
-      aria-selected={activeTab === 'explore'}
-    >
-      Explore
-      <!-- {#if onboarding} -->
-        <img class="lock" src="/icons/lock.svg" alt="Lock" />
-      <!-- {/if} -->
-    </button>
-    <button 
-      class="nav-item {true ? 'disabled' : 'enabled'}" 
-      class:active={activeTab === 'shop'}
-      class:shake={shakingTab === 'shop'}
-      role="tab"
-      aria-selected={activeTab === 'shop'}
-    >
-      Shop
-      <!-- {#if onboarding} -->
-        <img class="lock" src="/icons/lock.svg" alt="Lock" />
-      <!-- {/if} -->
-    </button>
-  </div>
-  <div class="tray">
-    {#if !onboarding}
-      <!-- <img src="/icons/bell.svg" alt="Notification" /> -->
-      <button class="referral" onclick={showReferralPopover}>
-        {#if referralPopover}
-          <div class="referral-popover">
-            <p>Referral link copied to clipboard</p>
-          </div>
-        {/if}
-        <img src="/icons/link.svg" alt="Referral" />
-      </button>
-      <a
-        class="settings"
-        class:active={activeTab === 'settings'}
-        href="/app/settings"
+  {#if user}
+    <div class="progress-bar">
+      <div class="approved-hours"></div>
+      <div class="tracked-hours"></div>
+      <div class="remaining-hours"></div>
+    </div>
+  {/if}
+  <div class="bottom-nav-items">
+    <div class="nav-tabs">
+      <button 
+        class="nav-item" 
+        class:active={activeTab === 'create'}
+        onclick={() => navigateTo('create')}
+        role="tab"
+        aria-selected={activeTab === 'create'}
+        class:enabled={true}
       >
-        <img src="/icons/settings.svg" alt="Settings" />
-      </a>
-    {/if}
+        Create
+      </button>
+      <button 
+        class="nav-item {true ? 'disabled' : 'enabled'}" 
+        class:active={activeTab === 'explore'}
+        class:shake={shakingTab === 'explore'}
+        role="tab"
+        aria-selected={activeTab === 'explore'}
+      >
+        Explore
+        <!-- {#if onboarding} -->
+          <img class="lock" src="/icons/lock.svg" alt="Lock" />
+        <!-- {/if} -->
+      </button>
+      <button 
+        class="nav-item {true ? 'disabled' : 'enabled'}" 
+        class:active={activeTab === 'shop'}
+        class:shake={shakingTab === 'shop'}
+        role="tab"
+        aria-selected={activeTab === 'shop'}
+      >
+        Shop
+        <!-- {#if onboarding} -->
+          <img class="lock" src="/icons/lock.svg" alt="Lock" />
+        <!-- {/if} -->
+      </button>
+    </div>
+    <div class="tray">
+      {#if !onboarding}
+        <!-- <img src="/icons/bell.svg" alt="Notification" /> -->
+        <button class="referral" onclick={showReferralPopover}>
+          {#if referralPopover}
+            <div class="referral-popover">
+              <p>Referral link copied to clipboard</p>
+            </div>
+          {/if}
+          <img src="/icons/link.svg" alt="Referral" />
+        </button>
+        <a
+          class="settings"
+          class:active={activeTab === 'settings'}
+          href="/app/settings"
+        >
+          <img src="/icons/settings.svg" alt="Settings" />
+        </a>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style>
+  .progress-bar {
+    height: 16px;
+
+    display: flex;
+  }
+
+  .approved-hours {
+    background: #1385F0;
+    height: 100%;
+  }
+
+  .tracked-hours {
+    background: #4F5B9C;
+    height: 100%;
+  }
+
+  .remaining-hours {
+    background: #5E5087;
+    height: 100%;
+  }
+
   .bottom-navigation {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+  }
+  
+  .bottom-nav-items {
     background: #2D273F;
+    z-index: 200;
     height: 137px;
     padding: 0 120px;
-    z-index: 200;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  
+
   .nav-tabs {
     display: flex;
     gap: 60px;
