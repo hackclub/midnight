@@ -22,6 +22,28 @@
 
   const projectId = $derived(page.params.id);
   
+  let friendlyProjectType = $derived.by(() => {
+    if (!project) return '';
+    switch (project.projectType) {
+      case 'personal_website':
+        return 'Personal Website';
+      case 'terminal_cli':
+        return 'Terminal CLI';
+      case 'desktop_app':
+        return 'Desktop App';
+      case 'platformer_game':
+        return 'Platformer Game';
+      case 'game':
+        return 'Game';
+      case 'mobile_app':
+        return 'Mobile App';
+      case 'wildcard':
+        return 'Wildcard';
+      case 'website':
+        return 'Website';    
+    }
+  });
+
   async function loadProject() {
     if (!projectId) return;
     
@@ -84,7 +106,7 @@
           </div>
 
           <div class="project-tags">
-            <span class="project-tag type">{project.projectType}</span>
+            <span class="project-tag type">{friendlyProjectType}</span>
             {#each project.nowHackatimeProjects as hackatimeProjectName}
               <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
             {/each}
