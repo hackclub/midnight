@@ -217,7 +217,6 @@ export class ProjectsService {
       nowHackatimeHours: project.nowHackatimeHours,
     };
 
-    // Prepare requested data (only include fields that are being updated)
     const requestedData: any = {};
     if (updateProjectDto.projectTitle !== undefined) {
       requestedData.projectTitle = updateProjectDto.projectTitle;
@@ -239,7 +238,7 @@ export class ProjectsService {
     }
     if (updateProjectDto.nowHackatimeProjects !== undefined) {
       requestedData.nowHackatimeProjects = updateProjectDto.nowHackatimeProjects;
-      requestedData.nowHackatimeHours = null; // Will be calculated by admin when approving
+      requestedData.nowHackatimeHours = null;
     }
 
     // Create edit request
@@ -341,6 +340,51 @@ export class ProjectsService {
       }
     }
 
+    const allProjectsRes = await fetch(
+      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${project.user.hackatimeAccount}`,
+      {
+        method: 'GET',
+        headers,
+      },
+    );
+
+    if (!allProjectsRes.ok) {
+      throw new BadRequestException('Failed to fetch hackatime projects for hour calculation');
+    }
+
+    const allProjectsData = await allProjectsRes.json();
+    console.log('All projects data:', JSON.stringify(allProjectsData, null, 2));
+
+    const projectsMap = new Map<string, number>();
+    
+    if (Array.isArray(allProjectsData)) {
+      allProjectsData.forEach((p: any) => {
+        const name = p.name || p.projectName || p;
+        const duration = p.total_duration || 0;
+        if (typeof name === 'string') {
+          projectsMap.set(name, duration);
+        }
+      });
+    } else if (allProjectsData.projects && Array.isArray(allProjectsData.projects)) {
+      allProjectsData.projects.forEach((p: any) => {
+        const name = p.name || p.projectName;
+        const duration = p.total_duration || 0;
+        if (name) {
+          projectsMap.set(name, duration);
+        }
+      });
+    }
+
+    let totalSeconds = 0;
+    for (const projectName of updateHackatimeProjectsDto.projectNames) {
+      const duration = projectsMap.get(projectName) || 0;
+      console.log(`Project "${projectName}" duration:`, duration, 'seconds');
+      totalSeconds += duration;
+    }
+
+    const totalHours = Math.round((totalSeconds / 3600) * 10) / 10;
+    console.log('Total hours calculated:', totalHours);
+
     const allLinkedProjects = await this.prisma.project.findMany({
       where: {
         userId: userId,
@@ -384,10 +428,9 @@ export class ProjectsService {
         nowHackatimeHours: project.nowHackatimeHours,
       };
 
-      // Prepare requested data
       const requestedData = {
         nowHackatimeProjects: updateHackatimeProjectsDto.projectNames,
-        nowHackatimeHours: null, // Will be calculated by admin when approving
+        nowHackatimeHours: totalHours,
       };
 
       // Create edit request
@@ -424,12 +467,11 @@ export class ProjectsService {
       };
     }
 
-    // Direct update if project is not locked
     const updatedProject = await this.prisma.project.update({
       where: { projectId },
       data: {
         nowHackatimeProjects: updateHackatimeProjectsDto.projectNames,
-        nowHackatimeHours: null, // Will be calculated separately
+        nowHackatimeHours: totalHours,
       },
     });
 
