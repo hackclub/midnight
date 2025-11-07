@@ -200,11 +200,6 @@ export class ProjectsService {
       throw new ForbiddenException('Project is locked and cannot be edited. Contact an admin to unlock it.');
     }
 
-    // Check if user has made at least one submission for this project
-    if (project.submissions.length === 0) {
-      throw new ForbiddenException('You must submit at least one submission before requesting project edits.');
-    }
-
     // Get current project data
     const currentData = {
       projectTitle: project.projectTitle,
@@ -239,6 +234,25 @@ export class ProjectsService {
     if (updateProjectDto.nowHackatimeProjects !== undefined) {
       requestedData.nowHackatimeProjects = updateProjectDto.nowHackatimeProjects;
       requestedData.nowHackatimeHours = null;
+    }
+
+    if (project.submissions.length === 0) {
+      if (Object.keys(requestedData).length === 0) {
+        return {
+          message: 'No changes provided.',
+          project,
+        };
+      }
+
+      const updatedProject = await this.prisma.project.update({
+        where: { projectId },
+        data: requestedData,
+      });
+
+      return {
+        message: 'Project updated successfully.',
+        project: updatedProject,
+      };
     }
 
     // Create edit request
