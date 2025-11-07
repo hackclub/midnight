@@ -343,9 +343,9 @@ export class ProjectsService {
 
     const allLinkedProjects = await this.prisma.project.findMany({
       where: {
-        userId: { not: userId },
+        userId: userId,
         NOT: {
-          projectId: { equals: projectId } // without this, it fails for hackatime projects already linked to this specific project
+          projectId: { equals: projectId }
         }
       },
       select: {
