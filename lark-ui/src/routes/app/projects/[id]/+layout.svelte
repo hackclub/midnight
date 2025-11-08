@@ -1,55 +1,50 @@
 <script lang="ts">
-  import BottomNavigation from '$lib/BottomNavigation.svelte';
-  import { setContext } from 'svelte';
   import { goto } from '$app/navigation';
   import { getProject, checkAuthStatus } from '$lib/auth';
-  import type { Project, User } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
   import HackatimeProjectModal from '$lib/hackatime/HackatimeProjectModal.svelte';
+  import { projectPageState } from './state.svelte';
 
   let { children, data } = $props();
 
-  let user = $state<User>(data.user);
-  let project = $state<Project>(data.project);
+  // Initialize state if not done already
+  if (!projectPageState.user) {
+    projectPageState.user = data.user;
+  }
+  if (!projectPageState.project) {
+    projectPageState.project = data.project;
+  }
+  if (!projectPageState.linkedHackatimeProjects) {
+    projectPageState.linkedHackatimeProjects = data.linkedHackatimeProjects;
+  }
+
   let locked = $state(true);
 
-  let openHackatimeAccountModal = $state(false);
-  let openHackatimeProjectModal = $state(false);
-
   async function loadProject() {
-    const data = await getProject(project.projectId);
-    if (data) {
-      project = data;
+    const projectData = await getProject(projectPageState.project?.projectId || '');
+    if (projectData) {
+      projectPageState.project = projectData;
     }
   }
   
   function goBack() {
-    goto('/app/projects');
+    goto(projectPageState.backpage);
   }
 
-  const context = {
-    get project() { return project; },
-    get user() { return user; },
-    get locked() { return locked; },
-    get openHackatimeAccountModal() { return openHackatimeAccountModal; },
-    set openHackatimeAccountModal(value) { openHackatimeAccountModal = value; },
-    get openHackatimeProjectModal() { return openHackatimeProjectModal; },
-    set openHackatimeProjectModal(value) { openHackatimeProjectModal = value; }
-  };
-  
-  setContext('parent', context);
+  let cs=$derived(projectPageState.project?.description);
+  $inspect(cs).with(console.log);
 </script>
 
 <div class="project-page">
   <div class="back-button">
-    <Button label="← Back to Projects" onclick={goBack} color='black' />
+    <Button label={projectPageState.backpage === '/app/projects' ? '← Back to Projects' : '← Back'} onclick={goBack} color='black' />
   </div>
   
   <div class="project-overview">
     <div class="project-card-preview">
-      <ProjectCardPreview title={project?.projectTitle || ''} href="#" type={project?.projectType} />
+      <ProjectCardPreview title={projectPageState.project?.projectTitle || ''} href="#" type={projectPageState.project?.projectType || 'website'} />
     </div>
     
     <div class="project-content">
@@ -57,21 +52,21 @@
     </div>
   </div>
 
-  {#if openHackatimeAccountModal}
+  {#if projectPageState.openHackatimeAccountModal}
     <HackatimeAccountModal onClose={async () => {
       const updatedUser = await checkAuthStatus();
-      if (updatedUser) user = updatedUser;
-      openHackatimeAccountModal = false;
+      if (updatedUser) projectPageState.user = updatedUser;
+      projectPageState.openHackatimeAccountModal = false;
     }} />
   {/if}
 
-  {#if openHackatimeProjectModal}
+  {#if projectPageState.openHackatimeProjectModal}
     <HackatimeProjectModal 
       onClose={async () => {
         await loadProject();
-        openHackatimeProjectModal = false;
+        projectPageState.openHackatimeProjectModal = false;
       }} 
-      projectId={project.projectId} 
+      projectId={projectPageState.project?.projectId || ''} 
     />
   {/if}
 </div>
@@ -79,9 +74,11 @@
 <style>
   .project-page {
     position: relative;
-    min-height: 100vh;
     background: #453b61;
     padding: 57px 50px 200px;
+    height: max-content;
+
+    scroll-behavior: smooth;
   }
 
   .back-button {
@@ -97,6 +94,9 @@
     width: 367px;
     height: 546px;
     flex-shrink: 0;
+
+    position: sticky;
+    top: 142px;
   }
 
   .project-content {

@@ -104,7 +104,7 @@
                 {/if}
                 <div class="multi-button">
                     <Button
-                        label="+ Another Project"
+                        label={linkedHackatimeProjects.length > 0 ? "+ Another Project" : "+ Add Project"}
                         onclick={nextPage}
                         disabled={submitting}
                         color="blue"

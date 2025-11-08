@@ -1,16 +1,11 @@
 <script lang="ts">
-  import type { Project, User } from '$lib/auth';
   import { updateProject } from '$lib/auth';
   import Button from '$lib/Button.svelte';
-  import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { getContext } from 'svelte';
+  import { projectPageState } from '../state.svelte';
 
-  const parent: any = getContext('parent');
-  
-  let project = $derived(parent?.project);
-  let user = $derived(parent?.user);
+  const project = projectPageState.project;
 
   const TITLE_MAX_LENGTH = 30;
   const DESC_MAX_LENGTH = 300;
@@ -65,7 +60,13 @@
       repoUrl: projectRepoURL == '' ? null : projectRepoURL,
       playableUrl: projectPlayableURL == '' ? null : projectPlayableURL,
     };
-    await updateProject(projectId, updatedProject);
+
+    const result = await updateProject(projectId, updatedProject);
+    if (result) {
+      projectPageState.project = result;
+    }
+
+    
     submittingEdits = false;
     goto(`/app/projects/${projectId}`);
   }
@@ -75,7 +76,7 @@
   });
 
   function openHackatimeProjectModal() {
-    if (parent) parent.openHackatimeProjectModal = true;
+    projectPageState.openHackatimeProjectModal = true;
   }
 </script>
 
@@ -91,13 +92,13 @@
       />
       <div class="char-counter" class:max-reached={projectTitle.length >= TITLE_MAX_LENGTH}>{projectTitle.length}/{TITLE_MAX_LENGTH}</div>
     </div>
-    {#if project.nowHackatimeHours}
+    {#if project?.nowHackatimeHours}
       <h2 class="project-time">{project.nowHackatimeHours} hours</h2>
     {/if}
   </div>
   <div class="project-tags">
     <span class="project-tag type">{friendlyProjectType}</span>
-    {#each project.nowHackatimeProjects as hackatimeProjectName}
+    {#each project?.nowHackatimeProjects || [] as hackatimeProjectName}
       <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
     {/each}
   </div>
@@ -256,19 +257,6 @@
 
   .char-counter.max-reached {
     color: #f24b4b;
-  }
-
-  @media (max-width: 1024px) {
-    .project-overview {
-      flex-direction: column;
-    }
-
-    .project-card-preview {
-      width: 100%;
-      max-width: 367px;
-      height: auto;
-      aspect-ratio: 367 / 546;
-    }
   }
 
   @media (max-width: 768px) {

@@ -4,12 +4,10 @@
   import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
   import { getContext } from 'svelte';
   import { goto } from '$app/navigation';
+  import { projectPageState } from './state.svelte';
 
-  const parent: any = getContext('parent');
+  const project = projectPageState.project;
   
-  let project = $derived(parent?.project);
-  let user = $derived(parent?.user);
-
   let friendlyProjectType = $derived.by(() => {
     if (!project) return '';
     switch (project.projectType) {
@@ -33,39 +31,40 @@
   });
 
   function openHackatimeProjectModal() {
-    if (parent) parent.openHackatimeProjectModal = true;
+    projectPageState.openHackatimeProjectModal = true;
   }
   function openHackatimeAccountModal() {
-    if (parent) parent.openHackatimeAccountModal = true;
+    projectPageState.openHackatimeAccountModal = true;
   }
 </script>
 
 <div class="project-details">
       <div class="project-heading">
-        <h1 class="project-title">{project.projectTitle}</h1>
+        <h1 class="project-title">{projectPageState.project?.projectTitle}</h1>
 
-        {#if project.nowHackatimeHours}
-          <h2 class="project-time">{project.nowHackatimeHours} hours</h2>
+        {#if projectPageState.project?.nowHackatimeHours}
+          <h2 class="project-time">{projectPageState.project.nowHackatimeHours} hours</h2>
         {/if}
       </div>
 
       <div class="project-tags">
         <span class="project-tag type">{friendlyProjectType}</span>
-        {#each project.nowHackatimeProjects as hackatimeProjectName}
-          <span class="project-tag">linked to <i>{hackatimeProjectName}</i></span>
+        {#each projectPageState.linkedHackatimeProjects as hackatimeProject}
+          <span class="project-tag">linked to <i>{hackatimeProject.name} - {(hackatimeProject.total_duration / 3600).toFixed(1)} hours</i></span>
         {/each}
       </div>
 
       <p class="project-description">
-        {project.description}
+        {projectPageState.project?.description}
       </p>
 </div>
 
-{#if user && user.hackatimeAccount}
-      {#if project.nowHackatimeProjects && project.nowHackatimeProjects.length > 0}
+{#if projectPageState.user && projectPageState.user.hackatimeAccount}
+      {#if projectPageState.project?.nowHackatimeProjects && projectPageState.project.nowHackatimeProjects.length > 0}
         <div class="submit-section">
-          <Button label="EDIT" icon="edit" color="blue" onclick={() => goto(`/app/projects/${project.projectId}/edit`)}/>
-        </div>
+          <Button label="EDIT" icon="edit" color="blue" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/edit`)}/>
+          <Button label="Submit" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/submit`)}/>
+          </div>
       {:else}
         <div class="submit-section-inital">
           <Button label="LINK HACKATIME Project" icon="link" color="blue" onclick={openHackatimeProjectModal}/>

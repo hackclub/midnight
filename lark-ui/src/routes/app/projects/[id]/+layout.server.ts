@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { checkAuthStatus, getProject } from '$lib/auth';
+import { checkAuthStatus, getLinkedHackatimeProjects, getProject } from '$lib/auth';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ params, fetch }) => {
@@ -15,8 +15,11 @@ export const load: LayoutServerLoad = async ({ params, fetch }) => {
     throw new Error('Project not found');
   }
 
+  const linkedHackatimeProjects = (await getLinkedHackatimeProjects(params.id, fetch))?.projects || [];
+
   return {
     user,
-    project
+    project,
+    linkedHackatimeProjects
   };
 };

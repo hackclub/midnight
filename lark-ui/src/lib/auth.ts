@@ -67,12 +67,12 @@ export async function logout(fetchFn: FetchFunction = fetch) {
 
 
 // projects
-
+export type ProjectType = 'personal_website' | 'platformer_game' | 'website' | 'game' | 'terminal_cli' | 'desktop_app' | 'mobile_app' | 'wildcard';
 export type Project = {
   projectId: string;
   userId: string;
   projectTitle: string;
-  projectType: 'personal_website' | 'platformer_game' | 'website' | 'game' | 'terminal_cli' | 'desktop_app' | 'mobile_app' | 'wildcard';
+  projectType: ProjectType;
   description: string;
   createdAt: Date;
   updatedAt: Date;
@@ -80,6 +80,7 @@ export type Project = {
   nowHackatimeProjects: string[] | null;
   repoUrl: string | null;
   playableUrl: string | null;
+  screenshotUrl: string | null;
 };
 
 export async function createProject(data: {
@@ -142,7 +143,7 @@ export async function updateProject(projectId: string, project: Partial<Project>
 
   if (response.ok) {
     const updatedProject = await response.json();
-    return updatedProject as Project;
+    return updatedProject.project as Project;
   } else {
     return null;
   }
@@ -279,4 +280,8 @@ export async function requestOTP(email: string, referralCode?: string, fetchFn: 
     credentials: "include",
     body: JSON.stringify({ email, referralCode }),
   });
+}
+
+export async function uploadFileCDN(file: File, fetchFn: FetchFunction = fetch) {
+
 }
