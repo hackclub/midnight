@@ -9,6 +9,7 @@ type ProjectPageState = {
     openHackatimeAccountModal: boolean,
     user: User | null,
     project: Project | null,
+    projectId: number, 
     linkedHackatimeProjects: HackatimeProject[],
     backpage: string,
 }
@@ -20,5 +21,6 @@ export let projectPageState = $state<ProjectPageState>({
     project: null,
     linkedHackatimeProjects: [],
     backpage: '/app/projects',
+    projectId: -1
 })
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { page } from '$app/state';
   import { getProject, checkAuthStatus } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
@@ -9,6 +10,8 @@
 
   let { children, data } = $props();
 
+  const projectId = page.params.id;
+
   // Initialize state if not done already
   if (!projectPageState.user) {
     projectPageState.user = data.user;
@@ -16,11 +19,15 @@
   if (!projectPageState.project) {
     projectPageState.project = data.project;
   }
-  if (!projectPageState.linkedHackatimeProjects) {
+  if (projectPageState.linkedHackatimeProjects.length === 0) {
     projectPageState.linkedHackatimeProjects = data.linkedHackatimeProjects;
   }
-
-  let locked = $state(true);
+  if (projectPageState.projectId === -1 || projectPageState.project?.projectId !== projectId) {
+    projectPageState.projectId = parseInt(projectId!);
+    projectPageState.user = data.user;
+    projectPageState.project = data.project;
+    projectPageState.linkedHackatimeProjects = data.linkedHackatimeProjects;
+  }
 
   async function loadProject() {
     const projectData = await getProject(projectPageState.project?.projectId || '');
@@ -32,9 +39,6 @@
   function goBack() {
     goto(projectPageState.backpage);
   }
-
-  let cs=$derived(projectPageState.project?.description);
-  $inspect(cs).with(console.log);
 </script>
 
 <div class="project-page">
