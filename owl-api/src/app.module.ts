@@ -9,6 +9,7 @@ import { ProjectsModule } from "./projects/projects.module";
 import { AdminModule } from "./admin/admin.module";
 import { EditRequestsModule } from "./edit-requests/edit-requests.module";
 import { HealthModule } from "./health/health.module";
+import { UploadsModule } from "./uploads/uploads.module";
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { HealthModule } from "./health/health.module";
     ProjectsModule,
     AdminModule,
     EditRequestsModule,
-    HealthModule
+    HealthModule,
+    UploadsModule
   ],
   providers: [
     {
