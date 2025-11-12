@@ -4,7 +4,7 @@ import { Controller, Get, Post, Body, HttpCode } from '@nestjs/common';
 export class HealthController {
   constructor() {}
 
-  @Get('/healthcheck')
+  @Get('/api/healthcheck')
   @HttpCode(200)
   async healthCheck() {
     return { success: true, message: 'Health check passed' };  
