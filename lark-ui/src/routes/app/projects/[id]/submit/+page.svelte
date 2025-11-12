@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { projectPageState } from "../state.svelte";
   import { createSubmission, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
-    import { goto } from "$app/navigation";
+  import { goto } from "$app/navigation";
 
   const projectId = page.params.id;
   projectPageState.backpage = `/app/projects/${projectId}`;
@@ -12,9 +12,6 @@
   let user = projectPageState.user!;
 
   let formpage = $state(1);
-
-  const TITLE_MAX_LENGTH = 30;
-  const DESC_MAX_LENGTH = 300;
 
   const copy = {
     personal_website: {
@@ -55,26 +52,24 @@
     },
   };
 
-  let projectScreenshot = $state(project?.screenshotUrl || "");
-  let projectTitle = $state(project?.projectTitle || "");
-  let projectType = $state(project?.projectType || "wildcard");
-  let projectDesc = $state(project?.description || "");
-  let projectRepoURL = $state(project?.repoUrl || "");
-  let projectPlayableURL = $state(project?.playableUrl || "");
+  let projectScreenshot = $state<string>(project?.screenshotUrl || "");
+  let projectTitle = $state<string>(project?.projectTitle || "");
+  let projectType = $state<string>(project?.projectType || "wildcard");
+  let projectDesc = $state<string>(project?.description || "");
+  let projectRepoURL = $state<string>(project?.repoUrl || "");
+  let projectPlayableURL = $state<string>(project?.playableUrl || "");
 
-  let userFirstName = $state(user?.firstName || "");
-  let userLastName = $state(user?.lastName || "");
-  let userEmail = $state(user?.email || "");
-  let userBirthday = $state(user?.birthday || "");
+  let userFirstName = $state<string>(user?.firstName || "");
+  let userLastName = $state<string>(user?.lastName || "");
+  let userEmail = $state<string>(user?.email || "");
+  let friendlyUserBirthday = $state<string>((new Date(user?.birthday)).toISOString().split('T')[0]);
 
-  let friendlyUserBirthday = $state((new Date(user?.birthday)).toISOString().split('T')[0]);
-
-  let userAddressLine1 = $state(user?.addressLine1 || "");
-  let userAddressLine2 = $state(user?.addressLine2 || "");
-  let userCity = $state(user?.city || "");
-  let userState = $state(user?.state || "");
-  let userCountry = $state(user?.country || "");
-  let userZipCode = $state(user?.zipCode || "");
+  let userAddressLine1 = $state<string>(user?.addressLine1 || "");
+  let userAddressLine2 = $state<string>(user?.addressLine2 || "");
+  let userCity = $state<string>(user?.city || "");
+  let userState = $state<string>(user?.state || "");
+  let userCountry = $state<string>(user?.country || "");
+  let userZipCode = $state<string>(user?.zipCode || "");
 
   $effect(() => {
     if (project) {
@@ -105,28 +100,6 @@
     userZipCode.length > 0
   );
 
-  let friendlyProjectType = $derived.by(() => {
-    if (!project) return "";
-    switch (project.projectType) {
-      case "personal_website":
-        return "Personal Website";
-      case "terminal_cli":
-        return "Terminal CLI";
-      case "desktop_app":
-        return "Desktop App";
-      case "platformer_game":
-        return "Platformer Game";
-      case "game":
-        return "Game";
-      case "mobile_app":
-        return "Mobile App";
-      case "wildcard":
-        return "Wildcard";
-      case "website":
-        return "Website";
-    }
-  });
-
   let projectColor = $derived.by(() => {
     if (!project) return "";
     switch (project.projectType) {
@@ -148,6 +121,8 @@
   });
 
   let error = $state("");
+  let submitting = $state(false);
+  
   async function saveProjectData(updatedField: Partial<Project>) {
     projectPageState.project = {
       ...projectPageState.project!,
@@ -178,14 +153,36 @@
 
     if (result.error) {
       error = result.error;
+      return false;
     } else {
       error = ""
+      return true;
     }
   }
 
   async function submitProject() {
-    if (!projectId) return;
-    await createSubmission(Number(projectId));
+    submitting = true;
+
+    const userResult = await saveUserData({
+      firstName: userFirstName,
+      lastName: userLastName,
+      addressLine1: userAddressLine1,
+      city: userCity,
+      state: userState,
+      country: userCountry,
+      zipCode: userZipCode,
+    })
+
+    if (!userResult || !projectId) return;
+    
+    const submitResult = await createSubmission(Number(projectId));
+
+    if (submitResult.error) {
+      error = submitResult.error;
+      submitting = false;
+      return;
+    }
+
     goto(`/app/projects/${projectId}`)
   }
 </script>
@@ -220,7 +217,7 @@
             if (file) {
               const cdnLink = await uploadFileCDN(file);
               if (cdnLink.error) {
-                alert(cdnLink.error);
+                error = cdnLink.error;
                 return;
               }
               projectScreenshot = cdnLink.url;
@@ -247,8 +244,7 @@
           type="text"
           id="project-title"
           bind:value={projectTitle}
-          onfocusout={() => saveProjectData({ projectTitle })}
-          maxlength={TITLE_MAX_LENGTH}
+          maxlength=30
           required
         />
       </div>
@@ -257,7 +253,6 @@
         <select
           id="project-type"
           bind:value={projectType}
-          onfocusout={() => saveProjectData({ projectType })}
         >
           <option value="personal_website">Personal Website</option>
           <option value="website">Website</option>
@@ -276,8 +271,7 @@
         <textarea
           id="project-desc"
           bind:value={projectDesc}
-          maxlength={DESC_MAX_LENGTH}
-          onfocusout={() => saveProjectData({ description: projectDesc })}
+          maxlength=300
           required
         ></textarea>
       </div>
@@ -288,7 +282,6 @@
           type="url"
           id="project-repo-url"
           bind:value={projectRepoURL}
-          onfocusout={() => saveProjectData({ repoUrl: projectRepoURL })}
           required
         />
       </div>
@@ -299,18 +292,21 @@
           type="url"
           id="project-playable-url"
           bind:value={projectPlayableURL}
-          onfocusout={() => saveProjectData({ playableUrl: projectPlayableURL })}
           required
         />
       </div>
     </div>
     {#if error} 
-      <p class="error">{error}</p>
+      <p class="error">
+        Got <i>{error}</i> from server. Please make sure your fields are correct.<br>
+        <span style="font-size: 12px;">Are the URLs valid? Is the title under 30 characters and the description under 300 characters?</span>
+      </p>
     {/if}
     <Button
-      label={error ? 'Error' : !areProjectFieldsComplete ? "Missing Fields" : "Next →"}
-      disabled={!areProjectFieldsComplete || !!error}
+      label={submitting ? 'loading...' : !areProjectFieldsComplete ? "Missing Fields" : "Next →"}
+      disabled={!areProjectFieldsComplete || submitting}
       onclick={async () => { 
+        submitting = true;
         if (await saveProjectData({
           projectTitle,
           description: projectDesc,
@@ -319,6 +315,7 @@
         })) {
           formpage++ 
         }
+        submitting = false;
       }}
     />
   </div>
@@ -397,8 +394,6 @@
           type="text"
           id="user-first-name"
           bind:value={userFirstName}
-          onfocusout={() => saveUserData({ firstName: userFirstName })}
-          maxlength={TITLE_MAX_LENGTH}
           required
         />
       </div>
@@ -408,8 +403,6 @@
           type="text"
           id="user-last-name"
           bind:value={userLastName}
-          onfocusout={() => saveUserData({ lastName: userLastName })}
-          maxlength={TITLE_MAX_LENGTH}
           required
           placeholder="Last Name"
         />
@@ -420,7 +413,6 @@
           type="email"
           id="user-email"
           bind:value={userEmail}
-          onfocusout={() => saveUserData({ email: userEmail })}
           disabled
           required
           placeholder="Email"
@@ -432,7 +424,6 @@
           type="date"
           id="user-birthday"
           bind:value={friendlyUserBirthday}
-          onfocusout={() => saveUserData({ birthday: new Date(friendlyUserBirthday).toISOString() })}
           required
         />
       </div>
@@ -443,7 +434,6 @@
           type="text"
           id="user-address-line-1"
           bind:value={userAddressLine1}
-          onfocusout={() => saveUserData({ addressLine1: userAddressLine1 })}
         />
       </div>
       <div class="field">
@@ -452,7 +442,6 @@
           type="text"
           id="user-address-line-2"
           bind:value={userAddressLine2}
-          onfocusout={() => saveUserData({ addressLine2: userAddressLine2 })}
         />
       </div>
       <div class="field">
@@ -461,7 +450,6 @@
           type="text"
           id="user-city"
           bind:value={userCity}
-          onfocusout={() => saveUserData({ city: userCity })}
           required
         />
       </div>
@@ -471,7 +459,6 @@
           type="text"
           id="user-state"
           bind:value={userState}
-          onfocusout={() => saveUserData({ state: userState })}
           required
         />
       </div>
@@ -481,7 +468,6 @@
           type="text"
           id="user-country"
           bind:value={userCountry}
-          onfocusout={() => saveUserData({ country: userCountry })}
           required
         />
       </div>
@@ -491,18 +477,21 @@
           type="text"
           id="user-zip"
           bind:value={userZipCode}
-          onfocusout={() => saveUserData({ zipCode: userZipCode })}
           required
         />
       </div>
-    </div>
 
+    {#if error} 
+      <p class="error">{error}</p>
+    {/if}
+
+    </div>
       <div class="buttons">
         <Button label="← Prev" onclick={() => formpage--} color="black" />
         <Button
-          label={!areUserFieldsComplete ? "Missing Fields" : "Submit"}
-          disabled={!areUserFieldsComplete}
-          onclick={submitProject}
+          label={submitting ? 'submitting...' : !areUserFieldsComplete ? "Missing Fields" : "Submit"}
+          disabled={!areUserFieldsComplete || submitting}
+          onclick={submitProject}          
         />
       </div>
   </div>
@@ -739,5 +728,7 @@
     padding: 16px;
     border-radius: 4px;
     background-color: #F24B4B;
+
+    margin-bottom: 8px;
   }
 </style>

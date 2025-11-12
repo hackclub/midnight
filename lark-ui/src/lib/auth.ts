@@ -316,10 +316,9 @@ export async function createSubmission(projectId: number, fetchFn: FetchFunction
     body: JSON.stringify({ projectId })
   });
 
-  if (response.ok) {
-    const data = await response.json();
-    return data;
-  } else {
-    return null;
-  }
+  const data = await response.json();
+  return data as {
+    success: boolean;
+    error?: string;
+  };
 }
