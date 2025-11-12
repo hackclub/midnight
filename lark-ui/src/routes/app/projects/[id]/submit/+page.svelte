@@ -218,7 +218,7 @@
     </div>
     <div class="project-submit-form">
       <div class="field">
-        <p class="label">Screenshot</p>
+        <p class="label required">Screenshot</p>
         <input
           type="file"
           id="project-screenshot"
