@@ -20,7 +20,7 @@
     },
     "platformer_game": {
       typeDesc:
-        "A platformer game should be a godot game that ",
+        "A platformer game  ot game that ",
       playableDesc: "For a game, this should be an itch.io link"
     },
     "website": {
@@ -267,6 +267,7 @@
         <select
           id="project-type"
           bind:value={projectType}
+          disabled
         >
           <option value="personal_website">Personal Website</option>
           <option value="website">Website</option>
