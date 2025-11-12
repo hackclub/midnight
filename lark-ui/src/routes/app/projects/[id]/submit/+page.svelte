@@ -2,7 +2,7 @@
   import Button from "$lib/Button.svelte";
   import { page } from "$app/state";
   import { projectPageState } from "../state.svelte";
-  import { createSubmission, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
+  import { checkAuthStatus, createSubmission, getProject, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
   import { goto } from "$app/navigation";
 
   const projectId = page.params.id;
@@ -14,43 +14,54 @@
   let formpage = $state(1);
 
   const copy = {
-    personal_website: {
-      typeDesc: "a personal website should be a publicly accesible website",
-      playableDesc: "a personal website should be a publicly accesible website",
+    "personal_website": {
+      typeDesc: "A personal website should be your own original site where people can get to know you",
+      playableDesc: "This should be hosted and publicly accesible link to your website",
     },
-    platformer_game: {
+    "platformer_game": {
       typeDesc:
-        "a platformer game should be a game that can be played on a computer or mobile device",
+        "A platformer game should be a godot game that ",
+      playableDesc: "For a game, this should be an itch.io link"
     },
-    website: {
-      typeDesc: "a website should be a publicly accesible website",
+    "website": {
+      typeDesc: "A website should be a ",
+      playableDesc: "This should be hosted and publicly accesible link to your website",
     },
-    game: {
+    "game": {
       typeDesc:
-        "a game should be a game that can be played on a computer or mobile device",
+        "A game should be a game that can be played on a computer or mobile device",
+      playableDesc:
+        "This should be an itch.io link"
     },
-    terminal_cli: {
+    "terminal_cli": {
       typeDesc:
-        "a terminal cli should be a command line interface that can be run on a computer or mobile device",
+        "A terminal cli should be an installable executable that can be run from and output to a terminal in a Windows, Mac, or Linux computer",
+      playableDesc:
+        "This should be a link to the package's homebrew formulae"      
     },
-    desktop_app: {
+    "desktop_app": {
       typeDesc:
-        "a desktop app should be a application that can be run on a computer or mobile device",
+        "A desktop app should be a GUI application that can be installed and opened on a windows, mac, or linux computer",
+      playableDesc:
+        "This should be a link to the package's github release"      
     },
-    mobile_app: {
+    "mobile_app": {
       typeDesc:
-        "a mobile app should be a application that can be run on a computer or mobile device",
+        "A mobile app should be a application that can be run on a ios or android device",
+      playableDesc:
+        "This should be a link to the package's github release or a testflight link"      
     },
-    wildcard: {
+    "wildcard": {
       typeDesc:
-        "a wildcard project should be a project that is not one of the other types",
+        "A wildcard project should be a project that is not one of the other types",
+      playableDesc:
+        "This should be a link that lets us access your project. please provide associated documentation on how to run/use it"
     },
     all: {
       descDesc: "description",
-      repoDesc:
-        "a repository url should be a publicly accesible git repository",
+      repoDesc: "This needs to be a publicly accessible repository!",
     },
-  };
+  } as { [key: string]: any };
 
   let projectScreenshot = $state<string>(project?.screenshotUrl || "");
   let projectTitle = $state<string>(project?.projectTitle || "");
@@ -183,6 +194,9 @@
       return;
     }
 
+    projectPageState.project = await getProject(projectId);
+    projectPageState.user = await checkAuthStatus();
+
     goto(`/app/projects/${projectId}`)
   }
 </script>
@@ -239,7 +253,7 @@
         </label>
       </div>
       <div class="field">
-        <label for="project-title">Title</label>
+        <label for="project-title" class="required">Title</label>
         <input
           type="text"
           id="project-title"
@@ -249,7 +263,7 @@
         />
       </div>
       <div class="field">
-        <label for="project-type">Type</label>
+        <label for="project-type" class="required">Type</label>
         <select
           id="project-type"
           bind:value={projectType}
@@ -266,7 +280,7 @@
         <p class="info">{copy[projectType].typeDesc}</p>
       </div>
       <div class="field">
-        <label for="project-desc">Description</label>
+        <label for="project-desc" class="required">Description</label>
         <p class="info">{copy.all.descDesc}</p>
         <textarea
           id="project-desc"
@@ -276,8 +290,8 @@
         ></textarea>
       </div>
       <div class="field">
-        <label for="project-repo-url">Repository URL</label>
-        <p class="info">This needs to be a publicly accessible repository!</p>
+        <label for="project-repo-url" class="required">Repository URL</label>
+        <p class="info">{copy.all.repoDesc}</p>
         <input
           type="url"
           id="project-repo-url"
@@ -286,8 +300,8 @@
         />
       </div>
       <div class="field">
-        <label for="project-playable-url">Live link to your website</label>
-        <p class="info">For a game, this should be an itch.io link</p>
+        <label for="project-playable-url" class="required">Live link to your project</label>
+        <p class="info">{copy[projectType].playableDesc}</p>
         <input
           type="url"
           id="project-playable-url"
@@ -311,7 +325,8 @@
           projectTitle,
           description: projectDesc,
           repoUrl: projectRepoURL,
-          playableUrl: projectPlayableURL
+          playableUrl: projectPlayableURL,
+          screenshotUrl: projectScreenshot
         })) {
           formpage++ 
         }
