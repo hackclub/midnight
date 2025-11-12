@@ -7,6 +7,8 @@
   import { projectPageState } from './state.svelte';
 
   const project = projectPageState.project;
+
+  projectPageState.backpage = '/app/projects';
   
   let friendlyProjectType = $derived.by(() => {
     if (!project) return '';
@@ -57,14 +59,28 @@
       <p class="project-description">
         {projectPageState.project?.description}
       </p>
+
+      {#if projectPageState.project?.submissions && projectPageState.project.submissions.length > 0}
+        <div class="submission-progress">
+          <p>Approval Status: {projectPageState.project.submissions[0].approvalStatus}</p>
+          <p>Submitted at {new Date(projectPageState.project.submissions[0].createdAt).toLocaleString()}</p>
+        </div>
+      {/if}
 </div>
 
 {#if projectPageState.user && projectPageState.user.hackatimeAccount}
-      {#if projectPageState.project?.nowHackatimeProjects && projectPageState.project.nowHackatimeProjects.length > 0}
+      {#if projectPageState.project?.submissions && projectPageState.project.submissions.length > 0}
+        <div class="submit-section">
+          <Button
+            label="Submiited"
+            disabled
+          />
+        </div>
+      {:else if projectPageState.project?.nowHackatimeProjects && projectPageState.project.nowHackatimeProjects.length > 0}
         <div class="submit-section">
           <Button label="EDIT" icon="edit" color="blue" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/edit`)}/>
           <Button label="Submit" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/submit`)}/>
-          </div>
+        </div>
       {:else}
         <div class="submit-section-inital">
           <Button label="LINK HACKATIME Project" icon="link" color="blue" onclick={openHackatimeProjectModal}/>
@@ -153,6 +169,13 @@
     flex-direction: row;
     align-items: end;
     gap: 4px;
+  }
+
+  .submission-progress {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 4px;
   }
 
   @media (max-width: 1024px) {

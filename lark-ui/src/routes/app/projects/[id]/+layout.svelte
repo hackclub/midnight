@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { getProject, checkAuthStatus } from '$lib/auth';
+  import { getProject, checkAuthStatus, getLinkedHackatimeProjects } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
   import HackatimeAccountModal from '$lib/hackatime/HackatimeAccountModal.svelte';
@@ -10,7 +10,7 @@
 
   let { children, data } = $props();
 
-  const projectId = page.params.id;
+  const projectId = parseInt(page.params.id!);
 
   // Initialize state if not done already
   if (!projectPageState.user) {
@@ -22,8 +22,8 @@
   if (projectPageState.linkedHackatimeProjects.length === 0) {
     projectPageState.linkedHackatimeProjects = data.linkedHackatimeProjects;
   }
-  if (projectPageState.projectId === -1 || projectPageState.project?.projectId !== projectId) {
-    projectPageState.projectId = parseInt(projectId!);
+  if (projectPageState.projectId === -1 || projectPageState.projectId !== projectId) {
+    projectPageState.projectId = projectId;
     projectPageState.user = data.user;
     projectPageState.project = data.project;
     projectPageState.linkedHackatimeProjects = data.linkedHackatimeProjects;
@@ -34,6 +34,7 @@
     if (projectData) {
       projectPageState.project = projectData;
     }
+    projectPageState.linkedHackatimeProjects = await getLinkedHackatimeProjects(projectPageState.project?.projectId || '').then(data => data?.projects) || [];
   }
   
   function goBack() {
@@ -119,6 +120,8 @@
       max-width: 367px;
       height: auto;
       aspect-ratio: 367 / 546;
+
+      position: initial;
     }
   }
 

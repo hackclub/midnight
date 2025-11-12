@@ -7,6 +7,12 @@ type FetchFunction = typeof fetch;
 //auth
 
 export type User = {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  country: string,
+  state: string,
+  zipCode: string;
   userId: string;
   email: string;
   firstName: string;
@@ -32,21 +38,13 @@ export async function checkAuthStatus(fetchFn: FetchFunction = fetch) {
   }
 }
 
-export async function updateUser(data: {
-  firstName: string;
-  lastName: string;
-  birthday: string;
-}, fetchFn: FetchFunction = fetch) {
+export async function updateUser(user: Partial<User>, fetchFn: FetchFunction = fetch) {
   return await fetchFn(`${apiUrl}/api/user`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      birthday: data.birthday,
-    })
-  });
+    body: JSON.stringify(user)
+  }).then(response => response.json());
 }
 
 export async function completeOnboarding(fetchFn: FetchFunction = fetch) {
@@ -81,6 +79,16 @@ export type Project = {
   repoUrl: string | null;
   playableUrl: string | null;
   screenshotUrl: string | null;
+  submissions: {
+    submissionId: number;
+    approvedHours: number | null;
+    hoursJustification: string | null;
+    approvalStatus: string;
+    reviewedBy: string | null;
+    reviewedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }[]
 };
 
 export async function createProject(data: {
@@ -141,12 +149,11 @@ export async function updateProject(projectId: string, project: Partial<Project>
     body: JSON.stringify(project)
   });
 
-  if (response.ok) {
-    const updatedProject = await response.json();
-    return updatedProject.project as Project;
-  } else {
-    return null;
-  }
+  const updatedProject = await response.json();
+  return updatedProject as { 
+    project?: Project,
+    error?: string 
+  };
 }
 
 //hackatime
@@ -282,6 +289,37 @@ export async function requestOTP(email: string, referralCode?: string, fetchFn: 
   });
 }
 
+// cdn
 export async function uploadFileCDN(file: File, fetchFn: FetchFunction = fetch) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetchFn(`${apiUrl}/api/uploads`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (!res.ok) {
+    return {
+      error: 'File upload failed: ' + await res.text()
+    }
+  } else {
+    return await res.json();
+  }
+}
 
+// create submission
+export async function createSubmission(projectId: number, fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/projects/auth/submissions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ projectId })
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data;
+  } else {
+    return null;
+  }
 }
