@@ -157,6 +157,24 @@ export class UserController {
     return this.userService.getAllHackatimeProjects(userEmail);
   }
 
+  @Get('api/user/projects/now-hackatime-hours/total')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async getTotalNowHackatimeHours(@Req() req: express.Request) {
+    const userId = req.user.userId;
+    const total = await this.userService.getTotalNowHackatimeHours(userId);
+    return { totalNowHackatimeHours: total };
+  }
+
+  @Get('api/user/projects/approved-hours/total')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async getTotalApprovedHours(@Req() req: express.Request) {
+    const userId = req.user.userId;
+    const total = await this.userService.getTotalApprovedHours(userId);
+    return { totalApprovedHours: total };
+  }
+
   @Get('api/user/hackatime-account')
   @UseGuards(AuthGuard)
   @Throttle({ default: { ttl: 3600000, limit: 1000000 } }) 

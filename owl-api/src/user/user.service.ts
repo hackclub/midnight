@@ -564,6 +564,26 @@ export class UserService {
     return res.json();
   }
 
+  async getTotalNowHackatimeHours(userId: number): Promise<number> {
+    const result = await this.prisma.project.aggregate({
+      where: { userId },
+      _sum: {
+        nowHackatimeHours: true,
+      },
+    });
+    return result._sum.nowHackatimeHours ?? 0;
+  }
+
+  async getTotalApprovedHours(userId: number): Promise<number> {
+    const result = await this.prisma.project.aggregate({
+      where: { userId },
+      _sum: {
+        approvedHours: true,
+      },
+    });
+    return result._sum.approvedHours ?? 0;
+  }
+
   async getLinkedHackatimeProjects(userEmail: string, projectId: number): Promise<any> {
     const allProjects = await this.getAllHackatimeProjects(userEmail);
 
