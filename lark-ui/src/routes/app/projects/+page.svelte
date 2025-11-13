@@ -7,6 +7,7 @@
   import { checkAuthStatus, getProjects, logout, type Project, type User } from '$lib/auth';
   import BaseCard from '$lib/cards/BaseCard.svelte';
   import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
+    import ProgressBar from '$lib/ProgressBar.svelte';
 
   let projects: Project[] = [];
   let loading = true;
@@ -49,6 +50,8 @@
     <Button label="Logout" onclick={handleLogout} color="red" />
   </div>
   
+  <ProgressBar />
+
   {#if loading}
     <div class="loading">
       <img src="/loading/crow_fly.gif" alt="Loading..." />
@@ -98,7 +101,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
   }
 
   .page-title {

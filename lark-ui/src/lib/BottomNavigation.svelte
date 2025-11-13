@@ -6,16 +6,6 @@
 
   type Tab = 'create' | 'explore' | 'shop' | 'settings';
 
-  let approvedHours = $state(0);
-  let hackatimeHours = $state(0);
-  let goalHours = $state(50);
-
-  onMount(async () => {
-    const hourCounts = await getHourCounts();
-    approvedHours = hourCounts.approvedHours;
-    hackatimeHours = hourCounts.hackatimeHours - hourCounts.approvedHours > 50 ? 50 : hourCounts.hackatimeHours - hourCounts.approvedHours;
-  })
-
   const { page, onboarding = false, user }: {
     page: string;
     onboarding?: boolean;
@@ -77,28 +67,6 @@
 </script>
 
 <div class="bottom-navigation">
-  <div class="progress-bar">
-    <div class="approved-hours" style="width: {approvedHours / goalHours * 100}%">
-      {#if approvedHours > 0 && approvedHours < 49}
-        <div class="marker">
-          <p style="margin-bottom: 2.5px !important;">approved</p>
-        </div>
-      {/if}
-    </div>
-    <div class="tracked-hours" style="width: {hackatimeHours / goalHours * 100}%">
-      {#if hackatimeHours > 0 && approvedHours + hackatimeHours < 49}
-        <div class="marker">
-          <p>pending</p>
-        </div>
-      {/if}
-    </div>
-    <div class="remaining-hours" style="width: {((goalHours - approvedHours - hackatimeHours) / goalHours) * 100}%">
-      <div class="goal-marker">
-        <p>50 hours needed to reach Vienna</p>
-      </div>
-    </div>
-  </div>
-
   <div class="bottom-nav-items">
     <div class="nav-tabs">
       <button 
