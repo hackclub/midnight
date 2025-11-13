@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, UseGuards, Req, ParseIntPipe, Delete, Post } from '@nestjs/common';
 import { Request } from 'express';
 import { AdminService } from './admin.service';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
@@ -66,5 +66,47 @@ export class AdminController {
     @Req() req: Request,
   ) {
     return this.adminService.rejectEditRequest(id, body.reason, req.user.userId);
+  }
+
+  @Get('projects')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async getAllProjects() {
+    return this.adminService.getAllProjects();
+  }
+
+  @Post('projects/:id/recalculate')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async recalculateProjectHours(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.recalculateProjectHours(id);
+  }
+
+  @Post('projects/recalculate-all')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async recalculateAllProjects() {
+    return this.adminService.recalculateAllProjects();
+  }
+
+  @Delete('projects/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async deleteProject(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.deleteProject(id);
+  }
+
+  @Get('users')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async getAllUsers() {
+    return this.adminService.getAllUsers();
+  }
+
+  @Get('metrics')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async getTotals() {
+    return this.adminService.getTotals();
   }
 }

@@ -1,7 +1,31 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { AirtableService } from '../airtable/airtable.service';
+
+const projectAdminInclude = {
+  user: {
+    select: {
+      userId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      birthday: true,
+      addressLine1: true,
+      addressLine2: true,
+      city: true,
+      state: true,
+      country: true,
+      zipCode: true,
+      hackatimeAccount: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  },
+  submissions: {
+    orderBy: { createdAt: 'desc' },
+  },
+} as const;
 
 @Injectable()
 export class AdminService {
@@ -389,5 +413,284 @@ export class AdminService {
       message: 'Edit request rejected successfully.',
       editRequest: updatedEditRequest,
     };
+  }
+
+  async getAllProjects() {
+    const projects = await this.prisma.project.findMany({
+      include: projectAdminInclude,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return projects;
+  }
+
+  async recalculateProjectHours(projectId: number, strict = true) {
+    const project = await this.prisma.project.findUnique({
+      where: { projectId },
+      include: projectAdminInclude,
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const baseUrl = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const apiKey = process.env.HACKATIME_API_KEY;
+
+    const cache = new Map<string, Map<string, number>>();
+    const result = await this.recalculateProjectInternal(project, {
+      strict,
+      cache,
+      baseUrl,
+      apiKey,
+    });
+
+    if (!result?.project) {
+      throw new BadRequestException('Unable to recalculate project hours');
+    }
+
+    return result;
+  }
+
+  async recalculateAllProjects() {
+    const projects = await this.prisma.project.findMany({
+      include: projectAdminInclude,
+    });
+
+    const cache = new Map<string, Map<string, number>>();
+    const baseUrl = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const apiKey = process.env.HACKATIME_API_KEY;
+
+    const updated: Array<{ projectId: number; nowHackatimeHours: number }> = [];
+    const skipped: Array<{ projectId: number; reason: string }> = [];
+    const errors: Array<{ projectId: number; message: string }> = [];
+
+    for (const project of projects) {
+      try {
+        const result = await this.recalculateProjectInternal(project, {
+          strict: false,
+          cache,
+          baseUrl,
+          apiKey,
+        });
+
+        if (result?.project) {
+          updated.push({
+            projectId: result.project.projectId,
+            nowHackatimeHours: result.project.nowHackatimeHours ?? 0,
+          });
+        } else if (result?.skipped) {
+          skipped.push({
+            projectId: project.projectId,
+            reason: result.reason,
+          });
+        }
+      } catch (error) {
+        errors.push({
+          projectId: project.projectId,
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return {
+      processed: projects.length,
+      updated: updated.length,
+      skipped,
+      errors,
+    };
+  }
+
+  async getTotals() {
+    const [hackatimeAggregate, approvedAggregate, totalUsers, totalProjects] = await Promise.all([
+      this.prisma.project.aggregate({
+        _sum: { nowHackatimeHours: true },
+      }),
+      this.prisma.submission.aggregate({
+        where: { approvalStatus: 'approved' },
+        _sum: { approvedHours: true },
+      }),
+      this.prisma.user.count(),
+      this.prisma.project.count(),
+    ]);
+
+    return {
+      totals: {
+        totalHackatimeHours: hackatimeAggregate._sum.nowHackatimeHours ?? 0,
+        totalApprovedHours: approvedAggregate._sum.approvedHours ?? 0,
+        totalUsers,
+        totalProjects,
+      },
+    };
+  }
+
+  async deleteProject(projectId: number) {
+    const project = await this.prisma.project.findUnique({
+      where: { projectId },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    await this.prisma.project.delete({
+      where: { projectId },
+    });
+
+    return { deleted: true, projectId };
+  }
+
+  async getAllUsers() {
+    const users = await this.prisma.user.findMany({
+      include: {
+        projects: {
+          include: {
+            submissions: {
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return users;
+  }
+
+  private async recalculateProjectInternal(
+    project: {
+      projectId: number;
+      nowHackatimeProjects: string[] | null;
+      user: {
+        userId: number;
+        firstName: string | null;
+        lastName: string | null;
+        email: string;
+        hackatimeAccount: string | null;
+      };
+    },
+    options: {
+      strict: boolean;
+      cache: Map<string, Map<string, number>>;
+      baseUrl: string;
+      apiKey?: string;
+    },
+  ) {
+    const { strict, cache, baseUrl, apiKey } = options;
+
+    if (!project.user?.hackatimeAccount) {
+      if (strict) {
+        throw new BadRequestException('User has no hackatime account linked');
+      }
+      return { skipped: true as const, reason: 'missing_hackatime_account' as const };
+    }
+
+    const hackatimeProjects = project.nowHackatimeProjects || [];
+
+    if (hackatimeProjects.length === 0) {
+      const updated = await this.prisma.project.update({
+        where: { projectId: project.projectId },
+        data: { nowHackatimeHours: 0 },
+        include: projectAdminInclude,
+      });
+
+      return { project: updated };
+    }
+
+    const cacheKey = project.user.hackatimeAccount;
+    let projectsMap = cache.get(cacheKey);
+
+    if (!projectsMap) {
+      const data = await this.fetchHackatimeProjectsData(
+        cacheKey,
+        baseUrl,
+        apiKey,
+      );
+      projectsMap = data.projectsMap;
+      cache.set(cacheKey, projectsMap);
+    }
+
+    const recalculatedHours = this.calculateHackatimeHours(hackatimeProjects, projectsMap);
+
+    const updatedProject = await this.prisma.project.update({
+      where: { projectId: project.projectId },
+      data: { nowHackatimeHours: recalculatedHours },
+      include: projectAdminInclude,
+    });
+
+    return { project: updatedProject };
+  }
+
+  private async fetchHackatimeProjectsData(
+    hackatimeAccount: string,
+    baseUrl: string,
+    apiKey?: string,
+  ) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(`${baseUrl}/user/projects?id=${hackatimeAccount}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException('Failed to fetch hackatime projects');
+    }
+
+    const rawData = await response.json();
+    const projectsMap = new Map<string, number>();
+
+    const addProject = (entry: any) => {
+      if (typeof entry === 'string') {
+        if (!projectsMap.has(entry)) {
+          projectsMap.set(entry, 0);
+        }
+        return;
+      }
+
+      const name = entry?.name || entry?.projectName;
+
+      if (typeof name === 'string') {
+        const duration = typeof entry?.total_duration === 'number' ? entry.total_duration : 0;
+        projectsMap.set(name, duration);
+      }
+    };
+
+    if (Array.isArray(rawData)) {
+      rawData.forEach(addProject);
+    } else if (Array.isArray(rawData?.projects)) {
+      rawData.projects.forEach(addProject);
+    } else if (rawData?.name || rawData?.projectName) {
+      addProject(rawData);
+    }
+
+    return { projectsMap };
+  }
+
+  private calculateHackatimeHours(projectNames: string[], projectsMap: Map<string, number>) {
+    let totalSeconds = 0;
+
+    for (const name of projectNames) {
+      totalSeconds += projectsMap.get(name) || 0;
+    }
+
+    return Math.round((totalSeconds / 3600) * 10) / 10;
   }
 }
