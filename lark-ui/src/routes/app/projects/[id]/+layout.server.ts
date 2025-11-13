@@ -9,6 +9,10 @@ export const load: LayoutServerLoad = async ({ params, fetch }) => {
     throw redirect(302, '/');
   }
 
+  if (!/^\d+$/.test(params.id)) {
+    throw new Error('Invalid project ID');
+  }
+
   const project = await getProject(params.id, fetch);
 
   if (!project) {

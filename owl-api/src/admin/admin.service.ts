@@ -695,8 +695,11 @@ export class AdminService {
     projectNames: string[],
     baseUrl: string,
     apiKey?: string,
-    cutoffDate: Date = new Date('2024-10-10T00:00:00Z'),
+    cutoffDate: Date = new Date('2025-10-10T00:00:00Z'),
   ): Promise<Map<string, number>> {
+    const startDate = cutoffDate.toISOString().split('T')[0];
+    const uri = `https://hackatime.hackclub.com/api/v1/users/${hackatimeAccount}/stats?features=projects&start_date=${startDate}`;
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -705,47 +708,36 @@ export class AdminService {
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
     const durationsMap = new Map<string, number>();
 
     for (const projectName of projectNames) {
-      const sanitizedProjectName = projectName.replace(/'/g, "''");
-      const query = {
-        query: `
-          SELECT
-            COALESCE(SUM(duration), 0) as total_duration
-          FROM
-            time_entries
-          WHERE
-            user_id = ${hackatimeAccount}
-            AND project_name = '${sanitizedProjectName}'
-            AND time >= ${cutoffTimestamp}
-        `,
-      };
+      durationsMap.set(projectName, 0);
+    }
 
-      try {
-        const response = await fetch(`${baseUrl}/execute`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(query),
-        });
+    try {
+      const response = await fetch(uri, {
+        method: 'GET',
+        headers,
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.rows && data.rows.length > 0) {
-            const duration = typeof data.rows[0].total_duration === 'number' 
-              ? data.rows[0].total_duration 
-              : 0;
-            durationsMap.set(projectName, duration);
-          } else {
-            durationsMap.set(projectName, 0);
+      if (response.ok) {
+        const responseData = await response.json();
+        const projects = responseData?.data?.projects;
+        
+        if (projects && Array.isArray(projects)) {
+          for (const project of projects) {
+            const name = project?.name;
+            if (typeof name === 'string' && projectNames.includes(name)) {
+              const duration = typeof project?.total_seconds === 'number' 
+                ? project.total_seconds 
+                : 0;
+              durationsMap.set(name, duration);
+            }
           }
-        } else {
-          durationsMap.set(projectName, 0);
         }
-      } catch (error) {
-        durationsMap.set(projectName, 0);
       }
+    } catch (error) {
+      console.error('Error fetching hackatime stats:', error);
     }
 
     return durationsMap;
@@ -759,7 +751,7 @@ export class AdminService {
     apiKey?: string,
   ) {
     if (hackatimeAccount && baseUrl) {
-      const cutoffDate = new Date('2024-10-10T00:00:00Z');
+      const cutoffDate = new Date('2025-10-10T00:00:00Z');
       const filteredDurations = await this.fetchHackatimeProjectDurationsAfterDate(
         hackatimeAccount,
         projectNames,
