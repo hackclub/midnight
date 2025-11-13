@@ -5,14 +5,21 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 FROM base AS deps
 WORKDIR /app
-COPY lark-ui/package.json lark-ui/pnpm-lock.yaml* ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY lark-ui/package.json ./lark-ui/
+COPY owl-api/package.json ./owl-api/
+COPY gateway/package.json ./gateway/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY lark-ui/ .
-RUN pnpm run build
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY lark-ui/package.json ./lark-ui/
+COPY owl-api/package.json ./owl-api/
+COPY gateway/package.json ./gateway/
+COPY lark-ui/ ./lark-ui/
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter lark-ui run build
 
 FROM base AS runner
 WORKDIR /app
@@ -23,9 +30,10 @@ ENV HOST=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 sveltekit
 
-COPY --from=builder --chown=sveltekit:nodejs /app/build ./build
-COPY --from=builder --chown=sveltekit:nodejs /app/package.json ./package.json
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder --chown=sveltekit:nodejs /app/lark-ui ./lark-ui
+
+WORKDIR /app/lark-ui
 
 USER sveltekit
 
