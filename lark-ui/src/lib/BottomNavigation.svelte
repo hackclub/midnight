@@ -1,8 +1,20 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
   import { getReferralCode, type User } from './auth';
-  
+  import { getHourCounts } from './auth';
+
   type Tab = 'create' | 'explore' | 'shop' | 'settings';
+
+  let approvedHours = $state(0);
+  let hackatimeHours = $state(0);
+  let goalHours = $state(50);
+
+  onMount(async () => {
+    const hourCounts = await getHourCounts();
+    approvedHours = hourCounts.approvedHours;
+    hackatimeHours = hourCounts.hackatimeHours - hourCounts.approvedHours > 50 ? 50 : hourCounts.hackatimeHours - hourCounts.approvedHours;
+  })
 
   const { page, onboarding = false, user }: {
     page: string;
@@ -60,16 +72,33 @@
         break;
     }
   }
+
+
 </script>
 
 <div class="bottom-navigation">
-  {#if user}
-    <div class="progress-bar">
-      <div class="approved-hours"></div>
-      <div class="tracked-hours"></div>
-      <div class="remaining-hours"></div>
+  <div class="progress-bar">
+    <div class="approved-hours" style="width: {approvedHours / goalHours * 100}%">
+      {#if approvedHours > 0 && approvedHours < 49}
+        <div class="marker">
+          <p style="margin-bottom: 2.5px !important;">approved</p>
+        </div>
+      {/if}
     </div>
-  {/if}
+    <div class="tracked-hours" style="width: {hackatimeHours / goalHours * 100}%">
+      {#if hackatimeHours > 0 && approvedHours + hackatimeHours < 49}
+        <div class="marker">
+          <p>pending</p>
+        </div>
+      {/if}
+    </div>
+    <div class="remaining-hours" style="width: {((goalHours - approvedHours - hackatimeHours) / goalHours) * 100}%">
+      <div class="goal-marker">
+        <p>50 hours needed to reach Vienna</p>
+      </div>
+    </div>
+  </div>
+
   <div class="bottom-nav-items">
     <div class="nav-tabs">
       <button 
@@ -143,17 +172,68 @@
   .approved-hours {
     background: #1385F0;
     height: 100%;
+    position: relative;
   }
 
   .tracked-hours {
     background: #4F5B9C;
     height: 100%;
+    position: relative;
   }
 
   .remaining-hours {
     background: #5E5087;
     height: 100%;
+    position: relative;
   }
+
+  .marker {
+    position: absolute;
+    right: 0;
+    bottom: calc(100%);
+    transform: translateX(50%);
+    
+    padding: 8px 12px;
+    background-image: url('/shapes/shape-popover-3.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    white-space: nowrap;
+  }
+
+  .marker p {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+    margin-top: 12px;
+    margin-bottom: 1.25px;
+  }
+
+  .goal-marker {
+    position: absolute;
+    right: 0;
+    bottom: calc(100%);
+    
+    padding: 8px 12px;
+    background-image: url('/shapes/shape-popover-4.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    white-space: nowrap;
+  }
+
+  .goal-marker p {
+    font-family: 'PT Sans', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    rotate: -0.75deg;
+  }  
 
   .bottom-navigation {
     position: fixed;

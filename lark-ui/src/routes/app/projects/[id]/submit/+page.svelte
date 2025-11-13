@@ -4,6 +4,7 @@
   import { projectPageState } from "../state.svelte";
   import { checkAuthStatus, createSubmission, getProject, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
   import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
 
   const projectId = page.params.id;
   projectPageState.backpage = `/app/projects/${projectId}`;
@@ -11,9 +12,18 @@
   let project = projectPageState.project!;
   let user = projectPageState.user!;
 
+  if (project.submissions.length > 0) {
+    onMount(() => goto(`/app/projects/${projectId}`));
+    //incomplete functionality :pf:
+  }
+  
   let formpage = $state(1);
 
-  const checklist = $state({
+  type Dynamic<T> = {
+    [key: string]: T;
+  }
+
+  const checklist = $state<Dynamic<boolean>>({
     "first item": false,
     "second item": false,
     "third item": false,
@@ -67,7 +77,7 @@
       descDesc: "description",
       repoDesc: "This needs to be a publicly accessible repository!",
     },
-  } as { [key: string]: any };
+  } as Dynamic<any>;
 
   let projectScreenshot = $state<string>(project?.screenshotUrl || "");
   let projectTitle = $state<string>(project?.projectTitle || "");

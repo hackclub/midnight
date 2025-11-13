@@ -322,3 +322,32 @@ export async function createSubmission(projectId: number, fetchFn: FetchFunction
     error?: string;
   };
 }
+
+// get hour counts
+export async function getHourCounts(fetchFn: FetchFunction = fetch) {
+//api/user/projects/now-hackatime-hours/total
+// api/user/projects/approved-hours/total
+
+  const hackatimeHoursResponse = await fetchFn(`${apiUrl}/api/user/projects/now-hackatime-hours/total`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  const approvedHoursResponse = await fetchFn(`${apiUrl}/api/user/projects/approved-hours/total`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  const hackatimeHours = (await hackatimeHoursResponse.json()).totalNowHackatimeHours || 0;
+  const approvedHours = (await approvedHoursResponse.json()).totalApprovedHours || 0;
+
+  console.log('hackatimeHours', hackatimeHours);
+  console.log('approvedHours', approvedHours);
+
+  return {
+    hackatimeHours,
+    approvedHours
+  };
+}
