@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { updateProject } from '$lib/auth';
+  import { getProject, updateProject } from '$lib/auth';
   import Button from '$lib/Button.svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
@@ -63,12 +63,13 @@
 
     const result = await updateProject(projectId, updatedProject);
     if (result) {
-      projectPageState.project = result;
+      projectPageState.project = await getProject(projectId);
+      submittingEdits = false;
+      goto(`/app/projects/${projectId}`);
+    } else {
+      submittingEdits = false;
+      alert('Error updating project');
     }
-
-    
-    submittingEdits = false;
-    goto(`/app/projects/${projectId}`);
   }
 
   $effect(() => {
