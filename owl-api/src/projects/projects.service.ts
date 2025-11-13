@@ -6,12 +6,14 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateHackatimeProjectsDto } from './dto/update-hackatime-projects.dto';
 import { RedisService } from '../redis.service';
 import { randomBytes } from 'crypto';
+import { PosthogService } from '../posthog/posthog.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
+    private posthog: PosthogService,
   ) {}
 
   async createProject(createProjectDto: CreateProjectDto, userId: number) {
@@ -48,12 +50,29 @@ export class ProjectsService {
         },
       });
 
+      this.posthog.capture({
+        distinctId: String(userId),
+        event: 'project_created_backend',
+        properties: {
+          projectId: project.projectId,
+          projectType: project.projectType,
+        },
+      });
+
       if (existingProjectsCount === 0) {
         await this.prisma.user.update({
           where: { userId },
           data: {
             onboardComplete: true,
             onboardedAt: new Date(),
+          },
+        });
+
+        this.posthog.capture({
+          distinctId: String(userId),
+          event: 'onboarding_completed_backend',
+          properties: {
+            projectId: project.projectId,
           },
         });
       }
@@ -178,6 +197,16 @@ export class ProjectsService {
     await this.prisma.project.update({
       where: { projectId },
       data: { isLocked: true, nowHackatimeHours: recalculatedHours },
+    });
+
+    this.posthog.capture({
+      distinctId: String(userId),
+      event: 'project_submitted_backend',
+      properties: {
+        projectId,
+        projectType: project.projectType,
+        submissionId: submission.submissionId,
+      },
     });
 
     return submission;

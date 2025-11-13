@@ -145,6 +145,9 @@ importers:
       nodemailer:
         specifier: ^7.0.9
         version: 7.0.10
+      posthog-node:
+        specifier: ^5.11.2
+        version: 5.11.2
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -4384,6 +4387,10 @@ packages:
 
   posthog-js@1.292.0:
     resolution: {integrity: sha512-sKBwrVT0vMqai8pAknmzK86vSQ5t36TDpQJyrLDj30ImkaiGuG4cVyI2wQ6l8vqdzk+rGAFUSP6Rqc2dMSQWWQ==}
+
+  posthog-node@5.11.2:
+    resolution: {integrity: sha512-z+XekcBUmGePMsjPlGaEF2bJFiDHKHYPQjS4OEw4YPDQz8s7Owuim/L7xNX+6UJkyIRniBza9iC7bW8yrGTv1g==}
+    engines: {node: '>=20'}
 
   pprof-format@2.2.1:
     resolution: {integrity: sha512-p4tVN7iK19ccDqQv8heyobzUmbHyds4N2FI6aBMcXz6y99MglTWDxIyhFkNaLeEXs6IFUEzT0zya0icbSLLY0g==}
@@ -10341,6 +10348,10 @@ snapshots:
       fflate: 0.4.8
       preact: 10.27.2
       web-vitals: 4.2.4
+
+  posthog-node@5.11.2:
+    dependencies:
+      '@posthog/core': 1.5.2
 
   pprof-format@2.2.1: {}
 
