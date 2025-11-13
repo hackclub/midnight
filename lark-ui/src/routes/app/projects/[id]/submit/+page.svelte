@@ -1,10 +1,12 @@
 <script lang="ts">
   import Button from "$lib/Button.svelte";
+  import posthog from "posthog-js";
   import { page } from "$app/state";
   import { projectPageState } from "../state.svelte";
   import { checkAuthStatus, createSubmission, getProject, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
   import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+  import { browser } from "$app/environment";
 
   const projectId = page.params.id;
   projectPageState.backpage = `/app/projects/${projectId}`;
@@ -255,6 +257,13 @@
       error = submitResult.error;
       submitting = false;
       return;
+    }
+
+    if (browser) {
+      posthog.capture('project submitted', {
+        projectId,
+        projectType: project?.projectType ?? null
+      });
     }
 
     projectPageState.project = await getProject(projectId);

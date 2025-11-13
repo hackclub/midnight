@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
-    import { createProject } from '$lib/auth';
+  import posthog from 'posthog-js';
+  import { browser } from '$app/environment';
+    import { checkAuthStatus, createProject } from '$lib/auth';
     import { goto } from '$app/navigation';
     import Button from '$lib/Button.svelte';
   
@@ -11,6 +12,7 @@
   let isSubmitting = false;
   let backHref = '/app/projects/select';
   let returnTo = '';
+  let onboardedBefore = false;
   
   $: formConfig = {
     personal_website: {
@@ -70,7 +72,10 @@
     return typeMapping[uiType] || uiType;
   }
   
-  onMount(() => {
+  onMount(async () => {
+    const authStatus = await checkAuthStatus();
+    onboardedBefore = authStatus?.onboardComplete ?? false;
+
     const urlParams = new URLSearchParams(window.location.search);
     const typeParam = urlParams.get('type');
     const fromParam = urlParams.get('from');
@@ -117,6 +122,25 @@
       });
 
       if (project) {
+        if (browser) {
+          posthog.capture('project created', {
+            projectId: project.projectId,
+            projectType: getApiProjectType(projectType)
+          });
+        }
+
+        if (!onboardedBefore) {
+          const updatedStatus = await checkAuthStatus();
+          if (updatedStatus?.onboardComplete) {
+            onboardedBefore = true;
+            if (browser) {
+              posthog.capture('onboarding completed', {
+                projectId: project.projectId
+              });
+            }
+          }
+        }
+
         goto(`/app/projects/${project.projectId}`);
       } else {
         alert('Failed to create project');

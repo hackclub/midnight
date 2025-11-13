@@ -616,12 +616,20 @@ export class UserService {
       return { updatedProjects: 0, totalNowHackatimeHours: 0 };
     }
 
+    const baseUrl = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const apiKey = process.env.HACKATIME_API_KEY;
     const { projectsMap } = await this.fetchHackatimeProjectsData(user.hackatimeAccount);
 
     await Promise.all(
       user.projects.map(async project => {
         const projectNames = project.nowHackatimeProjects || [];
-        const totalHours = this.calculateHackatimeHours(projectNames, projectsMap);
+        const totalHours = await this.calculateHackatimeHours(
+          projectNames,
+          projectsMap,
+          user.hackatimeAccount,
+          baseUrl,
+          apiKey,
+        );
         await this.prisma.project.update({
           where: { projectId: project.projectId },
           data: { nowHackatimeHours: totalHours },
@@ -790,9 +798,93 @@ export class UserService {
     return { projectsMap };
   }
 
-  private calculateHackatimeHours(projectNames: string[], projectsMap: Map<string, number>) {
-    let totalSeconds = 0;
+  private async fetchHackatimeProjectDurationsAfterDate(
+    hackatimeAccount: string,
+    projectNames: string[],
+    baseUrl: string,
+    apiKey?: string,
+    cutoffDate: Date = new Date('2024-10-10T00:00:00Z'),
+  ): Promise<Map<string, number>> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
 
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
+    const durationsMap = new Map<string, number>();
+
+    for (const projectName of projectNames) {
+      const sanitizedProjectName = projectName.replace(/'/g, "''");
+      const query = {
+        query: `
+          SELECT
+            COALESCE(SUM(duration), 0) as total_duration
+          FROM
+            time_entries
+          WHERE
+            user_id = ${hackatimeAccount}
+            AND project_name = '${sanitizedProjectName}'
+            AND time >= ${cutoffTimestamp}
+        `,
+      };
+
+      try {
+        const response = await fetch(`${baseUrl}/execute`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(query),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.rows && data.rows.length > 0) {
+            const duration = typeof data.rows[0].total_duration === 'number' 
+              ? data.rows[0].total_duration 
+              : 0;
+            durationsMap.set(projectName, duration);
+          } else {
+            durationsMap.set(projectName, 0);
+          }
+        } else {
+          durationsMap.set(projectName, 0);
+        }
+      } catch (error) {
+        durationsMap.set(projectName, 0);
+      }
+    }
+
+    return durationsMap;
+  }
+
+  private async calculateHackatimeHours(
+    projectNames: string[],
+    projectsMap: Map<string, number>,
+    hackatimeAccount?: string,
+    baseUrl?: string,
+    apiKey?: string,
+  ) {
+    if (hackatimeAccount && baseUrl) {
+      const cutoffDate = new Date('2024-10-10T00:00:00Z');
+      const filteredDurations = await this.fetchHackatimeProjectDurationsAfterDate(
+        hackatimeAccount,
+        projectNames,
+        baseUrl,
+        apiKey,
+        cutoffDate,
+      );
+
+      let totalSeconds = 0;
+      for (const name of projectNames) {
+        totalSeconds += filteredDurations.get(name) || 0;
+      }
+
+      return Math.round((totalSeconds / 3600) * 10) / 10;
+    }
+
+    let totalSeconds = 0;
     for (const name of projectNames) {
       totalSeconds += projectsMap.get(name) ?? 0;
     }
