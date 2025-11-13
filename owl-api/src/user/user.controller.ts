@@ -175,6 +175,14 @@ export class UserController {
     return { totalApprovedHours: total };
   }
 
+  @Post('api/user/projects/now-hackatime-hours/recalculate')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  async recalculateNowHackatimeHours(@Req() req: express.Request) {
+    const userId = req.user.userId;
+    return this.userService.recalculateNowHackatimeHours(userId);
+  }
+
   @Get('api/user/hackatime-account')
   @UseGuards(AuthGuard)
   @Throttle({ default: { ttl: 3600000, limit: 1000000 } }) 
