@@ -8,8 +8,10 @@
   overscroll-behavior: none;
 }
 
-body {
+html, body {
   background-color: #F24B4B;
+
+  min-height: 100%;
 }
 
 ::-webkit-scrollbar {

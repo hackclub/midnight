@@ -23,59 +23,106 @@
     [key: string]: T;
   }
 
-  const checklist = $state<Dynamic<boolean>>({
-    "first item": false,
-    "second item": false,
-    "third item": false,
+  let checklist = $state<Dynamic<boolean>>({
+    "You have an experienceable link (a URL where anyone can try your project now)": false,
+    "You have a public GitHub URL with all source code": false,
+    "You have a screenshot of your project": false,
   })
+
+  switch (project?.projectType) {
+    case "personal_website":
+    case "website":
+      checklist = {
+        ...checklist,
+        "Your project is deployed on the web (Vercel, Netlify, GitHub Pages, Fly.io, etc.)": false,
+        "Your experienceable link loads without errors": false,
+        "Core features of your website work; there are no placeholders": false,
+        "Your repo includes simple build/deploy instructions": false,
+      }
+      break;
+    case "platformer_game":
+    case "game":
+      checklist = {
+        ...checklist,
+        "Your game is published on itch.io with a public page": false,
+        "Your game page includes a playable version (WebGL or downloadable build)": false,
+        "Your game runs without crashing on startup": false,
+        "There is a description and screenshot on your project's itch.io page": false,
+      }
+      break;
+    case 'terminal_cli':
+      checklist = {
+        ...checklist,
+        "Your CLI is installable in one simple command (brew, pip, cargo, or install script)": false,
+        "Running the CLI immediately performs the main behavior": false,
+        "Clear install instructions in README": false,
+        "Example usage shown in README": false
+      }
+      break;
+    case 'desktop_app':
+      checklist = {
+        ...checklist,
+        "(Windows) Downloadable .exe file that successfully launches\n(macOS) Downloadable .dmg or .pkg file that opens/installs\n(Linux) AppImage or package (.deb/.rpm) that launches": false,
+        "Clear download link provided": false,
+        "Basic instructions for running the app included": false
+      }
+      break;
+    case 'mobile_app':
+      checklist = {
+        ...checklist,
+        "(iOS) Your app is Published on TestFlight with a public invitation link\n(Android) Downloadable .apk file or published on Google Play": false,
+        "App opens and core functionality runs without immediate crash": false,
+        "Instructions included if any special permissions are required": false,
+      }
+      break;
+  }
 
   const copy = {
     "personal_website": {
       typeDesc: "A personal website should be your own original site where people can get to know you",
-      playableDesc: "This should be hosted and publicly accesible link to your website",
+      playableDesc: "This should be a publicly accesible link to your website.",
     },
     "platformer_game": {
-      typeDesc:
-        "A platformer game",
-      playableDesc: "For a game, this should be an itch.io link"
+      typeDesc: "A platformer game",
+      playableDesc: "This should be an link to your game on itch.io."
     },
     "website": {
       typeDesc: "A website should be a ",
-      playableDesc: "This should be hosted and publicly accesible link to your website",
+      playableDesc: "This should be a publicly accesible link to your website.",
     },
     "game": {
       typeDesc:
         "A game should be a game that can be played on a computer or mobile device",
-      playableDesc:
-        "This should be an itch.io link"
+      playableDesc: "This should be a publicly accesible link to your website.",
     },
     "terminal_cli": {
       typeDesc:
         "A terminal cli should be an installable executable that can be run from and output to a terminal in a Windows, Mac, or Linux computer",
       playableDesc:
-        "This should be a link to the package's homebrew formulae"      
+        "This should be a link to the package on github releases, homebrew formulae, or other equivalent."      
     },
     "desktop_app": {
       typeDesc:
         "A desktop app should be a GUI application that can be installed and opened on a windows, mac, or linux computer",
       playableDesc:
-        "This should be a link to the package's github release"      
+        "This should be a link to the app's github release."      
     },
     "mobile_app": {
       typeDesc:
         "A mobile app should be a application that can be run on a ios or android device",
       playableDesc:
-        "This should be a link to the package's github release or a testflight link"      
+        "This should be a link to the app's github release or a testflight link (iOS)."      
     },
     "wildcard": {
       typeDesc:
         "A wildcard project should be a project that is not one of the other types",
       playableDesc:
-        "This should be a link that lets us access your project. please provide associated documentation on how to run/use it"
+        "This should be an experienceable link (a URL where anyone can try your project now). Make sure to include documentation on how to use it if necessary."
     },
     all: {
-      descDesc: "description",
-      repoDesc: "This needs to be a publicly accessible repository!",
+      screenshotDesc: "This should be a screenshot of your project working.",
+      descDesc: "This should be a 2-4 sentence description of your project. What is it about? What does it do?",
+      repoDesc: "This needs to be a publicly accessible GitHub repository!",
     },
   } as Dynamic<any>;
 
@@ -235,6 +282,7 @@
     <div class="project-submit-form">
       <div class="field">
         <p class="label required">Screenshot</p>
+        <p class="info">{copy.all.screenshotDesc}</p>
         <input
           type="file"
           id="project-screenshot"
@@ -294,7 +342,7 @@
           <option value="mobile_app">Mobile App</option>
           <option value="wildcard">Wildcard</option>
         </select>
-        <p class="info">{copy[projectType].typeDesc}</p>
+        <!-- <p class="info">{copy[projectType].typeDesc}</p> -->
       </div>
       <div class="field">
         <label for="project-desc" class="required">Description</label>
@@ -540,13 +588,12 @@
       </h1>
     </div>
     <div class="subheading">
-      <h2>Complete the pre-submit checklist</h2>
+      <h2><strong>Shipped Project Requirements</strong><br>Every project submitted must be fully “shipped.” Use the checklists below to confirm your project qualifies.</h2>
     </div>
     <div class="project-submit-form">
       <form class="checklist">
         {#each Object.keys(checklist) as checklistItem}
           <div class="checklist-item">
-            <label for={checklistItem} class="required">{checklistItem}</label>
             <div class="checkbox-container">
               <input
                 type="checkbox"
@@ -558,6 +605,7 @@
                 <p>{checklist[checklistItem] ? '✓' : '✖︎'}</p>
               </div>
             </div>
+            <label for={checklistItem} class="required">{checklistItem}</label>
           </div>
         {/each}
       </form>
@@ -582,6 +630,8 @@
     scrollbar-color: white #3b3153;
 
     height: max-content;
+
+    margin-bottom: 32px;
   }
 
   .field {
@@ -694,7 +744,7 @@
   }
 
   .subheading {
-    font-family: "PT Sans", sans-serif;
+    font-family: "PT Serif", sans-serif;
     color: white;
 
     display: flex;
@@ -768,7 +818,7 @@
 
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: start;
     gap: 8px;
 
     h2 {
@@ -811,19 +861,25 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 500px;
+    max-width: 800px;
+
+    padding: 24px;
+    border-radius: 16px;
+    background-color: #372f4b;
   }
 
   .checklist-item {
     display: flex;
-    justify-content: space-between;
+    justify-content: start;
+    align-items: center;
     flex-direction: row;
-    gap: 8px;
+    gap: 16px;
 
     label {
       font-family: "PT Sans", sans-serif;
       font-size: 20px;
       color: white;
+      text-align: left;
     }
   }
 
