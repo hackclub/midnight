@@ -157,6 +157,7 @@
 
   .bottom-navigation {
     position: fixed;
+    z-index: 1000;
     bottom: 0;
     left: 0;
     right: 0;
