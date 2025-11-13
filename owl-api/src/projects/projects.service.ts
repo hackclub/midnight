@@ -131,6 +131,14 @@ export class ProjectsService {
       throw new ForbiddenException('User address incomplete. Please complete your address information first.');
     }
 
+    if (this.calculateAge(user.birthday) >= 19) {
+      throw new ForbiddenException('You must be under 19 to submit projects.');
+    }
+
+    if (!user.hackatimeAccount) {
+      throw new BadRequestException('No Hackatime account linked to this user');
+    }
+
     // Validate required project fields
     if (!project.projectTitle || !project.description || 
         project.nowHackatimeHours === null || project.nowHackatimeHours === undefined ||
@@ -138,6 +146,19 @@ export class ProjectsService {
         !project.nowHackatimeProjects || project.nowHackatimeProjects.length === 0) {
       throw new ForbiddenException('Project incomplete. Please complete all required project fields first.');
     }
+
+    const hackatimeBaseUrl =
+      process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const hackatimeApiKey = process.env.HACKATIME_API_KEY;
+    const { projectsMap } = await this.fetchHackatimeProjectsData(
+      user.hackatimeAccount,
+      hackatimeBaseUrl,
+      hackatimeApiKey,
+    );
+    const recalculatedHours = this.calculateHackatimeHours(
+      project.nowHackatimeProjects,
+      projectsMap,
+    );
 
     // Copy data from project to submission (no manual input allowed)
     const submission = await this.prisma.submission.create({
@@ -153,7 +174,7 @@ export class ProjectsService {
     // Lock the project after submission
     await this.prisma.project.update({
       where: { projectId },
-      data: { isLocked: true },
+      data: { isLocked: true, nowHackatimeHours: recalculatedHours },
     });
 
     return submission;
@@ -310,43 +331,14 @@ export class ProjectsService {
       throw new BadRequestException('No Hackatime account linked to this user');
     }
 
-    const HACKATIME_ADMIN_API_URL = process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
-    const HACKATIME_API_KEY = process.env.HACKATIME_API_KEY;
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (HACKATIME_API_KEY) {
-      headers['Authorization'] = `Bearer ${HACKATIME_API_KEY}`;
-    }
-
-    const res = await fetch(
-      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${project.user.hackatimeAccount}`,
-      {
-        method: 'GET',
-        headers,
-      },
+    const hackatimeBaseUrl =
+      process.env.HACKATIME_ADMIN_API_URL || 'https://hackatime.hackclub.com/api/admin/v1';
+    const hackatimeApiKey = process.env.HACKATIME_API_KEY;
+    const { availableProjectNames, projectsMap } = await this.fetchHackatimeProjectsData(
+      project.user.hackatimeAccount,
+      hackatimeBaseUrl,
+      hackatimeApiKey,
     );
-
-    if (!res.ok) {
-      throw new BadRequestException('Failed to fetch hackatime projects for validation');
-    }
-
-    const hackatimeProjects = await res.json();
-    const availableProjectNames = new Set<string>();
-
-    if (Array.isArray(hackatimeProjects)) {
-      hackatimeProjects.forEach((p: any) => {
-        availableProjectNames.add(p.name || p.projectName || p);
-      });
-    } else if (hackatimeProjects.projects && Array.isArray(hackatimeProjects.projects)) {
-      hackatimeProjects.projects.forEach((p: any) => {
-        availableProjectNames.add(p.name || p.projectName || p);
-      });
-    } else if (hackatimeProjects.name || hackatimeProjects.projectName) {
-      availableProjectNames.add(hackatimeProjects.name || hackatimeProjects.projectName);
-    }
 
     for (const projectName of updateHackatimeProjectsDto.projectNames) {
       if (!availableProjectNames.has(projectName)) {
@@ -354,50 +346,10 @@ export class ProjectsService {
       }
     }
 
-    const allProjectsRes = await fetch(
-      `${HACKATIME_ADMIN_API_URL}/user/projects?id=${project.user.hackatimeAccount}`,
-      {
-        method: 'GET',
-        headers,
-      },
+    const totalHours = this.calculateHackatimeHours(
+      updateHackatimeProjectsDto.projectNames,
+      projectsMap,
     );
-
-    if (!allProjectsRes.ok) {
-      throw new BadRequestException('Failed to fetch hackatime projects for hour calculation');
-    }
-
-    const allProjectsData = await allProjectsRes.json();
-    console.log('All projects data:', JSON.stringify(allProjectsData, null, 2));
-
-    const projectsMap = new Map<string, number>();
-    
-    if (Array.isArray(allProjectsData)) {
-      allProjectsData.forEach((p: any) => {
-        const name = p.name || p.projectName || p;
-        const duration = p.total_duration || 0;
-        if (typeof name === 'string') {
-          projectsMap.set(name, duration);
-        }
-      });
-    } else if (allProjectsData.projects && Array.isArray(allProjectsData.projects)) {
-      allProjectsData.projects.forEach((p: any) => {
-        const name = p.name || p.projectName;
-        const duration = p.total_duration || 0;
-        if (name) {
-          projectsMap.set(name, duration);
-        }
-      });
-    }
-
-    let totalSeconds = 0;
-    for (const projectName of updateHackatimeProjectsDto.projectNames) {
-      const duration = projectsMap.get(projectName) || 0;
-      console.log(`Project "${projectName}" duration:`, duration, 'seconds');
-      totalSeconds += duration;
-    }
-
-    const totalHours = Math.round((totalSeconds / 3600) * 10) / 10;
-    console.log('Total hours calculated:', totalHours);
 
     const allLinkedProjects = await this.prisma.project.findMany({
       where: {
@@ -519,5 +471,80 @@ export class ProjectsService {
       hackatimeProjects: project.nowHackatimeProjects,
       hackatimeHours: project.nowHackatimeHours,
     };
+  }
+
+  private async fetchHackatimeProjectsData(
+    hackatimeAccount: string,
+    baseUrl: string,
+    apiKey?: string,
+  ) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(`${baseUrl}/user/projects?id=${hackatimeAccount}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException('Failed to fetch hackatime projects');
+    }
+
+    const rawData = await response.json();
+    const availableProjectNames = new Set<string>();
+    const projectsMap = new Map<string, number>();
+
+    const addProject = (entry: any) => {
+      if (typeof entry === 'string') {
+        availableProjectNames.add(entry);
+        if (!projectsMap.has(entry)) {
+          projectsMap.set(entry, 0);
+        }
+        return;
+      }
+
+      const name = entry?.name || entry?.projectName;
+
+      if (typeof name === 'string') {
+        availableProjectNames.add(name);
+        const duration = typeof entry?.total_duration === 'number' ? entry.total_duration : 0;
+        projectsMap.set(name, duration);
+      }
+    };
+
+    if (Array.isArray(rawData)) {
+      rawData.forEach(addProject);
+    } else if (Array.isArray(rawData?.projects)) {
+      rawData.projects.forEach(addProject);
+    } else if (rawData?.name || rawData?.projectName) {
+      addProject(rawData);
+    }
+
+    return { availableProjectNames, projectsMap };
+  }
+
+  private calculateHackatimeHours(projectNames: string[], projectsMap: Map<string, number>) {
+    let totalSeconds = 0;
+
+    for (const name of projectNames) {
+      totalSeconds += projectsMap.get(name) || 0;
+    }
+
+    return Math.round((totalSeconds / 3600) * 10) / 10;
+  }
+
+  private calculateAge(birthday: Date) {
+    const today = new Date();
+    let age = today.getFullYear() - birthday.getFullYear();
+    const monthDiff = today.getMonth() - birthday.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+      age -= 1;
+    }
+    return age;
   }
 }

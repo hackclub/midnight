@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { MailService } from '../mail/mail.service';
 import { LoginDto } from './dto/login.dto';
@@ -184,6 +184,9 @@ export class AuthService {
         email: user.email,
       };
     } else {
+      if (this.calculateAge(user.birthday) >= 19) {
+        throw new ForbiddenException('You must be under 19 to sign in.');
+      }
       return {
         message: 'OTP verified successfully',
         isNewUser: false,
@@ -222,8 +225,16 @@ export class AuthService {
       throw new BadRequestException('User profile already completed');
     }
 
+    const birthDate = new Date(birthday);
+    if (Number.isNaN(birthDate.getTime())) {
+      throw new BadRequestException('Invalid birthday');
+    }
+    if (this.calculateAge(birthDate) >= 19) {
+      throw new ForbiddenException('You must be under 19 to participate.');
+    }
+
     const updateData: any = {
-      birthday: new Date(birthday),
+      birthday: birthDate,
       addressLine1,
       addressLine2,
       city,
@@ -517,5 +528,15 @@ export class AuthService {
       message: 'Hackatime account linked successfully',
       hackatimeAccountId: hackatimeAccount,
     };
+  }
+
+  private calculateAge(birthday: Date) {
+    const today = new Date();
+    let age = today.getFullYear() - birthday.getFullYear();
+    const monthDiff = today.getMonth() - birthday.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+      age -= 1;
+    }
+    return age;
   }
 }
