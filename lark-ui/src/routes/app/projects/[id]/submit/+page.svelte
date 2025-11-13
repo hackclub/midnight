@@ -13,6 +13,12 @@
 
   let formpage = $state(1);
 
+  const checklist = $state({
+    "first item": false,
+    "second item": false,
+    "third item": false,
+  })
+
   const copy = {
     "personal_website": {
       typeDesc: "A personal website should be your own original site where people can get to know you",
@@ -20,7 +26,7 @@
     },
     "platformer_game": {
       typeDesc:
-        "A platformer game  ot game that ",
+        "A platformer game",
       playableDesc: "For a game, this should be an itch.io link"
     },
     "website": {
@@ -201,7 +207,7 @@
   }
 </script>
 
-{#if formpage == 1}
+{#if formpage == 2}
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
@@ -210,7 +216,7 @@
       </h1>
     </div>
     <div class="subheading">
-      <h2>Fill out this infromation and make sure it looks correct</h2>
+      <h2>Fill out this information and make sure it looks correct</h2>
       <p>
         You can come back to this page at anytime! Your information will be
         saved.
@@ -317,25 +323,28 @@
         <span style="font-size: 12px;">Are the URLs valid? Is the title under 30 characters and the description under 300 characters?</span>
       </p>
     {/if}
-    <Button
-      label={submitting ? 'loading...' : !areProjectFieldsComplete ? "Missing Fields" : "Next →"}
-      disabled={!areProjectFieldsComplete || submitting}
-      onclick={async () => { 
-        submitting = true;
-        if (await saveProjectData({
-          projectTitle,
-          description: projectDesc,
-          repoUrl: projectRepoURL,
-          playableUrl: projectPlayableURL,
-          screenshotUrl: projectScreenshot
-        })) {
-          formpage++ 
-        }
-        submitting = false;
-      }}
-    />
+    <div class="buttons">
+      <Button label="← Prev" onclick={() => formpage--} color="black" />
+      <Button
+        label={submitting ? 'loading...' : !areProjectFieldsComplete ? "Missing Fields" : "Next →"}
+        disabled={!areProjectFieldsComplete || submitting}
+        onclick={async () => { 
+          submitting = true;
+          if (await saveProjectData({
+            projectTitle,
+            description: projectDesc,
+            repoUrl: projectRepoURL,
+            playableUrl: projectPlayableURL,
+            screenshotUrl: projectScreenshot
+          })) {
+            formpage++ 
+          }
+          submitting = false;
+        }}
+      />
+    </div>
   </div>
-{:else if formpage == 2}
+{:else if formpage == 3}
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
@@ -345,7 +354,7 @@
       </h1>
     </div>
     <div class="subheading">
-      <h2>Fill out this infromation and make sure it looks correct</h2>
+      <h2>Fill out this information and make sure it looks correct</h2>
       <p>
         You can come back to this page at anytime! Your information will be
         saved.
@@ -389,7 +398,7 @@
       />
     </div>
   </div>
-{:else if formpage == 3}
+{:else if formpage == 4}
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
@@ -502,14 +511,54 @@
     {/if}
 
     </div>
-      <div class="buttons">
+    <div class="buttons">
         <Button label="← Prev" onclick={() => formpage--} color="black" />
         <Button
           label={submitting ? 'submitting...' : !areUserFieldsComplete ? "Missing Fields" : "Submit"}
           disabled={!areUserFieldsComplete || submitting}
           onclick={submitProject}          
         />
-      </div>
+    </div>
+  </div>
+{:else}
+  <div class="project-content">
+    <div class="heading">
+      <h1 class="project-title">
+        Ready to submit <span style="color: {projectColor}"
+          >{project.projectTitle}</span
+        >?
+      </h1>
+    </div>
+    <div class="subheading">
+      <h2>Complete the pre-submit checklist</h2>
+    </div>
+    <div class="project-submit-form">
+      <form class="checklist">
+        {#each Object.keys(checklist) as checklistItem}
+          <div class="checklist-item">
+            <label for={checklistItem} class="required">{checklistItem}</label>
+            <div class="checkbox-container">
+              <input
+                type="checkbox"
+                id={checklistItem}
+                bind:checked={checklist[checklistItem]}
+                required
+              />
+              <div class="checkbox-front" class:checked={checklist[checklistItem]}>
+                <p>{checklist[checklistItem] ? '✓' : '✖︎'}</p>
+              </div>
+            </div>
+          </div>
+        {/each}
+      </form>
+    </div>
+    <div class="buttons">
+      <Button
+        label={Object.values(checklist).every(Boolean) ? "Next →" : "Missing Fields"}
+        disabled={!Object.values(checklist).every(Boolean)}
+        onclick={() => formpage++}
+      />
+    </div>
   </div>
 {/if}
 
@@ -746,5 +795,88 @@
     background-color: #F24B4B;
 
     margin-bottom: 8px;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 500px;
+  }
+
+  .checklist-item {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    gap: 8px;
+
+    label {
+      font-family: "PT Sans", sans-serif;
+      font-size: 20px;
+      color: white;
+    }
+  }
+
+  .checkbox-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    background: black;
+    border-radius: 10px;
+    transform: translateY(2px) translateX(-2px);
+  }
+
+  .checkbox-front {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background: #F24B4B;
+    border-radius: 8px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    transform: translateY(-3px) translateX(3px);
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+    
+    pointer-events: none;
+
+    p {
+      font-family: "Moga", sans-serif;
+      font-size: 24px;
+      color: white;
+      margin: 0;
+      translate: 0 2px;
+    }
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    margin: 0;
+  }
+
+  .checkbox-container:hover .checkbox-front {
+    filter: brightness(1.2);
+    transform: translateY(-5px) translateX(5px);
+    transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+
+  .checkbox-front.checked {
+    background: #1385F0;
+    transform: translateY(0) translateX(0);
+  }
+
+  .checkbox-container:hover .checkbox-front.checked {
+    transform: translateY(0) translateX(0);
+    scale: 1.01;
   }
 </style>
