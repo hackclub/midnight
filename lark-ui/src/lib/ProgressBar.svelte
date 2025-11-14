@@ -2,59 +2,84 @@
     import { onMount } from "svelte";
     import { getHourCounts } from "./auth";
 
-    let approvedHours = $state(15);
-    let hackatimeHours = $state(25);
-    let goalHours = $state(50);
+    let approvedPercentage = $state(0.0);
+    let reviewPercentage = $state(0.0);
+    let remainingPercentage = $state(0.0);
 
-    // onMount(async () => {
-    //     const hourCounts = await getHourCounts();
-    //     approvedHours = hourCounts.approvedHours;
-    //     hackatimeHours =
-    //         hourCounts.hackatimeHours - hourCounts.approvedHours > 50
-    //             ? 50
-    //             : hourCounts.hackatimeHours - hourCounts.approvedHours;
-    // });
+    let totalHours = $state(0);
+    let rawApprovedHours = $state(0);
+    let rawTotalHours = $state(0);
+    const goalHours = 50;
+
+    onMount(async () => {
+        const hourCounts = await getHourCounts();
+
+        rawApprovedHours = hourCounts.approvedHours;
+        rawTotalHours = hourCounts.hackatimeHours;
+
+        let approvedHours =
+            hourCounts.approvedHours > 50 ? 50 : hourCounts.approvedHours;
+        totalHours =
+            hourCounts.hackatimeHours > 50 ? 50 : hourCounts.hackatimeHours;
+
+        approvedPercentage = approvedHours / goalHours;
+        reviewPercentage = (totalHours - approvedHours) / goalHours;
+        remainingPercentage = (goalHours - totalHours) / goalHours;
+    });
+
+    let remainingHours = $derived(goalHours - totalHours);
 </script>
 
 <div class="progress-card">
     <p class="time-left">
-        {goalHours - hackatimeHours - approvedHours} hOuRS LEFT TO
+        {remainingHours} hOuRS LEFT TO
         <span class="midnight">MIDNIGHT</span>
     </p>
 
     <div class="progress-track">
-        <div
-            class="progress-segment approved"
-            style="width: {(approvedHours / goalHours) * 100}%"
-        >
-        </div>
-        <div
-            class="progress-segment hackatime"
-            style="width: {((hackatimeHours + approvedHours) / goalHours) *
-                100}%"
-        >
-        </div>
-        <div
-            class="progress-segment remaining"
-            style="width: {((goalHours - hackatimeHours - approvedHours) /
-                goalHours) *
-                100}%"
-        ></div>
+        {#if rawApprovedHours > 0}
+            <div
+                class="progress-segment approved"
+                style="width: {approvedPercentage * 100}%"
+            ></div>
+        {/if}
+        {#if reviewPercentage > 0}
+            <div
+                class="progress-segment hackatime"
+                style="width: {reviewPercentage * 100}%"
+            ></div>
+        {/if}
+        {#if remainingHours > 0}
+            <div
+                class="progress-segment remaining"
+                style="width: {remainingPercentage * 100}%"
+            ></div>
+        {/if}
     </div>
 
     <div class="progress-key">
-        <p 
-            class="key"
-            style="width: {(approvedHours / goalHours) * 100}%"
-        >{approvedHours} HOuRS <span class="approved">APPROVED</span></p>
-        <p 
-            class="key"
-            style="width: {((hackatimeHours + approvedHours) / goalHours) * 100}%"
-        >{hackatimeHours} HOuRS LOGGED ON <span class="hackatime">HACKATIME</span></p>
-        <p 
-            class="key"
-            style="width: {((goalHours - hackatimeHours - approvedHours) / goalHours) * 100}%"
-        >{goalHours - hackatimeHours - approvedHours} HouRS REMAINING</p>
+        {#if rawApprovedHours > 0}
+            <p class="key" style="width: {approvedPercentage * 100}%">
+                {rawApprovedHours} HOuRS <span class="approved">APPROVED</span>
+            </p>
+        {/if}
+        {#if rawTotalHours > rawApprovedHours}
+            <p
+                class="key"
+                style="width: {reviewPercentage * 100}%"
+            >
+                {rawTotalHours - rawApprovedHours} HOuRS
+                <span class="hackatime">PENDING FOR REVIEW</span>
+            </p>
+        {/if}
+        {#if remainingHours > 0}
+            <p
+                class="key"
+                style="width: {remainingPercentage * 100}%"
+            >
+                {remainingHours} HouRS REMAINING
+            </p>
+        {/if}
     </div>
 </div>
 
@@ -77,7 +102,7 @@
     }
 
     .progress-card {
-        background: #2E2740;
+        background: #2e2740;
         border-radius: 16px;
         padding: 16px 20px;
         margin: 16px;
@@ -126,7 +151,7 @@
     }
 
     .approved {
-        color: #1385f0;
+        color: #7bbbf6;
     }
 
     .hackatime {
