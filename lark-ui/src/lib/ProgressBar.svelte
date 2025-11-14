@@ -14,8 +14,8 @@
     onMount(async () => {
         const hourCounts = await getHourCounts();
 
-        rawApprovedHours = hourCounts.approvedHours;
-        rawTotalHours = hourCounts.hackatimeHours;
+        rawApprovedHours = +hourCounts.approvedHours.toFixed(2) ;
+        rawTotalHours = +hourCounts.hackatimeHours.toFixed(2);
 
         let approvedHours =
             hourCounts.approvedHours > 50 ? 50 : hourCounts.approvedHours;

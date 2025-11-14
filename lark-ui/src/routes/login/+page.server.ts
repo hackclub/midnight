@@ -30,12 +30,14 @@ export const actions = {
         console.log('Using API URL:', apiUrl);
 
         const response = await verifyOtp(email as string, otp as string, fetchFn, apiUrl)
-        
-        if (!response || !response.ok) {
-            return fail(500, { message: 'Failed to verify OTP', email: email as string })
-        }
 
         const responseData = await response.json();
+
+        if (!response || !response.ok) {
+            const urlParams = new URLSearchParams();
+            urlParams.set("error", responseData.message);
+            return redirect(302, `/login?${urlParams.toString()}`);
+        }
 
         if (responseData.sessionId) {
             cookies.set('sessionId', responseData.sessionId, { path: '/' });
