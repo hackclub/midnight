@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/hackclub/midnight/compare/owl-api-v1.0.4...owl-api-v1.1.0) (2025-11-14)
+
+
+### Features
+
+* add submit flow + progress bar ([#25](https://github.com/hackclub/midnight/issues/25)) ([ff934c7](https://github.com/hackclub/midnight/commit/ff934c75b0102820bb785758b817a2226ebb2132))
+
 ## [1.0.4](https://github.com/hackclub/midnight/compare/owl-api-v1.0.3...owl-api-v1.0.4) (2025-11-06)
 
 
