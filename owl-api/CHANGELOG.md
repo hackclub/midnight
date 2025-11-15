@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/hackclub/midnight/compare/owl-api-v1.1.0...owl-api-v1.2.0) (2025-11-15)
+
+
+### Features
+
+* add review workflow ([5dd085b](https://github.com/hackclub/midnight/commit/5dd085b521a21f7284aac02dc850a9121519b2cb))
+
 ## [1.1.0](https://github.com/hackclub/midnight/compare/owl-api-v1.0.4...owl-api-v1.1.0) (2025-11-14)
 
 
