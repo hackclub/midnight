@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.2.0...lark-ui-v1.2.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* change admin panel ui ([1993c81](https://github.com/hackclub/midnight/commit/1993c81626c8d356d82786a8aebe41ffe066cca6))
+
 ## [1.2.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.1.0...lark-ui-v1.2.0) (2025-11-15)
 
 
