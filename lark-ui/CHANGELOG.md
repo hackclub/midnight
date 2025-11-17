@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.2.1...lark-ui-v1.3.0) (2025-11-17)
+
+
+### Features
+
+* add review workflow ([5dd085b](https://github.com/hackclub/midnight/commit/5dd085b521a21f7284aac02dc850a9121519b2cb))
+* add submit flow + progress bar ([#25](https://github.com/hackclub/midnight/issues/25)) ([ff934c7](https://github.com/hackclub/midnight/commit/ff934c75b0102820bb785758b817a2226ebb2132))
+
+
+### Bug Fixes
+
+* add protocol check for playable link ([da49233](https://github.com/hackclub/midnight/commit/da49233d29dbd672f9f9a1e09c2d7ea9f43ae6fc))
+* add search bar to admin panel ([eda2b7d](https://github.com/hackclub/midnight/commit/eda2b7dcd47458b7557f0b82bb86c0161d43140c))
+* remove bit about the first 100 to come ([#22](https://github.com/hackclub/midnight/issues/22)) ([4bb4061](https://github.com/hackclub/midnight/commit/4bb40617f3799f640e01eacbff842678b3480888))
+
 ## [1.2.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.2.0...lark-ui-v1.2.1) (2025-11-17)
 
 
