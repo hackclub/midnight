@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/hackclub/midnight/compare/owl-api-v1.2.1...owl-api-v1.2.2) (2025-11-17)
+
+
+### Bug Fixes
+
+* remove hackatime projects from airtable ([b201d14](https://github.com/hackclub/midnight/commit/b201d145b8c8d1d0bc0979a5649047493c49959f))
+
 ## [1.2.1](https://github.com/hackclub/midnight/compare/owl-api-v1.2.0...owl-api-v1.2.1) (2025-11-17)
 
 
