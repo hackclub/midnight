@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.2.0...lark-ui-v1.2.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* add search bar to admin panel ([eda2b7d](https://github.com/hackclub/midnight/commit/eda2b7dcd47458b7557f0b82bb86c0161d43140c))
+
 ## [1.2.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.1.0...lark-ui-v1.2.0) (2025-11-15)
 
 
