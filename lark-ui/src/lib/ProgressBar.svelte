@@ -32,7 +32,7 @@
 
 <div class="progress-card">
     <p class="time-left">
-        {remainingHours} hOuRS LEFT TO
+        {remainingHours} hOuRS <a href="https://www.youtube.com/watch?v=QX43QTYyV-8">LEFT</a> TO
         <span class="midnight">MIDNIGHT</span>
     </p>
 
