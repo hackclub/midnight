@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/hackclub/midnight/compare/owl-api-v1.4.0...owl-api-v1.4.1) (2025-11-19)
+
+
+### Bug Fixes
+
+* add toggle for email notifications ([5f84b76](https://github.com/hackclub/midnight/commit/5f84b76efe13f5a5516faa4f6463855a7eab66aa))
+
 ## [1.4.0](https://github.com/hackclub/midnight/compare/owl-api-v1.3.0...owl-api-v1.4.0) (2025-11-19)
 
 
