@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.3.0...lark-ui-v1.4.0) (2025-11-19)
+
+
+### Features
+
+* add review tracking system ([8616a55](https://github.com/hackclub/midnight/commit/8616a5588450670ee229b48ef2c2360392064422))
+
+
+### Bug Fixes
+
+* remove 100 people limit from FAQ ([#33](https://github.com/hackclub/midnight/issues/33)) ([d42d3a5](https://github.com/hackclub/midnight/commit/d42d3a5ad559fd2a28ec1973bd02294c9648344f))
+
 ## [1.3.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.2.1...lark-ui-v1.3.0) (2025-11-17)
 
 

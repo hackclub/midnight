@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/hackclub/midnight/compare/owl-api-v1.3.0...owl-api-v1.4.0) (2025-11-19)
+
+
+### Features
+
+* add review tracking system ([8616a55](https://github.com/hackclub/midnight/commit/8616a5588450670ee229b48ef2c2360392064422))
+
 ## [1.3.0](https://github.com/hackclub/midnight/compare/owl-api-v1.2.1...owl-api-v1.3.0) (2025-11-17)
 
 
