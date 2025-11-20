@@ -1,127 +1,26 @@
 <script lang="ts">
   import Button from "$lib/Button.svelte";
-  import posthog from "posthog-js";
   import { page } from "$app/state";
   import { projectPageState } from "../state.svelte";
-  import { checkAuthStatus, createSubmission, getProject, updateProject, updateUser, uploadFileCDN, type Project, type User } from "$lib/auth";
+  import { updateProject, updateUser, uploadFileCDN, type User } from "$lib/auth";
   import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
-  import { browser } from "$app/environment";
 
   const projectId = page.params.id;
   projectPageState.backpage = `/app/projects/${projectId}`;
 
   let project = projectPageState.project!;
   let user = projectPageState.user!;
-  
+
   let formpage = $state(1);
 
-  type Dynamic<T> = {
-    [key: string]: T;
-  }
-
-  let checklist = $state<Dynamic<boolean>>({
-    "You have an experienceable link (a URL where anyone can try your project now)": false,
-    "You have a public GitHub URL with all source code": false,
-    "You have a screenshot of your project": false,
-  })
-
-  switch (project?.projectType) {
-    case "personal_website":
-    case "website":
-      checklist = {
-        ...checklist,
-        "Your project is deployed on the web (Vercel, Netlify, GitHub Pages, Fly.io, etc.)": false,
-        "Your experienceable link loads without errors": false,
-        "Core features of your website work; there are no placeholders": false,
-        "Your repo includes simple build/deploy instructions": false,
-      }
-      break;
-    case "platformer_game":
-    case "game":
-      checklist = {
-        ...checklist,
-        "Your game is published on itch.io with a public page": false,
-        "Your game page includes a playable version (WebGL or downloadable build)": false,
-        "Your game runs without crashing on startup": false,
-        "There is a description and screenshot on your project's itch.io page": false,
-      }
-      break;
-    case 'terminal_cli':
-      checklist = {
-        ...checklist,
-        "Your CLI is installable in one simple command (brew, pip, cargo, or install script)": false,
-        "Running the CLI immediately performs the main behavior": false,
-        "Clear install instructions in README": false,
-        "Example usage shown in README": false
-      }
-      break;
-    case 'desktop_app':
-      checklist = {
-        ...checklist,
-        "(Windows) Downloadable .exe file that successfully launches\n(macOS) Downloadable .dmg or .pkg file that opens/installs\n(Linux) AppImage or package (.deb/.rpm) that launches": false,
-        "Clear download link provided": false,
-        "Basic instructions for running the app included": false
-      }
-      break;
-    case 'mobile_app':
-      checklist = {
-        ...checklist,
-        "(iOS) Your app is Published on TestFlight with a public invitation link\n(Android) Downloadable .apk file or published on Google Play": false,
-        "App opens and core functionality runs without immediate crash": false,
-        "Instructions included if any special permissions are required": false,
-      }
-      break;
-  }
-
   const copy = {
-    "personal_website": {
-      typeDesc: "A personal website should be your own original site where people can get to know you",
-      playableDesc: "This should be a publicly accesible link to your website.",
-    },
-    "platformer_game": {
-      typeDesc: "A platformer game",
-      playableDesc: "This should be an link to your game on itch.io."
-    },
-    "website": {
-      typeDesc: "A website should be a ",
-      playableDesc: "This should be a publicly accesible link to your website.",
-    },
-    "game": {
-      typeDesc:
-        "A game should be a game that can be played on a computer or mobile device",
-      playableDesc: "This should be a publicly accesible link to your website.",
-    },
-    "terminal_cli": {
-      typeDesc:
-        "A terminal cli should be an installable executable that can be run from and output to a terminal in a Windows, Mac, or Linux computer",
-      playableDesc:
-        "This should be a link to the package on github releases, homebrew formulae, or other equivalent."      
-    },
-    "desktop_app": {
-      typeDesc:
-        "A desktop app should be a GUI application that can be installed and opened on a windows, mac, or linux computer",
-      playableDesc:
-        "This should be a link to the app's github release."      
-    },
-    "mobile_app": {
-      typeDesc:
-        "A mobile app should be a application that can be run on a ios or android device",
-      playableDesc:
-        "This should be a link to the app's github release or a testflight link (iOS)."      
-    },
-    "wildcard": {
-      typeDesc:
-        "A wildcard project should be a project that is not one of the other types",
-      playableDesc:
-        "This should be an experienceable link (a URL where anyone can try your project now). Make sure to include documentation on how to use it if necessary."
-    },
     all: {
       screenshotDesc: "This should be a screenshot of your project working.",
       descDesc: "This should be a 2-4 sentence description of your project. What is it about? What does it do?",
       repoDesc: "This needs to be a publicly accessible GitHub repository!",
+      playableDesc: "This should be a link to where people can try your project.",
     },
-  } as Dynamic<any>;
+  };
 
   let projectScreenshot = $state<string>(project?.screenshotUrl || "");
   let projectTitle = $state<string>(project?.projectTitle || "");
@@ -129,6 +28,7 @@
   let projectDesc = $state<string>(project?.description || "");
   let projectRepoURL = $state<string>(project?.repoUrl || "");
   let projectPlayableURL = $state<string>(project?.playableUrl || "");
+  let reason = $state<string>("");
 
   let userFirstName = $state<string>(user?.firstName || "");
   let userLastName = $state<string>(user?.lastName || "");
@@ -143,7 +43,8 @@
   let userZipCode = $state<string>(user?.zipCode || "");
 
   $effect(() => {
-    if (project) {
+    if (projectPageState.project) {
+      project = projectPageState.project;
       projectScreenshot = project.screenshotUrl || "";
       projectType = project.projectType || "wildcard";
       projectTitle = project.projectTitle || "";
@@ -158,7 +59,8 @@
     projectTitle.length > 0 &&
     projectDesc.length > 0 &&
     projectRepoURL.length > 0 &&
-    projectPlayableURL.length > 0
+    projectPlayableURL.length > 0 &&
+    reason.trim().length > 0
   );
 
   let areUserFieldsComplete = $derived(
@@ -175,9 +77,7 @@
     if (!project) return "";
     switch (project.projectType) {
       case "website":
-        // case 'personal_website':
         return "#FFBB31";
-      // case 'platformer_game':
       case "game":
         return "#ED0F7E";
       case "terminal_cli":
@@ -193,26 +93,6 @@
 
   let error = $state("");
   let submitting = $state(false);
-  
-  async function saveProjectData(updatedField: Partial<Project>) {
-    projectPageState.project = {
-      ...projectPageState.project!,
-      ...updatedField,
-    };
-
-    if (projectId) {
-      const result = await updateProject(projectId, updatedField);
-
-      if (result.error) {
-        error = result.error;
-        return false;
-      } else {
-        error = ""
-        return true;
-      }
-    }
-    return false;
-  }
 
   async function saveUserData(updatedField: Partial<User>) {
     projectPageState.user = {
@@ -231,40 +111,63 @@
     }
   }
 
-  async function submitProject() {
+  async function submitEditRequest() {
     submitting = true;
 
     const userResult = await saveUserData({
       firstName: userFirstName,
       lastName: userLastName,
       addressLine1: userAddressLine1,
+      addressLine2: userAddressLine2,
       city: userCity,
       state: userState,
       country: userCountry,
       zipCode: userZipCode,
     })
 
-    if (!userResult || !projectId) return;
-    
-    const submitResult = await createSubmission(Number(projectId));
-
-    if (submitResult.error) {
-      error = submitResult.error;
+    if (!userResult || !projectId) {
       submitting = false;
       return;
     }
 
-    if (browser) {
-      posthog.capture('project submitted', {
-        projectId,
-        projectType: project?.projectType ?? null
-      });
+    // Only include fields that have actually changed
+    const updatedProject: any = {
+      editRequestReason: reason,
+    };
+
+    if (projectTitle !== project.projectTitle) {
+      updatedProject.projectTitle = projectTitle;
+    }
+    if (projectDesc !== project.description) {
+      updatedProject.description = projectDesc;
+    }
+    if (projectRepoURL !== (project.repoUrl || '')) {
+      updatedProject.repoUrl = projectRepoURL == '' ? null : projectRepoURL;
+    }
+    if (projectPlayableURL !== (project.playableUrl || '')) {
+      updatedProject.playableUrl = projectPlayableURL == '' ? null : projectPlayableURL;
+    }
+    if (projectScreenshot !== (project.screenshotUrl || '')) {
+      updatedProject.screenshotUrl = projectScreenshot;
     }
 
-    projectPageState.project = await getProject(projectId);
-    projectPageState.user = await checkAuthStatus();
+    const result = await updateProject(projectId, updatedProject);
+    if (result) {
+      if (result.editRequest) {
+        submitting = false;
+        goto(`/app/projects/${projectId}`);
+      } else {
+        submitting = false;
+        error = 'Failed to create edit request';
+      }
+    } else {
+      submitting = false;
+      error = 'Error creating edit request';
+    }
+  }
 
-    goto(`/app/projects/${projectId}`)
+  function openHackatimeProjectModal() {
+    projectPageState.openHackatimeProjectModal = true;
   }
 </script>
 
@@ -272,15 +175,13 @@
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
-        Ready to submit <span style="color: {projectColor}">{projectTitle}</span
-        >?
+        Request changes to <span style="color: {projectColor}">{projectTitle}</span>?
       </h1>
     </div>
     <div class="subheading">
       <h2>Fill out this information and make sure it looks correct</h2>
       <p>
-        You can come back to this page at anytime! Your information will be
-        saved.
+        Your project is locked. These changes will need admin approval.
       </p>
     </div>
     <div class="project-submit-form">
@@ -303,8 +204,6 @@
                 return;
               }
               projectScreenshot = cdnLink.url;
-
-              await saveProjectData({ screenshotUrl: projectScreenshot });
             }
           }}
         />
@@ -346,7 +245,6 @@
           <option value="mobile_app">Mobile App</option>
           <option value="wildcard">Wildcard</option>
         </select>
-        <!-- <p class="info">{copy[projectType].typeDesc}</p> -->
       </div>
       <div class="field">
         <label for="project-desc" class="required">Description</label>
@@ -370,7 +268,7 @@
       </div>
       <div class="field">
         <label for="project-playable-url" class="required">Live link to your project</label>
-        <p class="info">{copy[projectType].playableDesc}</p>
+        <p class="info">{copy.all.playableDesc}</p>
         <input
           type="url"
           id="project-playable-url"
@@ -378,8 +276,18 @@
           required
         />
       </div>
+      <div class="field">
+        <label for="edit-reason" class="required">Reason for Changes</label>
+        <p class="info">Explain why you need to make these changes...</p>
+        <textarea
+          id="edit-reason"
+          bind:value={reason}
+          maxlength=500
+          required
+        ></textarea>
+      </div>
     </div>
-    {#if error} 
+    {#if error}
       <p class="error">
         Got <i>{error}</i> from server. Please make sure your fields are correct.<br>
         <span style="font-size: 12px;">Are the URLs valid? Is the title under 30 characters and the description under 300 characters?</span>
@@ -388,21 +296,9 @@
     <div class="buttons">
       <Button label="← Prev" onclick={() => formpage--} color="black" />
       <Button
-        label={submitting ? 'loading...' : !areProjectFieldsComplete ? "Missing Fields" : "Next →"}
-        disabled={!areProjectFieldsComplete || submitting}
-        onclick={async () => { 
-          submitting = true;
-          if (await saveProjectData({
-            projectTitle,
-            description: projectDesc,
-            repoUrl: projectRepoURL,
-            playableUrl: projectPlayableURL,
-            screenshotUrl: projectScreenshot
-          })) {
-            formpage++ 
-          }
-          submitting = false;
-        }}
+        label={!areProjectFieldsComplete ? "Missing Fields" : "Next →"}
+        disabled={!areProjectFieldsComplete}
+        onclick={() => formpage++}
       />
     </div>
   </div>
@@ -410,22 +306,17 @@
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
-        Ready to submit <span style="color: {projectColor}"
-          >{project.projectTitle}</span
-        >?
+        Request changes to <span style="color: {projectColor}">{project.projectTitle}</span>?
       </h1>
     </div>
     <div class="subheading">
-      <h2>Fill out this information and make sure it looks correct</h2>
-      <p>
-        You can come back to this page at anytime! Your information will be
-        saved.
-      </p>
+      <h2>Update your Hackatime projects</h2>
+      <p>Make sure this information looks accurate!</p>
     </div>
     <div class="project-submit-form">
       <div class="field">
         <p class="label">Hackatime Projects</p>
-        <p class="info">Make sure this information looks accurate!</p>
+        <p class="info">These can be updated immediately without admin approval.</p>
         <div class="hackatime-projects">
           {#each projectPageState.linkedHackatimeProjects as hackatimeProject}
             <div class="hackatime-project selected">
@@ -443,7 +334,7 @@
             projects
           </p>
           <button
-            onclick={() => (projectPageState.openHackatimeProjectModal = true)}
+            onclick={openHackatimeProjectModal}
             class="hackatime-project modify"
           >
             <h2>edit projects</h2>
@@ -464,9 +355,7 @@
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
-        Ready to submit <span style="color: {projectColor}"
-          >{project.projectTitle}</span
-        >?
+        Request changes to <span style="color: {projectColor}">{project.projectTitle}</span>?
       </h1>
     </div>
     <div class="subheading">
@@ -568,7 +457,7 @@
         />
       </div>
 
-    {#if error} 
+    {#if error}
       <p class="error">{error}</p>
     {/if}
 
@@ -576,9 +465,9 @@
     <div class="buttons">
         <Button label="← Prev" onclick={() => formpage--} color="black" />
         <Button
-          label={submitting ? 'submitting...' : !areUserFieldsComplete ? "Missing Fields" : "Submit"}
+          label={submitting ? 'Submitting...' : !areUserFieldsComplete ? "Missing Fields" : "Submit Request"}
           disabled={!areUserFieldsComplete || submitting}
-          onclick={submitProject}          
+          onclick={submitEditRequest}
         />
     </div>
   </div>
@@ -586,39 +475,22 @@
   <div class="project-content">
     <div class="heading">
       <h1 class="project-title">
-        Ready to submit <span style="color: {projectColor}"
-          >{project.projectTitle}</span
-        >?
+        Request changes to <span style="color: {projectColor}">{project.projectTitle}</span>?
       </h1>
     </div>
     <div class="subheading">
-      <h2><strong>Shipped Project Requirements</strong><br>Every project submitted must be fully “shipped.” Use the checklists below to confirm your project qualifies.</h2>
-    </div>
-    <div class="project-submit-form">
-      <form class="checklist">
-        {#each Object.keys(checklist) as checklistItem}
-          <div class="checklist-item">
-            <div class="checkbox-container">
-              <input
-                type="checkbox"
-                id={checklistItem}
-                bind:checked={checklist[checklistItem]}
-                required
-              />
-              <div class="checkbox-front" class:checked={checklist[checklistItem]}>
-                <p>{checklist[checklistItem] ? '✓' : '✖︎'}</p>
-              </div>
-            </div>
-            <label for={checklistItem} class="required">{checklistItem}</label>
-          </div>
-        {/each}
-      </form>
+      <h2>Your project is locked</h2>
+      <p>Fill out the following pages to request changes. An admin will review your request.</p>
     </div>
     <div class="buttons">
       <Button
-        label={Object.values(checklist).every(Boolean) ? "Next →" : "Missing Fields"}
-        disabled={!Object.values(checklist).every(Boolean)}
+        label="Start →"
         onclick={() => formpage++}
+      />
+      <Button
+        label="Cancel"
+        color="gray"
+        onclick={() => goto(`/app/projects/${projectId}`)}
       />
     </div>
   </div>
@@ -675,7 +547,7 @@
       border: none;
 
       color-scheme: dark;
-      
+
       &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
@@ -703,9 +575,10 @@
       font-family: "Moga", sans-serif;
     }
 
-    #project-desc {
-      min-height: 160px;
-      resize: none;
+    #project-desc,
+    #edit-reason {
+      min-height: 120px;
+      resize: vertical;
     }
 
     .screenshot-upload {
@@ -738,6 +611,12 @@
     .hidden {
       display: none;
     }
+  }
+
+  .divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 16px 0;
   }
 
   .heading {
@@ -861,92 +740,15 @@
     margin-bottom: 8px;
   }
 
-  .checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 800px;
-
-    padding: 24px;
-    border-radius: 16px;
-    background-color: #372f4b;
-  }
-
-  .checklist-item {
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    flex-direction: row;
-    gap: 16px;
-
-    label {
-      font-family: "PT Sans", sans-serif;
-      font-size: 20px;
-      color: white;
-      text-align: left;
+  @media (max-width: 768px) {
+    .project-title {
+      font-size: 60px;
     }
   }
 
-  .checkbox-container {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    border: none;
-    cursor: pointer;
-    background: black;
-    border-radius: 10px;
-    transform: translateY(2px) translateX(-2px);
-  }
-
-  .checkbox-front {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    background: #F24B4B;
-    border-radius: 8px;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    transform: translateY(-3px) translateX(3px);
-    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
-    
-    pointer-events: none;
-
-    p {
-      font-family: "Moga", sans-serif;
-      font-size: 24px;
-      color: white;
-      margin: 0;
-      translate: 0 2px;
+  @media (max-width: 480px) {
+    .project-title {
+      font-size: 40px;
     }
-  }
-
-  .checkbox-container input[type="checkbox"] {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    opacity: 0;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    margin: 0;
-  }
-
-  .checkbox-container:hover .checkbox-front {
-    filter: brightness(1.2);
-    transform: translateY(-5px) translateX(5px);
-    transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
-  }
-
-  .checkbox-front.checked {
-    background: #1385F0;
-    transform: translateY(0) translateX(0);
-  }
-
-  .checkbox-container:hover .checkbox-front.checked {
-    transform: translateY(0) translateX(0);
-    scale: 1.01;
   }
 </style>

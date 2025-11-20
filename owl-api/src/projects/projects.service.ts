@@ -182,30 +182,70 @@ export class ProjectsService {
       hackatimeApiKey,
     );
 
-    // Copy data from project to submission (no manual input allowed)
-    const submission = await this.prisma.submission.create({
-      data: {
+    // Check if this is a resubmission
+    const existingSubmissions = await this.prisma.submission.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+      take: 1,
+    });
+
+    const isResubmission = existingSubmissions.length > 0;
+
+    // Check for pending edit request to use requested changes
+    const pendingEditRequest = await this.prisma.editRequest.findFirst({
+      where: {
+        projectId,
+        status: 'pending',
+        requestType: 'project_update',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let submissionData: {
+      projectId: number;
+      playableUrl: string | null;
+      screenshotUrl: string | null;
+      description: string | null;
+      repoUrl: string | null;
+    };
+
+    if (pendingEditRequest && pendingEditRequest.requestedData) {
+      const requestedData = pendingEditRequest.requestedData as any;
+      submissionData = {
+        projectId,
+        playableUrl: requestedData.playableUrl ?? project.playableUrl,
+        screenshotUrl: requestedData.screenshotUrl ?? project.screenshotUrl,
+        description: requestedData.description ?? project.description,
+        repoUrl: requestedData.repoUrl ?? project.repoUrl,
+      };
+    } else {
+      submissionData = {
         projectId,
         playableUrl: project.playableUrl,
         screenshotUrl: project.screenshotUrl,
         description: project.description,
         repoUrl: project.repoUrl,
-      },
+      };
+    }
+
+    const submission = await this.prisma.submission.create({
+      data: submissionData,
     });
 
-    // Lock the project after submission
+    // Always recalculate and update hours
     await this.prisma.project.update({
       where: { projectId },
-      data: { isLocked: true, nowHackatimeHours: recalculatedHours },
+      data: { nowHackatimeHours: recalculatedHours },
     });
 
     this.posthog.capture({
       distinctId: String(userId),
-      event: 'project_submitted_backend',
+      event: isResubmission ? 'project_resubmitted_backend' : 'project_submitted_backend',
       properties: {
         projectId,
         projectType: project.projectType,
         submissionId: submission.submissionId,
+        isResubmission,
       },
     });
 
@@ -249,20 +289,13 @@ export class ProjectsService {
       throw new ForbiddenException('Access denied');
     }
 
-    if (project.isLocked) {
-      throw new ForbiddenException('Project is locked and cannot be edited. Contact an admin to unlock it.');
-    }
-
-    // Get current project data
+    // Get current project data (only user-editable fields)
     const currentData = {
       projectTitle: project.projectTitle,
       description: project.description,
       playableUrl: project.playableUrl,
       repoUrl: project.repoUrl,
       screenshotUrl: project.screenshotUrl,
-      airtableRecId: project.airtableRecId,
-      nowHackatimeProjects: project.nowHackatimeProjects,
-      nowHackatimeHours: project.nowHackatimeHours,
     };
 
     const requestedData: any = {};
@@ -281,13 +314,8 @@ export class ProjectsService {
     if (updateProjectDto.screenshotUrl !== undefined) {
       requestedData.screenshotUrl = updateProjectDto.screenshotUrl;
     }
-    if (updateProjectDto.airtableRecId !== undefined) {
-      requestedData.airtableRecId = updateProjectDto.airtableRecId;
-    }
-    if (updateProjectDto.nowHackatimeProjects !== undefined) {
-      requestedData.nowHackatimeProjects = updateProjectDto.nowHackatimeProjects;
-      requestedData.nowHackatimeHours = null;
-    }
+    // Note: airtableRecId, nowHackatimeProjects, and nowHackatimeHours are system-managed
+    // and should not be included in edit requests or modified by users directly
 
     if (project.submissions.length === 0) {
       if (Object.keys(requestedData).length === 0) {
@@ -308,33 +336,76 @@ export class ProjectsService {
       };
     }
 
-    // Create edit request
-    const editRequest = await this.prisma.editRequest.create({
-      data: {
-        userId,
+    const existingPendingRequest = await this.prisma.editRequest.findFirst({
+      where: {
         projectId,
+        status: 'pending',
         requestType: 'project_update',
-        currentData,
-        requestedData,
       },
-      include: {
-        user: {
-          select: {
-            userId: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        project: {
-          select: {
-            projectId: true,
-            projectTitle: true,
-            projectType: true,
-          },
-        },
-      },
+      orderBy: { createdAt: 'desc' },
     });
+
+    let editRequest;
+    if (existingPendingRequest) {
+      const mergedRequestedData = {
+        ...(existingPendingRequest.requestedData as any),
+        ...requestedData,
+      };
+      
+      editRequest = await this.prisma.editRequest.update({
+        where: { requestId: existingPendingRequest.requestId },
+        data: {
+          currentData,
+          requestedData: mergedRequestedData,
+          reason: updateProjectDto.editRequestReason || existingPendingRequest.reason,
+        },
+        include: {
+          user: {
+            select: {
+              userId: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          project: {
+            select: {
+              projectId: true,
+              projectTitle: true,
+              projectType: true,
+            },
+          },
+        },
+      });
+    } else {
+      editRequest = await this.prisma.editRequest.create({
+        data: {
+          userId,
+          projectId,
+          requestType: 'project_update',
+          currentData,
+          requestedData,
+          reason: updateProjectDto.editRequestReason,
+        },
+        include: {
+          user: {
+            select: {
+              userId: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          project: {
+            select: {
+              projectId: true,
+              projectTitle: true,
+              projectType: true,
+            },
+          },
+        },
+      });
+    }
 
     return {
       message: 'Edit request created successfully. Waiting for admin approval.',
@@ -416,58 +487,8 @@ export class ProjectsService {
       );
     }
 
-    // If project is locked (has submissions), create an edit request instead of direct update
-    if (project.isLocked) {
-      // Check if user has made at least one submission for this project
-      if (project.submissions.length === 0) {
-        throw new ForbiddenException('You must submit at least one submission before requesting project edits.');
-      }
-
-      // Get current project data
-      const currentData = {
-        nowHackatimeProjects: project.nowHackatimeProjects,
-        nowHackatimeHours: project.nowHackatimeHours,
-      };
-
-      const requestedData = {
-        nowHackatimeProjects: updateHackatimeProjectsDto.projectNames,
-        nowHackatimeHours: totalHours,
-      };
-
-      // Create edit request
-      const editRequest = await this.prisma.editRequest.create({
-        data: {
-          userId,
-          projectId,
-          requestType: 'project_update',
-          currentData,
-          requestedData,
-        },
-        include: {
-          user: {
-            select: {
-              userId: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-          project: {
-            select: {
-              projectId: true,
-              projectTitle: true,
-              projectType: true,
-            },
-          },
-        },
-      });
-
-      return {
-        message: 'Edit request created successfully. Waiting for admin approval.',
-        editRequest,
-      };
-    }
-
+    // Hackatime projects can always be updated directly, even when locked
+    // These are system-managed fields and don't require admin approval
     const updatedProject = await this.prisma.project.update({
       where: { projectId },
       data: {

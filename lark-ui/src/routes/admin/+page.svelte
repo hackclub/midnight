@@ -198,6 +198,8 @@ let submissionErrors = $state<Record<number, string>>({});
 let submissionSuccess = $state<Record<number, string>>({});
 let submissionRecalculating = $state<Record<number, boolean>>({});
 let addressExpanded = $state<Record<number, boolean>>({});
+let selectedSubmissionByProject = $state<Record<number, number>>({});
+let submissionCountFilter = $state<string>('all');
 
 let projectBusy = $state<Record<number, boolean>>({});
 let projectErrors = $state<Record<number, string>>({});
@@ -573,6 +575,16 @@ $effect(() => {
 
 	let updated = false;
 	const drafts = { ...submissionDrafts };
+	const selected = { ...selectedSubmissionByProject };
+
+	const groups = groupedSubmissions;
+	for (const projectId in groups) {
+		const projectIdNum = Number(projectId);
+		if (!selected[projectIdNum] && groups[projectIdNum]?.length > 0) {
+			selected[projectIdNum] = groups[projectIdNum][0].submissionId;
+			updated = true;
+		}
+	}
 
 	for (const submission of submissions) {
 		if (!drafts[submission.submissionId]) {
@@ -583,6 +595,7 @@ $effect(() => {
 
 	if (updated) {
 		submissionDrafts = drafts;
+		selectedSubmissionByProject = selected;
 	}
 });
 
@@ -650,6 +663,48 @@ function compareSubmissions(a: AdminSubmission, b: AdminSubmission): number {
 	
 	return sortDirection === 'asc' ? comparison : -comparison;
 }
+
+let groupedSubmissions = $derived.by(() => {
+	const groups: Record<number, AdminSubmission[]> = {};
+	
+	for (const submission of submissions) {
+		if (!groups[submission.project.projectId]) {
+			groups[submission.project.projectId] = [];
+		}
+		groups[submission.project.projectId].push(submission);
+	}
+	
+	for (const projectId in groups) {
+		groups[Number(projectId)].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+	}
+	
+	return groups;
+});
+
+let filteredGroupedSubmissions = $derived.by(() => {
+	const filtered: Record<number, AdminSubmission[]> = {};
+	const groups = groupedSubmissions;
+	
+	for (const projectId in groups) {
+		const projectIdNum = Number(projectId);
+		const projectSubmissions = groups[projectIdNum].filter((s: AdminSubmission) => 
+			matchesSearch(s, searchQuery) &&
+			matchesStatusFilters(s) &&
+			matchesProjectTypeFilters(s)
+		);
+		
+		if (projectSubmissions.length > 0) {
+			const count = projectSubmissions.length;
+			if (submissionCountFilter === 'all' ||
+				(submissionCountFilter === 'single' && count === 1) ||
+				(submissionCountFilter === 'multiple' && count > 1)) {
+				filtered[projectIdNum] = projectSubmissions;
+			}
+		}
+	}
+	
+	return filtered;
+});
 
 let filteredSubmissions = $derived(
 	submissions
@@ -845,7 +900,42 @@ function normalizeUrl(url: string | null): string | null {
 						</div>
 					</div>
 
-					<div class="grid gap-4 md:grid-cols-3">
+					<div class="grid gap-4 md:grid-cols-4">
+						<div>
+							<div class="block text-sm font-medium text-gray-300 mb-2">Filter by Submission Count</div>
+							<div class="flex flex-wrap gap-2">
+								<button
+									class={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+										submissionCountFilter === 'all'
+											? 'bg-purple-600 border-purple-400 text-white'
+											: 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+									}`}
+									onclick={() => submissionCountFilter = 'all'}
+								>
+									All
+								</button>
+								<button
+									class={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+										submissionCountFilter === 'single'
+											? 'bg-purple-600 border-purple-400 text-white'
+											: 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+									}`}
+									onclick={() => submissionCountFilter = 'single'}
+								>
+									Single
+								</button>
+								<button
+									class={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+										submissionCountFilter === 'multiple'
+											? 'bg-purple-600 border-purple-400 text-white'
+											: 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+									}`}
+									onclick={() => submissionCountFilter = 'multiple'}
+								>
+									Multiple
+								</button>
+							</div>
+						</div>
 						<div>
 							<div class="block text-sm font-medium text-gray-300 mb-2">Filter by Status</div>
 							<div class="flex flex-wrap gap-2">
@@ -934,27 +1024,58 @@ function normalizeUrl(url: string | null): string | null {
 					</div>
 
 					<div class="text-sm text-gray-400">
-						Showing {filteredSubmissions.length} of {submissions.length} submissions
+						Showing {Object.keys(filteredGroupedSubmissions).length} project{Object.keys(filteredGroupedSubmissions).length === 1 ? '' : 's'} with {Object.values(filteredGroupedSubmissions).reduce((sum, subs) => sum + subs.length, 0)} submission{Object.values(filteredGroupedSubmissions).reduce((sum, subs) => sum + subs.length, 0) === 1 ? '' : 's'} of {submissions.length} total
 					</div>
 				</div>
 
 				{#if submissionsLoading}
 					<div class="py-12 text-center text-gray-300">Loading submissions...</div>
-				{:else if filteredSubmissions.length === 0}
+				{:else if Object.keys(filteredGroupedSubmissions).length === 0}
 					<div class="py-12 text-center text-gray-300">
 						No submissions match your filters.
 					</div>
 				{:else}
 					<div class="grid gap-6">
-						{#each filteredSubmissions as submission (submission.submissionId)}
+						{#each Object.entries(filteredGroupedSubmissions) as [projectIdStr, projectSubmissions]}
+							{@const projectId = Number(projectIdStr)}
+							{@const selectedSubmissionId = selectedSubmissionByProject[projectId] ?? projectSubmissions[0].submissionId}
+							{@const selectedSubmission = projectSubmissions.find((s: AdminSubmission) => s.submissionId === selectedSubmissionId) ?? projectSubmissions[0]}
 							<div class="rounded-2xl border border-gray-700 bg-gray-900/70 backdrop-blur p-6 space-y-4">
+								{#if projectSubmissions.length > 1}
+									<div class="mb-4 pb-4 border-b border-gray-700">
+										<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-3">Submissions ({projectSubmissions.length})</h4>
+										<div class="flex flex-wrap gap-2">
+											{#each projectSubmissions as sub}
+												<button
+													class={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+														selectedSubmissionId === sub.submissionId
+															? 'bg-purple-600 border-purple-400 text-white'
+															: 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+													}`}
+													onclick={() => selectedSubmissionByProject = { ...selectedSubmissionByProject, [projectId]: sub.submissionId }}
+												>
+													{formatDate(sub.createdAt)}
+													<span class={`ml-2 px-1.5 py-0.5 rounded text-xs ${
+														sub.approvalStatus === 'approved'
+															? 'bg-green-500/20 text-green-300'
+															: sub.approvalStatus === 'rejected'
+															? 'bg-red-500/20 text-red-300'
+															: 'bg-yellow-500/20 text-yellow-300'
+													}`}>
+														{sub.approvalStatus}
+													</span>
+												</button>
+											{/each}
+										</div>
+									</div>
+								{/if}
 								<div class="flex flex-col gap-4 md:flex-row md:gap-6">
-									{#if submission.project.screenshotUrl}
+									{#if selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl}
 										<div class="w-full md:w-64 flex-shrink-0">
 											<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-2">Screenshot Preview</h4>
-											<a href={submission.project.screenshotUrl} target="_blank" rel="noreferrer">
+											<a href={selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl} target="_blank" rel="noreferrer">
 												<img 
-													src={submission.project.screenshotUrl} 
+													src={selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl} 
 													alt="Project screenshot" 
 													class="w-full h-48 object-cover rounded-lg border border-gray-700 hover:border-purple-500 transition-colors cursor-pointer"
 												/>
@@ -965,57 +1086,57 @@ function normalizeUrl(url: string | null): string | null {
 									<div class="flex-1 space-y-4">
 										<div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
 											<div>
-												<h3 class="text-2xl font-semibold">{submission.project.projectTitle}</h3>
-												<p class="text-sm text-gray-400">Submitted {formatDate(submission.createdAt)}</p>
+												<h3 class="text-2xl font-semibold">{selectedSubmission.project.projectTitle}</h3>
+												<p class="text-sm text-gray-400">Submitted {formatDate(selectedSubmission.createdAt)}</p>
 											</div>
 											<span
 												class={`px-3 py-1 rounded-full text-sm border self-start ${
-													submission.approvalStatus === 'approved'
+													selectedSubmission.approvalStatus === 'approved'
 														? 'bg-green-500/20 border-green-400 text-green-300'
-														: submission.approvalStatus === 'rejected'
+														: selectedSubmission.approvalStatus === 'rejected'
 														? 'bg-red-500/20 border-red-400 text-red-300'
 														: 'bg-yellow-500/20 border-yellow-400 text-yellow-200'
 												}`}
 											>
-												{submission.approvalStatus.toUpperCase()}
+												{selectedSubmission.approvalStatus.toUpperCase()}
 											</span>
 										</div>
 
 										<div class="grid gap-4 md:grid-cols-2">
 											<div class="space-y-2">
 												<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400">User Info</h4>
-												<p class="text-lg font-medium">{fullName(submission.project.user)}</p>
-												<p class="text-sm text-gray-300">{submission.project.user.email}</p>
-												{#if submission.project.user.hackatimeAccount}
+												<p class="text-lg font-medium">{fullName(selectedSubmission.project.user)}</p>
+												<p class="text-sm text-gray-300">{selectedSubmission.project.user.email}</p>
+												{#if selectedSubmission.project.user.hackatimeAccount}
 													<p class="text-sm text-purple-300">
-														🕐 Hackatime: <span class="font-mono">{submission.project.user.hackatimeAccount}</span>
+														🕐 Hackatime: <span class="font-mono">{selectedSubmission.project.user.hackatimeAccount}</span>
 													</p>
 												{/if}
 												<p class="text-sm text-gray-400">
-													{submission.project.user.city ? `${submission.project.user.city}, ` : ''}{submission.project.user.state}
+													{selectedSubmission.project.user.city ? `${selectedSubmission.project.user.city}, ` : ''}{selectedSubmission.project.user.state}
 												</p>
 												<button
 													class="text-xs text-left text-blue-400 hover:text-blue-300 transition-colors"
-													onclick={() => addressExpanded[submission.submissionId] = !addressExpanded[submission.submissionId]}
+													onclick={() => addressExpanded[selectedSubmission.submissionId] = !addressExpanded[selectedSubmission.submissionId]}
 												>
-													{addressExpanded[submission.submissionId] ? '▼' : '▶'} Full Address
+													{addressExpanded[selectedSubmission.submissionId] ? '▼' : '▶'} Full Address
 												</button>
-												{#if addressExpanded[submission.submissionId]}
+												{#if addressExpanded[selectedSubmission.submissionId]}
 													<div class="mt-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700 text-xs text-gray-300 space-y-1">
-														{#if submission.project.user.addressLine1}
-															<p>{submission.project.user.addressLine1}</p>
+														{#if selectedSubmission.project.user.addressLine1}
+															<p>{selectedSubmission.project.user.addressLine1}</p>
 														{/if}
-														{#if submission.project.user.addressLine2}
-															<p>{submission.project.user.addressLine2}</p>
+														{#if selectedSubmission.project.user.addressLine2}
+															<p>{selectedSubmission.project.user.addressLine2}</p>
 														{/if}
 														<p>
-															{[submission.project.user.city, submission.project.user.state, submission.project.user.zipCode].filter(Boolean).join(', ')}
+															{[selectedSubmission.project.user.city, selectedSubmission.project.user.state, selectedSubmission.project.user.zipCode].filter(Boolean).join(', ')}
 														</p>
-														{#if submission.project.user.country}
-															<p>{submission.project.user.country}</p>
+														{#if selectedSubmission.project.user.country}
+															<p>{selectedSubmission.project.user.country}</p>
 														{/if}
-														{#if submission.project.user.birthday}
-															<p class="pt-2 border-t border-gray-700">Birthday: {formatDate(submission.project.user.birthday)}</p>
+														{#if selectedSubmission.project.user.birthday}
+															<p class="pt-2 border-t border-gray-700">Birthday: {formatDate(selectedSubmission.project.user.birthday)}</p>
 														{/if}
 													</div>
 												{/if}
@@ -1024,47 +1145,47 @@ function normalizeUrl(url: string | null): string | null {
 												<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400">Project Info</h4>
 												<div class="flex items-center gap-2">
 													<p class="text-sm text-gray-300">
-														Hackatime hours: <span class="font-semibold text-purple-300">{formatHours(submission.project.nowHackatimeHours)}</span>
+														Hackatime hours: <span class="font-semibold text-purple-300">{formatHours(selectedSubmission.project.nowHackatimeHours)}</span>
 													</p>
 													<button
 														class="px-2 py-1 text-xs rounded bg-purple-700 hover:bg-purple-600 border border-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-														onclick={() => recalculateSubmissionHours(submission.submissionId, submission.project.projectId)}
-														disabled={submissionRecalculating[submission.submissionId]}
+														onclick={() => recalculateSubmissionHours(selectedSubmission.submissionId, selectedSubmission.project.projectId)}
+														disabled={submissionRecalculating[selectedSubmission.submissionId]}
 													>
-														{submissionRecalculating[submission.submissionId] ? '⟳ Calculating...' : '⟳ Recalc'}
+														{submissionRecalculating[selectedSubmission.submissionId] ? '⟳ Calculating...' : '⟳ Recalc'}
 													</button>
 												</div>
-												{#if submission.project.nowHackatimeProjects?.length}
+												{#if selectedSubmission.project.nowHackatimeProjects?.length}
 													<p class="text-sm text-gray-400">
-														Projects: {submission.project.nowHackatimeProjects.join(', ')}
+														Projects: {selectedSubmission.project.nowHackatimeProjects.join(', ')}
 													</p>
 												{/if}
-												{#if submission.project.approvedHours !== null}
+												{#if selectedSubmission.project.approvedHours !== null}
 													<p class="text-sm text-green-300">
-														Approved hours: <span class="font-semibold">{formatHours(submission.project.approvedHours)}</span>
+														Approved hours: <span class="font-semibold">{formatHours(selectedSubmission.project.approvedHours)}</span>
 													</p>
 												{/if}
 											</div>
 										</div>
 
-										{#if submission.project.description}
+										{#if selectedSubmission.description || selectedSubmission.project.description}
 											<div class="space-y-2">
 												<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400">Description</h4>
-												<p class="text-sm text-gray-300">{submission.project.description}</p>
+												<p class="text-sm text-gray-300">{selectedSubmission.description || selectedSubmission.project.description}</p>
 											</div>
 										{/if}
 
-										{#if submission.hoursJustification}
+										{#if selectedSubmission.hoursJustification}
 											<div class="space-y-2 bg-blue-950/30 border border-blue-800 rounded-lg p-4">
 												<h4 class="text-sm font-semibold uppercase tracking-wide text-blue-300">Hours Justification</h4>
-												<p class="text-sm text-gray-300">{submission.hoursJustification}</p>
+												<p class="text-sm text-gray-300">{selectedSubmission.hoursJustification}</p>
 											</div>
 										{/if}
 
 										<div class="flex flex-wrap gap-2">
 											<h4 class="text-sm font-semibold uppercase tracking-wide text-gray-400 w-full">Quick Actions</h4>
-											{#if submission.project.playableUrl}
-												{@const normalizedPlayableUrl = normalizeUrl(submission.project.playableUrl)}
+											{#if selectedSubmission.playableUrl || selectedSubmission.project.playableUrl}
+												{@const normalizedPlayableUrl = normalizeUrl(selectedSubmission.playableUrl || selectedSubmission.project.playableUrl)}
 												{#if normalizedPlayableUrl}
 													<a 
 														href={normalizedPlayableUrl} 
@@ -1076,9 +1197,9 @@ function normalizeUrl(url: string | null): string | null {
 													</a>
 												{/if}
 											{/if}
-											{#if submission.project.repoUrl}
+											{#if selectedSubmission.repoUrl || selectedSubmission.project.repoUrl}
 												<a 
-													href={submission.project.repoUrl} 
+													href={selectedSubmission.repoUrl || selectedSubmission.project.repoUrl} 
 													target="_blank" 
 													rel="noreferrer"
 													class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 border border-gray-500 text-white text-sm transition-colors"
@@ -1086,9 +1207,9 @@ function normalizeUrl(url: string | null): string | null {
 													💻 View Repository
 												</a>
 											{/if}
-											{#if submission.project.screenshotUrl}
+											{#if selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl}
 												<a 
-													href={submission.project.screenshotUrl} 
+													href={selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl} 
 													target="_blank" 
 													rel="noreferrer"
 													class="px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 border border-purple-500 text-white text-sm transition-colors"
@@ -1096,26 +1217,24 @@ function normalizeUrl(url: string | null): string | null {
 													📸 Full Screenshot
 												</a>
 											{/if}
-											{#each [submission] as _}
-												{@const billyLinkResult = generateBillyLink(submission.project.user.hackatimeAccount)}
-												{#if billyLinkResult}
-													<a 
-														href={billyLinkResult} 
-														target="_blank" 
-														rel="noreferrer"
-														class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 border border-green-400 text-white text-sm transition-colors"
-													>
-														Billy
-													</a>
-												{:else}
-													<span 
-														class="px-4 py-2 rounded-lg bg-gray-600 border border-gray-500 text-gray-400 text-sm cursor-not-allowed"
-														title="Hackatime account not available"
-													>
-														Billy
-													</span>
-												{/if}
-											{/each}
+											{#if generateBillyLink(selectedSubmission.project.user.hackatimeAccount)}
+												{@const billyLinkResult = generateBillyLink(selectedSubmission.project.user.hackatimeAccount)}
+												<a 
+													href={billyLinkResult} 
+													target="_blank" 
+													rel="noreferrer"
+													class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 border border-green-400 text-white text-sm transition-colors"
+												>
+													Billy
+												</a>
+											{:else}
+												<span 
+													class="px-4 py-2 rounded-lg bg-gray-600 border border-gray-500 text-gray-400 text-sm cursor-not-allowed"
+													title="Hackatime account not available"
+												>
+													Billy
+												</span>
+											{/if}
 										</div>
 									</div>
 								</div>
@@ -1125,11 +1244,11 @@ function normalizeUrl(url: string | null): string | null {
 									
 									<div class="grid gap-4 md:grid-cols-3">
 										<div class="space-y-2">
-											<label class="text-sm font-medium text-gray-300" for={statusIdFor(submission.submissionId)}>Status</label>
+											<label class="text-sm font-medium text-gray-300" for={statusIdFor(selectedSubmission.submissionId)}>Status</label>
 											<select
-												id={statusIdFor(submission.submissionId)}
+												id={statusIdFor(selectedSubmission.submissionId)}
 												class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-												bind:value={submissionDrafts[submission.submissionId].approvalStatus}
+												bind:value={submissionDrafts[selectedSubmission.submissionId].approvalStatus}
 											>
 												{#each statusOptions as option}
 													<option value={option}>{option}</option>
@@ -1137,24 +1256,24 @@ function normalizeUrl(url: string | null): string | null {
 											</select>
 										</div>
 										<div class="space-y-2">
-											<label class="text-sm font-medium text-gray-300" for={hoursIdFor(submission.submissionId)}>Approved Hours</label>
+											<label class="text-sm font-medium text-gray-300" for={hoursIdFor(selectedSubmission.submissionId)}>Approved Hours</label>
 											<input
-												id={hoursIdFor(submission.submissionId)}
+												id={hoursIdFor(selectedSubmission.submissionId)}
 												type="number"
 												step="0.1"
 												min="0"
 												class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-												bind:value={submissionDrafts[submission.submissionId].approvedHours}
+												bind:value={submissionDrafts[selectedSubmission.submissionId].approvedHours}
 											/>
 										</div>
 										<div class="space-y-2">
-											<label class="text-sm font-medium text-gray-300" for={justificationIdFor(submission.submissionId)}>Hours Justification</label>
+											<label class="text-sm font-medium text-gray-300" for={justificationIdFor(selectedSubmission.submissionId)}>Hours Justification</label>
 											<textarea
-												id={justificationIdFor(submission.submissionId)}
+												id={justificationIdFor(selectedSubmission.submissionId)}
 												class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
 												rows="2"
 												placeholder="Explain the approved hours..."
-												bind:value={submissionDrafts[submission.submissionId].hoursJustification}></textarea>
+												bind:value={submissionDrafts[selectedSubmission.submissionId].hoursJustification}></textarea>
 										</div>
 									</div>
 
@@ -1163,7 +1282,7 @@ function normalizeUrl(url: string | null): string | null {
 											<input
 												type="checkbox"
 												class="w-4 h-4 rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-gray-900"
-												bind:checked={submissionDrafts[submission.submissionId].sendEmailNotification}
+												bind:checked={submissionDrafts[selectedSubmission.submissionId].sendEmailNotification}
 											/>
 											<span class="text-sm font-medium text-gray-300">Send email notification on status change</span>
 										</label>
@@ -1171,43 +1290,43 @@ function normalizeUrl(url: string | null): string | null {
 
 									<div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 										<div class="flex flex-wrap gap-2">
-											{#if submission.approvalStatus !== 'approved'}
+											{#if selectedSubmission.approvalStatus !== 'approved'}
 												<button
 													class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 border border-green-400 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
-													onclick={() => quickApprove(submission)}
-													disabled={submissionSaving[submission.submissionId]}
+													onclick={() => quickApprove(selectedSubmission)}
+													disabled={submissionSaving[selectedSubmission.submissionId]}
 												>
 													✓ Quick Approve
 												</button>
 											{/if}
-											{#if submission.approvalStatus !== 'rejected'}
+											{#if selectedSubmission.approvalStatus !== 'rejected'}
 												<button
 													class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 border border-red-400 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
-													onclick={() => quickDeny(submission.submissionId)}
-													disabled={submissionSaving[submission.submissionId]}
+													onclick={() => quickDeny(selectedSubmission.submissionId)}
+													disabled={submissionSaving[selectedSubmission.submissionId]}
 												>
 													✕ Quick Deny
 												</button>
 											{/if}
 											<button
 												class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
-												onclick={() => saveSubmission(submission.submissionId)}
-												disabled={submissionSaving[submission.submissionId]}
+												onclick={() => saveSubmission(selectedSubmission.submissionId)}
+												disabled={submissionSaving[selectedSubmission.submissionId]}
 											>
-												{submissionSaving[submission.submissionId] ? 'Saving...' : '💾 Save Changes'}
+												{submissionSaving[selectedSubmission.submissionId] ? 'Saving...' : '💾 Save Changes'}
 											</button>
 											<button
 												class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-												onclick={() => setSubmissionDraft(submission, true)}
+												onclick={() => setSubmissionDraft(selectedSubmission, true)}
 											>
 												↺ Reset
 											</button>
 										</div>
 										<div class="text-sm">
-											{#if submissionErrors[submission.submissionId]}
-												<span class="text-red-400">{submissionErrors[submission.submissionId]}</span>
-											{:else if submissionSuccess[submission.submissionId]}
-												<span class="text-green-400">{submissionSuccess[submission.submissionId]}</span>
+											{#if submissionErrors[selectedSubmission.submissionId]}
+												<span class="text-red-400">{submissionErrors[selectedSubmission.submissionId]}</span>
+											{:else if submissionSuccess[selectedSubmission.submissionId]}
+												<span class="text-green-400">{submissionSuccess[selectedSubmission.submissionId]}</span>
 											{/if}
 										</div>
 									</div>

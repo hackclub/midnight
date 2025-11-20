@@ -118,93 +118,177 @@ export class AdminService {
       },
     });
 
-    // Sync approved hours to the project table
+    // Sync data to the project table
+    const projectUpdateData: any = {};
     if (updateSubmissionDto.approvedHours !== undefined) {
+      projectUpdateData.approvedHours = updateSubmissionDto.approvedHours;
+    }
+    if (updateSubmissionDto.approvalStatus === 'approved') {
+      // When approving, update project with submission data
+      projectUpdateData.playableUrl = submission.playableUrl;
+      projectUpdateData.repoUrl = submission.repoUrl;
+      projectUpdateData.screenshotUrl = submission.screenshotUrl;
+      projectUpdateData.description = submission.description;
+    }
+
+    if (Object.keys(projectUpdateData).length > 0) {
       await this.prisma.project.update({
         where: { projectId: submission.projectId },
-        data: {
-          approvedHours: updateSubmissionDto.approvedHours,
-        },
+        data: projectUpdateData,
       });
     }
 
-    // If submission is approved, create Airtable record
-    if (updateSubmissionDto.approvalStatus === 'approved' && !submission.project.airtableRecId) {
-      try {
-        const airtableData = {
-          user: {
-            firstName: submission.project.user.firstName,
-            lastName: submission.project.user.lastName,
-            email: submission.project.user.email,
-            birthday: submission.project.user.birthday,
-            addressLine1: submission.project.user.addressLine1,
-            addressLine2: submission.project.user.addressLine2,
-            city: submission.project.user.city,
-            state: submission.project.user.state,
-            country: submission.project.user.country,
-            zipCode: submission.project.user.zipCode,
-          },
-          project: {
-            projectTitle: submission.project.projectTitle,
-            description: submission.project.description,
-            playableUrl: submission.project.playableUrl,
-            repoUrl: submission.project.repoUrl,
-            screenshotUrl: submission.project.screenshotUrl,
-            nowHackatimeHours: submission.project.nowHackatimeHours,
-            nowHackatimeProjects: submission.project.nowHackatimeProjects,
-          },
-          submission: {
-            description: submission.description,
-            playableUrl: submission.playableUrl,
-            repoUrl: submission.repoUrl,
-            screenshotUrl: submission.screenshotUrl,
-          },
-        };
+    // If submission is approved, handle Airtable sync
+    if (updateSubmissionDto.approvalStatus === 'approved') {
+      const isResubmission = !!submission.project.airtableRecId;
 
-        const airtableResult = await this.airtableService.createYSWSSubmission(airtableData);
+      if (!isResubmission) {
+        // First submission - create Airtable record
+        try {
+          const approvedProjectData = {
+            user: {
+              firstName: submission.project.user.firstName,
+              lastName: submission.project.user.lastName,
+              email: submission.project.user.email,
+              birthday: submission.project.user.birthday,
+              addressLine1: submission.project.user.addressLine1,
+              addressLine2: submission.project.user.addressLine2,
+              city: submission.project.user.city,
+              state: submission.project.user.state,
+              country: submission.project.user.country,
+              zipCode: submission.project.user.zipCode,
+            },
+            project: {
+              playableUrl: submission.playableUrl || submission.project.playableUrl || '',
+              repoUrl: submission.repoUrl || submission.project.repoUrl || '',
+              screenshotUrl: submission.screenshotUrl || submission.project.screenshotUrl || '',
+              approvedHours: updateSubmissionDto.approvedHours || 0,
+              hoursJustification: updateSubmissionDto.hoursJustification || '',
+              description: submission.description || submission.project.description || undefined,
+            },
+          };
 
-        // Update project with Airtable record ID
-        await this.prisma.project.update({
-          where: { projectId: submission.projectId },
-          data: { airtableRecId: airtableResult.recordId },
-        });
+          const airtableResult = await this.airtableService.createApprovedProject(approvedProjectData);
 
-        // Update user with Airtable record ID if not already set
-        if (!submission.project.user.airtableRecId) {
-          await this.prisma.user.update({
-            where: { userId: submission.project.userId },
+          // Update project with Airtable record ID
+          await this.prisma.project.update({
+            where: { projectId: submission.projectId },
             data: { airtableRecId: airtableResult.recordId },
           });
-        }
 
-        // Update Airtable record with approved hours if provided
-        if (updateSubmissionDto.approvedHours !== undefined) {
-          await this.airtableService.updateYSWSSubmission(airtableResult.recordId, {
+          // Update user with Airtable record ID if not already set
+          if (!submission.project.user.airtableRecId) {
+            await this.prisma.user.update({
+              where: { userId: submission.project.userId },
+              data: { airtableRecId: airtableResult.recordId },
+            });
+          }
+        } catch (error) {
+          console.error('Error creating Approved Projects record in Airtable:', error);
+        }
+      } else {
+        // Resubmission - update existing Airtable record
+        try {
+          await this.airtableService.updateApprovedProject(submission.project.airtableRecId, {
+            playableUrl: submission.playableUrl || undefined,
+            repoUrl: submission.repoUrl || undefined,
+            screenshotUrl: submission.screenshotUrl || undefined,
+            description: submission.description || undefined,
             approvedHours: updateSubmissionDto.approvedHours,
             hoursJustification: updateSubmissionDto.hoursJustification,
           });
+        } catch (error) {
+          console.error('Error updating Approved Projects record in Airtable:', error);
+        }
+      }
+    }
+
+    // Send email notification only if explicitly requested (must be explicitly true)
+    // Only send if sendEmail is explicitly set to true (not undefined, not false, not truthy)
+    if (updateSubmissionDto.approvalStatus !== undefined) {
+      const sendEmailValue = updateSubmissionDto.sendEmail;
+      const shouldSendEmail = sendEmailValue === true;
+      
+      console.log(`Submission ${submissionId} approval status update:`, {
+        approvalStatus: updateSubmissionDto.approvalStatus,
+        sendEmail: sendEmailValue,
+        shouldSendEmail,
+        sendEmailType: typeof sendEmailValue,
+      });
+      
+      if (shouldSendEmail) {
+        try {
+          await this.mailService.sendSubmissionReviewEmail(
+            updatedSubmission.project.user.email,
+            {
+              projectTitle: updatedSubmission.project.projectTitle,
+              projectId: updatedSubmission.project.projectId,
+              approved: updateSubmissionDto.approvalStatus === 'approved',
+              approvedHours: updateSubmissionDto.approvedHours,
+              feedback: updateSubmissionDto.hoursJustification,
+            },
+          );
+          console.log(`Email sent for submission ${submissionId} because sendEmail was explicitly true`);
+        } catch (error) {
+          console.error('Error sending submission review email:', error);
+          // Don't throw error here to avoid breaking the submission update
+        }
+      } else {
+        console.log(`Email NOT sent for submission ${submissionId} because sendEmail was not explicitly true (value: ${sendEmailValue}, type: ${typeof sendEmailValue})`);
+      }
+    }
+
+    // Auto-approve pending edit requests when submission is approved
+    if (updateSubmissionDto.approvalStatus === 'approved') {
+      try {
+        const pendingEditRequests = await this.prisma.editRequest.findMany({
+          where: {
+            projectId: submission.projectId,
+            status: 'pending',
+            requestType: 'project_update',
+          },
+        });
+
+        for (const editRequest of pendingEditRequests) {
+          await this.prisma.editRequest.update({
+            where: { requestId: editRequest.requestId },
+            data: {
+              status: 'approved',
+              reviewedBy: adminUserId,
+              reviewedAt: new Date(),
+            },
+          });
         }
       } catch (error) {
-        console.error('Error creating Airtable record:', error);
+        console.error('Error auto-approving edit requests:', error);
         // Don't throw error here to avoid breaking the submission update
       }
     }
 
-    // Send email notification if approval status was updated and sendEmail is true (or undefined for backward compatibility)
-    if (updateSubmissionDto.approvalStatus !== undefined && updateSubmissionDto.sendEmail !== false) {
+    // Auto-reject pending edit requests when submission is rejected
+    if (updateSubmissionDto.approvalStatus === 'rejected') {
       try {
-        await this.mailService.sendSubmissionReviewEmail(
-          updatedSubmission.project.user.email,
-          {
-            projectTitle: updatedSubmission.project.projectTitle,
-            projectId: updatedSubmission.project.projectId,
-            approved: updateSubmissionDto.approvalStatus === 'approved',
-            approvedHours: updateSubmissionDto.approvedHours,
-            feedback: updateSubmissionDto.hoursJustification,
+        const pendingEditRequests = await this.prisma.editRequest.findMany({
+          where: {
+            projectId: submission.projectId,
+            status: 'pending',
+            requestType: 'project_update',
           },
-        );
+        });
+
+        for (const editRequest of pendingEditRequests) {
+          await this.prisma.editRequest.update({
+            where: { requestId: editRequest.requestId },
+            data: {
+              status: 'rejected',
+              reviewedBy: adminUserId,
+              reviewedAt: new Date(),
+              reason: 'Auto-rejected: Submission was rejected',
+            },
+          });
+        }
       } catch (error) {
-        console.error('Error sending submission review email:', error);
+        console.error('Error auto-rejecting edit requests:', error);
         // Don't throw error here to avoid breaking the submission update
       }
     }
@@ -259,26 +343,33 @@ export class AdminService {
       },
     });
 
+    // Update project with new data from submission
     await this.prisma.project.update({
       where: { projectId: submission.projectId },
       data: {
         approvedHours: hackatimeHours,
         hoursJustification: hoursJustification,
+        playableUrl: submission.playableUrl,
+        repoUrl: submission.repoUrl,
+        screenshotUrl: submission.screenshotUrl,
+        description: submission.description,
       },
     });
 
-    if (!submission.project.airtableRecId) {
+    // Check if this is a resubmission (project already has Airtable record)
+    const isResubmission = !!submission.project.airtableRecId;
+
+    if (!isResubmission) {
+      // First submission - create new Airtable record
       try {
-        // Prioritize project.repoUrl over submission.repoUrl to ensure we get the GitHub URL
-        // submission.repoUrl might contain playable URLs incorrectly
-        const repoUrl = submission.project.repoUrl || submission.repoUrl || '';
+        // Prioritize submission data as it's the most recent
+        const repoUrl = submission.repoUrl || submission.project.repoUrl || '';
         const playableUrl = submission.playableUrl || submission.project.playableUrl || '';
-        
-        console.log('Admin service - submission.repoUrl:', submission.repoUrl);
-        console.log('Admin service - submission.project.repoUrl:', submission.project.repoUrl);
-        console.log('Admin service - final repoUrl being passed:', repoUrl);
-        console.log('Admin service - playableUrl being passed:', playableUrl);
-        
+
+        console.log('Admin service - first submission - creating Airtable record');
+        console.log('Admin service - repoUrl:', repoUrl);
+        console.log('Admin service - playableUrl:', playableUrl);
+
         const approvedProjectData = {
           user: {
             firstName: submission.project.user.firstName,
@@ -298,7 +389,7 @@ export class AdminService {
             screenshotUrl: submission.screenshotUrl || submission.project.screenshotUrl || '',
             approvedHours: hackatimeHours,
             hoursJustification: hoursJustification,
-            description: submission.project.description || submission.description || undefined,
+            description: submission.description || submission.project.description || undefined,
           },
         };
 
@@ -318,22 +409,49 @@ export class AdminService {
       } catch (error) {
         console.error('Error creating Approved Projects record in Airtable:', error);
       }
+    } else {
+      // Resubmission - update existing Airtable record
+      try {
+        console.log('Admin service - resubmission - updating Airtable record:', submission.project.airtableRecId);
+
+        await this.airtableService.updateApprovedProject(submission.project.airtableRecId, {
+          playableUrl: submission.playableUrl || undefined,
+          repoUrl: submission.repoUrl || undefined,
+          screenshotUrl: submission.screenshotUrl || undefined,
+          description: submission.description || undefined,
+          approvedHours: hackatimeHours,
+          hoursJustification: hoursJustification,
+        });
+      } catch (error) {
+        console.error('Error updating Approved Projects record in Airtable:', error);
+      }
     }
 
-    // Send email notification
+    // Note: quickApproveSubmission doesn't send email by default
+    // Email should be sent via the regular updateSubmission endpoint with sendEmail flag
+
+    // Auto-approve pending edit requests when submission is approved
     try {
-      await this.mailService.sendSubmissionReviewEmail(
-        updatedSubmission.project.user.email,
-        {
-          projectTitle: updatedSubmission.project.projectTitle,
-          projectId: updatedSubmission.project.projectId,
-          approved: true,
-          approvedHours: hackatimeHours,
-          feedback: hoursJustification,
+      const pendingEditRequests = await this.prisma.editRequest.findMany({
+        where: {
+          projectId: submission.projectId,
+          status: 'pending',
+          requestType: 'project_update',
         },
-      );
+      });
+
+      for (const editRequest of pendingEditRequests) {
+        await this.prisma.editRequest.update({
+          where: { requestId: editRequest.requestId },
+          data: {
+            status: 'approved',
+            reviewedBy: adminUserId,
+            reviewedAt: new Date(),
+          },
+        });
+      }
     } catch (error) {
-      console.error('Error sending submission review email:', error);
+      console.error('Error auto-approving edit requests:', error);
       // Don't throw error here to avoid breaking the submission update
     }
 

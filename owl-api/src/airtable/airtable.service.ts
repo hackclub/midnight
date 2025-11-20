@@ -5,6 +5,7 @@ export class AirtableService {
   private readonly BASE_ID = 'appsibjo37dhUSTQp';
   private readonly YSWS_TABLE_ID = 'tblZEEoz2V2kFJHIk';
   private readonly AIRTABLE_API_KEY = process.env.USER_SERVICE_AIRTABLE_API_KEY;
+  private readonly UNIFIED_YSWS_API_KEY = process.env.UNIFIED_YSWS_AIRTABLE_API_KEY || process.env.USER_SERVICE_AIRTABLE_API_KEY;
 
   async createYSWSSubmission(data: {
     user: {
@@ -278,12 +279,19 @@ export class AirtableService {
         fields['Description'] = data.project.description;
       }
 
+      if (!this.UNIFIED_YSWS_API_KEY) {
+        throw new HttpException(
+          'Airtable API key not configured for Unified YSWS',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
       const response = await fetch(
         `https://api.airtable.com/v0/${UNIFIED_YSWS_BASE_ID}/${APPROVED_PROJECTS_TABLE_ID}`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${this.AIRTABLE_API_KEY}`,
+            Authorization: `Bearer ${this.UNIFIED_YSWS_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -309,6 +317,121 @@ export class AirtableService {
       return { recordId: result.records[0].id };
     } catch (error) {
       console.error('Error creating Approved Projects record:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateApprovedProject(airtableRecId: string, data: {
+    playableUrl?: string;
+    repoUrl?: string;
+    screenshotUrl?: string;
+    description?: string;
+    approvedHours?: number;
+    hoursJustification?: string;
+  }): Promise<void> {
+    const UNIFIED_YSWS_BASE_ID = 'app3A5kJwYqxMLOgh';
+    const APPROVED_PROJECTS_TABLE_ID = 'tblzWWGUYHVH7Zyqf';
+
+    if (!this.UNIFIED_YSWS_API_KEY) {
+      throw new HttpException(
+        'Airtable API key not configured for Unified YSWS',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    try {
+      const fields: any = {};
+
+      if (data.playableUrl !== undefined) {
+        fields['Playable URL'] = data.playableUrl;
+      }
+
+      if (data.repoUrl !== undefined) {
+        fields['Code URL'] = data.repoUrl;
+
+        // Extract and update GitHub username if repo URL changed
+        const extractGithubUsername = (repoUrl: string): string => {
+          if (!repoUrl) return '';
+          const trimmedUrl = repoUrl.trim();
+          if (!trimmedUrl) return '';
+
+          try {
+            const url = new URL(trimmedUrl);
+            if (url.hostname !== 'github.com' && !url.hostname.endsWith('.github.com')) {
+              return '';
+            }
+            const pathParts = url.pathname.split('/').filter(Boolean);
+            if (pathParts.length === 0) return '';
+            return pathParts[0];
+          } catch (error) {
+            return '';
+          }
+        };
+
+        const githubUsername = extractGithubUsername(data.repoUrl);
+        if (githubUsername) {
+          fields['GitHub Username'] = githubUsername;
+        }
+      }
+
+      if (data.screenshotUrl !== undefined) {
+        fields['Screenshot'] = [
+          {
+            url: data.screenshotUrl,
+            filename: `screenshot-${Date.now()}.png`
+          }
+        ];
+      }
+
+      if (data.description !== undefined) {
+        fields['Description'] = data.description;
+      }
+
+      if (data.approvedHours !== undefined) {
+        fields['Override Hours Spent'] = data.approvedHours;
+      }
+
+      if (data.hoursJustification !== undefined) {
+        fields['Override Hours Spent Justification'] = data.hoursJustification;
+      }
+
+      // Only make request if there are fields to update
+      if (Object.keys(fields).length === 0) {
+        return;
+      }
+
+      const response = await fetch(
+        `https://api.airtable.com/v0/${UNIFIED_YSWS_BASE_ID}/${APPROVED_PROJECTS_TABLE_ID}/${airtableRecId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${this.UNIFIED_YSWS_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Airtable update error:', errorData);
+        throw new HttpException(
+          'Failed to update Approved Projects record',
+          response.status || HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      console.log(`Successfully updated Airtable record ${airtableRecId} in Approved Projects table`);
+    } catch (error) {
+      console.error('Error updating Approved Projects record:', error);
       if (error instanceof HttpException) {
         throw error;
       }

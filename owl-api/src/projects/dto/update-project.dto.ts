@@ -34,4 +34,9 @@ export class UpdateProjectDto {
   @ArrayMinSize(1)
   @IsString({ each: true })
   nowHackatimeProjects?: string[];
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  editRequestReason?: string;
 }

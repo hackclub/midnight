@@ -79,6 +79,7 @@ export type Project = {
   repoUrl: string | null;
   playableUrl: string | null;
   screenshotUrl: string | null;
+  isLocked: boolean;
   submissions: {
     submissionId: number;
     approvedHours: number | null;

@@ -88,6 +88,9 @@
 
   .back-button {
     margin-bottom: 30px;
+    position: sticky;
+    top: 57px;
+    z-index: 10;
   }
 
   .project-overview {

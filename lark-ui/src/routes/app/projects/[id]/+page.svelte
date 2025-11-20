@@ -1,8 +1,5 @@
 <script lang="ts">
-  import type { Project, User } from '$lib/auth';
   import Button from '$lib/Button.svelte';
-  import ProjectCardPreview from '$lib/cards/ProjectCardPreview.svelte';
-  import { getContext } from 'svelte';
   import { goto } from '$app/navigation';
   import { projectPageState } from './state.svelte';
 
@@ -61,7 +58,7 @@
       </p>
 
       {#if projectPageState.project?.submissions && projectPageState.project.submissions.length > 0}
-        {@const submission = projectPageState.project.submissions[0]}
+        {@const submission = projectPageState.project.submissions[projectPageState.project.submissions.length - 1]}
         {@const status = submission.approvalStatus}
         <div class="tracking-container">
           <div class="tracking-header">
@@ -146,11 +143,21 @@
 
 {#if projectPageState.user && projectPageState.user.hackatimeAccount}
       {#if projectPageState.project?.submissions && projectPageState.project.submissions.length > 0}
+        {@const latestSubmission = projectPageState.project.submissions[projectPageState.project.submissions.length - 1]}
         <div class="submit-section">
-          <Button
-            label="Submiited"
-            disabled
-          />
+          {#if latestSubmission.approvalStatus === 'approved'}
+            <Button label="RE-SUBMIT" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/submit`)}/>
+          {:else if latestSubmission.approvalStatus === 'rejected'}
+            <Button label="RE-SUBMIT" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/submit`)}/>
+          {:else}
+            <Button
+              label="Submitted"
+              disabled
+            />
+          {/if}
+          {#if projectPageState.project.isLocked}
+            <Button label="REQUEST CHANGES" icon="edit" color="blue" onclick={() => goto(`/app/projects/${projectPageState.project?.projectId}/request-changes`)}/>
+          {/if}
         </div>
       {:else if projectPageState.project?.nowHackatimeProjects && projectPageState.project.nowHackatimeProjects.length > 0}
         <div class="submit-section">
