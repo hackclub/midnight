@@ -42,10 +42,10 @@ export class AdminController {
   @Roles(Role.Admin)
   async quickApproveSubmission(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { userFeedback?: string; hoursJustification?: string },
+    @Body() body: { userFeedback?: string; hoursJustification?: string; approvedHours?: number },
     @Req() req: Request,
   ) {
-    return this.adminService.quickApproveSubmission(id, req.user.userId, body.hoursJustification, body.userFeedback);
+    return this.adminService.quickApproveSubmission(id, req.user.userId, body.hoursJustification, body.userFeedback, body.approvedHours);
   }
 
   @Put('projects/:id/unlock')

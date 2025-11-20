@@ -418,13 +418,14 @@ async function recalculateAllProjectsHours() {
 		const draft = submissionDrafts[submission.submissionId];
 		const userFeedback = draft?.userFeedback || '';
 		const hoursJustification = draft?.hoursJustification || '';
+		const approvedHours = draft?.approvedHours ? parseFloat(draft.approvedHours) : null;
 
 		try {
 			const response = await fetch(`${apiUrl}/api/admin/submissions/${submission.submissionId}/quick-approve`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				credentials: 'include',
-				body: JSON.stringify({ userFeedback, hoursJustification }),
+				body: JSON.stringify({ userFeedback, hoursJustification, approvedHours }),
 			});
 
 			if (!response.ok) {

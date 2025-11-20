@@ -310,7 +310,7 @@ export class AdminService {
     return updatedSubmission;
   }
 
-  async quickApproveSubmission(submissionId: number, adminUserId: number, providedJustification?: string, userFeedback?: string) {
+  async quickApproveSubmission(submissionId: number, adminUserId: number, providedJustification?: string, userFeedback?: string, providedApprovedHours?: number) {
     const submission = await this.prisma.submission.findUnique({
       where: { submissionId },
       include: {
@@ -326,13 +326,17 @@ export class AdminService {
       throw new NotFoundException('Submission not found');
     }
 
+    // Use provided approved hours if available, otherwise fall back to hackatime hours
     const hackatimeHours = submission.project.nowHackatimeHours || 0;
-    const autoJustification = `Quick approved with ${hackatimeHours.toFixed(1)} Hackatime hours tracked on Midnight project.`;
+    const approvedHours = providedApprovedHours !== undefined && providedApprovedHours !== null
+      ? providedApprovedHours
+      : hackatimeHours;
+    const autoJustification = `Quick approved with ${approvedHours.toFixed(1)} hours.`;
     const adminHoursJustification = providedJustification || autoJustification;
 
     const updateData: any = {
       approvalStatus: 'approved',
-      approvedHours: hackatimeHours,
+      approvedHours: approvedHours,
       hoursJustification: userFeedback || '',
       reviewedBy: adminUserId.toString(),
       reviewedAt: new Date(),
@@ -360,7 +364,7 @@ export class AdminService {
     await this.prisma.project.update({
       where: { projectId: submission.projectId },
       data: {
-        approvedHours: hackatimeHours,
+        approvedHours: approvedHours,
         hoursJustification: adminHoursJustification,
         playableUrl: submission.playableUrl,
         repoUrl: submission.repoUrl,
@@ -399,7 +403,7 @@ export class AdminService {
             playableUrl: playableUrl,
             repoUrl: repoUrl,
             screenshotUrl: submission.screenshotUrl || submission.project.screenshotUrl || '',
-            approvedHours: hackatimeHours,
+            approvedHours: approvedHours,
             hoursJustification: adminHoursJustification,
             description: submission.description || submission.project.description || undefined,
           },
@@ -431,7 +435,7 @@ export class AdminService {
           repoUrl: submission.repoUrl || undefined,
           screenshotUrl: submission.screenshotUrl || undefined,
           description: submission.description || undefined,
-          approvedHours: hackatimeHours,
+          approvedHours: approvedHours,
           hoursJustification: adminHoursJustification,
         });
       } catch (error) {
