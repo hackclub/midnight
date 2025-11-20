@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.5.0...lark-ui-v1.5.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* remove "request changes" section ([066828c](https://github.com/hackclub/midnight/commit/066828cc5f0ab5a7365c3a94a9a46e257535085b))
+
 ## [1.5.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.4.1...lark-ui-v1.5.0) (2025-11-20)
 
 
