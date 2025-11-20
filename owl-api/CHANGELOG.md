@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/hackclub/midnight/compare/owl-api-v1.6.0...owl-api-v1.6.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* make admin panel override hours ([b3a76b0](https://github.com/hackclub/midnight/commit/b3a76b00e8dc899f5b7ec413dcbb0eeb8e87b2c6))
+
 ## [1.6.0](https://github.com/hackclub/midnight/compare/owl-api-v1.5.0...owl-api-v1.6.0) (2025-11-20)
 
 
