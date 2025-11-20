@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.4.1...lark-ui-v1.5.0) (2025-11-20)
+
+
+### Features
+
+* add resubmit workflow ([d815bfd](https://github.com/hackclub/midnight/commit/d815bfdeee601dfb3ff514e0cc96ae915a9a4bf1))
+
 ## [1.4.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.4.0...lark-ui-v1.4.1) (2025-11-19)
 
 
