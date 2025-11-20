@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.5.1...lark-ui-v1.6.0) (2025-11-20)
+
+
+### Features
+
+* add user feedback field ([7754cff](https://github.com/hackclub/midnight/commit/7754cfff3d16bfc0a3f77ee4aec39be9097e08d6))
+
 ## [1.5.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.5.0...lark-ui-v1.5.1) (2025-11-20)
 
 
