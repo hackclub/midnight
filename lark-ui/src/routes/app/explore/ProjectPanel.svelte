@@ -42,19 +42,21 @@
 			<div class="flex flex-col justify-center w-[45vw] gap-[0vh] font-['PT_Serif',_serif]">
 				<div class="relative">
 					<h1
-						class="text-[10vh] leading-[10vh] font-extrabold mb-[3vh] font-['Moga',_sans-serif] text-black absolute top-[0.5vh] left-[-0.25vw] z-[-1]"
+						class="text-[10vh] leading-[10vh] font-extrabold mb-[3vh] font-['Moga',_sans-serif] text-black absolute top-[0.5vh] left-[-0.25vw] z-[-1] break-words overflow-hidden"
+						style="max-width: 45vw; word-wrap: break-word;"
 					>
 						{selectedProject.name}
 					</h1>
 					<h1
-						class="text-[10vh] leading-[10vh] font-extrabold mb-[3vh] font-['Moga',_sans-serif] text-[#fee1c0]"
+						class="text-[10vh] leading-[10vh] font-extrabold mb-[3vh] font-['Moga',_sans-serif] text-[#fee1c0] break-words overflow-hidden"
+						style="max-width: 45vw; word-wrap: break-word;"
 					>
 						{selectedProject.name}
 					</h1>
 				</div>
 
 				<div class="flex items-center justify-start text-white font-extrabold font-sans gap-[0.5vw] mb-[1.5vh]">
-					<p class="bg-[#54a0f1] text-black border-2 border-black rounded-full py-[0.5vh] px-[1.5vw]">4 hours</p>
+					<p class="bg-[#54a0f1] text-black border-2 border-black rounded-full py-[0.5vh] px-[1.5vw]">{selectedProject.approvedHours ? `${selectedProject.approvedHours} hours` : 'No hours'}</p>
 					<p class="bg-[#54a0f1] text-black border-2 border-black rounded-full py-[0.5vh] px-[1.5vw]">2 weeks ago</p>
 				</div>
 
@@ -63,8 +65,12 @@
 				</p>
 
 				<div class="flex items-center justify-start text-white font-extrabold font-sans gap-[0.5vw] mb-[1.5vh] mt-[1vh]">
-					<p class="bg-neutral-900/30 cursor-pointer text-[#fee1c0] rounded-[0.2vh] py-[0.5vh] px-[1.5vw]">Github</p>
-					<p class="bg-neutral-900/30 cursor-pointer text-[#fee1c0] rounded-[0.2vh] py-[0.5vh] px-[1.5vw]">Live Demo</p>
+					{#if selectedProject.repoUrl}
+						<a href={selectedProject.repoUrl} target="_blank" rel="noopener noreferrer" class="bg-neutral-900/30 cursor-pointer text-[#fee1c0] rounded-[0.2vh] py-[0.5vh] px-[1.5vw] hover:bg-neutral-800/50 transition-colors">Github</a>
+					{/if}
+					{#if selectedProject.playableUrl}
+						<a href={selectedProject.playableUrl} target="_blank" rel="noopener noreferrer" class="bg-neutral-900/30 cursor-pointer text-[#fee1c0] rounded-[0.2vh] py-[0.5vh] px-[1.5vw] hover:bg-neutral-800/50 transition-colors">Live Demo</a>
+					{/if}
 				</div>
 
 				{#if isRandomMode}

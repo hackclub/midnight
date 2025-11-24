@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Body, Param, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, UseGuards, Req, ParseIntPipe, Query } from '@nestjs/common';
 import { Request } from 'express';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -7,9 +7,25 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateHackatimeProjectsDto } from './dto/update-hackatime-projects.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
+@Controller('api/projects')
+export class ProjectsController {
+  constructor(private projectsService: ProjectsService) {}
+
+  @Get('approved')
+  async getApprovedProjects() {
+    return this.projectsService.getApprovedProjects();
+  }
+
+  @Get('leaderboard')
+  async getLeaderboard(@Query('sortBy') sortBy?: string) {
+    const sortType = sortBy === 'approved' ? 'approved' : 'hours';
+    return this.projectsService.getLeaderboard(sortType);
+  }
+}
+
 @Controller('api/projects/auth')
 @UseGuards(AuthGuard)
-export class ProjectsController {
+export class ProjectsAuthController {
   constructor(private projectsService: ProjectsService) {}
 
   @Post()
