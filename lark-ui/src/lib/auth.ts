@@ -352,3 +352,19 @@ export async function getHourCounts(fetchFn: FetchFunction = fetch) {
     approvedHours
   };
 }
+
+//recalculate hour counts
+export async function recalculateHourCounts(fetchFn: FetchFunction = fetch) {
+  const response = await fetchFn(`${apiUrl}/api/user/projects/now-hackatime-hours/recalculate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data;
+  } else {
+    return null;
+  }
+}
