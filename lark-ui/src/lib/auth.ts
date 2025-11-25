@@ -368,3 +368,59 @@ export async function recalculateHourCounts(fetchFn: FetchFunction = fetch) {
     return null;
   }
 }
+
+export type ApprovedProject = {
+  projectId: number;
+  projectTitle: string;
+  description: string;
+  screenshotUrl: string | null;
+  playableUrl: string | null;
+  repoUrl: string | null;
+  approvedHours: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function getApprovedProjects(fetchFn: FetchFunction = fetch): Promise<ApprovedProject[]> {
+  if (!apiUrl) {
+    throw new Error('API URL is not configured');
+  }
+
+  const response = await fetchFn(`${apiUrl}/api/projects/approved`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (response.ok) {
+    const projects = await response.json();
+    return projects as ApprovedProject[];
+  } else {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch approved projects: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+}
+
+export type LeaderboardEntry = {
+  firstName: string;
+  hours: number;
+  approved: number;
+};
+
+export async function getLeaderboard(sortBy: 'hours' | 'approved' = 'hours', fetchFn: FetchFunction = fetch): Promise<LeaderboardEntry[]> {
+  if (!apiUrl) {
+    throw new Error('API URL is not configured');
+  }
+
+  const response = await fetchFn(`${apiUrl}/api/projects/leaderboard?sortBy=${sortBy}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (response.ok) {
+    const leaderboard = await response.json();
+    return leaderboard as LeaderboardEntry[];
+  } else {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch leaderboard: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+}

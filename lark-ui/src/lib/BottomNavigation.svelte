@@ -13,7 +13,9 @@
   } = $props();
  
   let activeTab = $derived.by(() => {
+    if (!page) return 'create';
     if (page.startsWith('/app/projects')) return 'create';
+    if (page.startsWith('/app/explore')) return 'explore';
     if (page.startsWith('/app/settings')) return 'settings';
     return 'create';
   });
@@ -44,7 +46,7 @@
   }
   
   function navigateTo(tab: string) {
-    if ((tab === 'explore' || tab === 'shop')) {
+    if (tab === 'shop') {
       handleLockedClick(tab);
       return;
     }
@@ -81,7 +83,7 @@
         Create
       </button>
       <button 
-        class="nav-item {true ? 'disabled' : 'enabled'}" 
+        class="nav-item enabled" 
         class:active={activeTab === 'explore'}
         class:shake={shakingTab === 'explore'}
         onclick={() => navigateTo('explore')}
@@ -89,9 +91,6 @@
         aria-selected={activeTab === 'explore'}
       >
         Explore
-        <!-- {#if onboarding} -->
-          <img class="lock" src="/icons/lock.svg" alt="Lock" />
-        <!-- {/if} -->
       </button>
       <button 
         class="nav-item {true ? 'disabled' : 'enabled'}" 

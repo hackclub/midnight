@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.6.1...lark-ui-v1.7.0) (2025-11-24)
+
+
+### Features
+
+* add explore page ([#41](https://github.com/hackclub/midnight/issues/41)) ([035f99d](https://github.com/hackclub/midnight/commit/035f99d5a918dd62005187722eb23bd0f9704a01))
+
+
+### Bug Fixes
+
+* connect explore page to backend ([5045c9f](https://github.com/hackclub/midnight/commit/5045c9f67e37a00c123d4ff103c4e5a9bbaf5f6a))
+
 ## [1.6.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.6.0...lark-ui-v1.6.1) (2025-11-20)
 
 

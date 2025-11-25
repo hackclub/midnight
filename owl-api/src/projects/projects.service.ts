@@ -680,4 +680,65 @@ export class ProjectsService {
     }
     return age;
   }
+
+  async getApprovedProjects() {
+    const projects = await this.prisma.project.findMany({
+      where: {
+        approvedHours: {
+          gt: 0,
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return projects.map((project) => ({
+      projectId: project.projectId,
+      projectTitle: project.projectTitle,
+      description: project.description || '',
+      screenshotUrl: project.screenshotUrl || null,
+      playableUrl: project.playableUrl || null,
+      repoUrl: project.repoUrl || null,
+      approvedHours: project.approvedHours || null,
+      createdAt: project.createdAt.toISOString(),
+      updatedAt: project.updatedAt.toISOString(),
+    }));
+  }
+
+  async getLeaderboard(sortBy: 'hours' | 'approved' = 'hours') {
+    const users = await this.prisma.user.findMany({
+      include: {
+        projects: {
+          select: {
+            nowHackatimeHours: true,
+            approvedHours: true,
+          },
+        },
+      },
+    });
+
+    const leaderboard = users
+      .map((user) => {
+        const totalHours = user.projects.reduce(
+          (sum, project) => sum + (project.nowHackatimeHours || 0),
+          0,
+        );
+        const approvedHours = user.projects.reduce(
+          (sum, project) => sum + (project.approvedHours || 0),
+          0,
+        );
+
+        return {
+          firstName: user.firstName,
+          hours: Math.round(totalHours * 10) / 10,
+          approved: Math.round(approvedHours * 10) / 10,
+        };
+      })
+      .filter((entry) => (sortBy === 'hours' ? entry.hours > 0 : entry.approved > 0))
+      .sort((a, b) => (sortBy === 'hours' ? b.hours - a.hours : b.approved - a.approved))
+      .slice(0, 10);
+
+    return leaderboard;
+  }
 }
