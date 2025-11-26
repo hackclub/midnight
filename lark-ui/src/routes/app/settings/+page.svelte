@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { checkAuthStatus, updateUser, type User } from "$lib/auth";
+    import { checkAuthStatus, recalculateHourCounts, updateUser, type User } from "$lib/auth";
     import Button from "$lib/Button.svelte";
 
     let user: User | null = $state<User | null>(null);
@@ -40,6 +40,10 @@
         setTimeout(() => {
             updated = false;
         }, 3000);
+    }
+
+    async function recalculateHours() {
+        await recalculateHourCounts();
     }
 </script>
 
@@ -81,6 +85,12 @@
             <Button label={updating ? "Updating..." : updated ? "Updated!" : "Update"} disabled={updating} color={updating ? "blue" : updated ? "blue" : "red"} type='submit' />
         </div>
     </form>
+
+    <div class="details">
+        <h2 class="details-header">Hours Recalculation</h2>
+        <p class="details-text">Do your hours seem wrong? Recalculate your hours here.</p>
+        <Button label="Recalculate Hours" color="blue" onclick={recalculateHours} />
+    </div>
 </div>
 
 <style>
