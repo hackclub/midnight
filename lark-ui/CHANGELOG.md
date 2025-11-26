@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.7.0...lark-ui-v1.8.0) (2025-11-26)
+
+
+### Features
+
+* add recalculate button ([#43](https://github.com/hackclub/midnight/issues/43)) ([6352389](https://github.com/hackclub/midnight/commit/6352389778d1ddce3f15c6f247183cfe3ef524d1))
+
 ## [1.7.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.6.1...lark-ui-v1.7.0) (2025-11-24)
 
 
