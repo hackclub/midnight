@@ -412,6 +412,7 @@
       {#if requestingOTP} 
         <form
           class="flex flex-col w-full items-center justify-center h-full mt-6"
+          onsubmit={(e) => { e.preventDefault(); sendOTP(); }}
         >
           <div class="flex flex-col gap-[1.5vh] w-full max-w-[400px]">
             <label
@@ -432,7 +433,7 @@
               placeholder="wdaniel@gmail.com"
             />
 
-            <Button label={isSubmitting ? "sending..." : "Next →"} disabled={isSubmitting} onclick={sendOTP}/>
+            <Button label={isSubmitting ? "sending..." : "Next →"} disabled={isSubmitting} type="submit"/>
 
             {#if error}
               <p
