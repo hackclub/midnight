@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/hackclub/midnight/compare/owl-api-v1.6.2...owl-api-v1.6.3) (2025-12-03)
+
+
+### Bug Fixes
+
+* remove hours justification from api response ([71ccf5f](https://github.com/hackclub/midnight/commit/71ccf5f2fac1ea4c030afaeb79a439028886fb69))
+
 ## [1.6.2](https://github.com/hackclub/midnight/compare/owl-api-v1.6.1...owl-api-v1.6.2) (2025-11-24)
 
 
