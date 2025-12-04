@@ -66,7 +66,7 @@
                 {formattedApprovedHours} HOuRS <span class="approved">APPROVED</span>
             </p>
         {/if}
-        {#if rawTotalHours > rawApprovedHours}
+        {#if rawTotalHours > rawApprovedHours && rawApprovedHours < 50}
             <p
                 class="key"
                 style="width: {reviewPercentage * 100}%"
@@ -75,7 +75,7 @@
                 <span class="hackatime">PENDING FOR REVIEW</span>
             </p>
         {/if}
-        {#if remainingHours > 0}
+        {#if remainingHours > 0 && rawApprovedHours < 50}
             <p
                 class="key"
                 style="width: {remainingPercentage * 100}%"
