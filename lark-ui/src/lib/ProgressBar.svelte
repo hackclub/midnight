@@ -63,7 +63,7 @@
     <div class="progress-key">
         {#if rawApprovedHours > 0}
             <p class="key" style="width: {approvedPercentage * 100}%">
-                {rawApprovedHours} HOuRS <span class="approved">APPROVED</span>
+                {formattedApprovedHours} HOuRS <span class="approved">APPROVED</span>
             </p>
         {/if}
         {#if rawTotalHours > rawApprovedHours}
@@ -71,7 +71,7 @@
                 class="key"
                 style="width: {reviewPercentage * 100}%"
             >
-                {rawTotalHours - rawApprovedHours} HOuRS
+                {formattedPendingHours} HOuRS
                 <span class="hackatime">PENDING FOR REVIEW</span>
             </p>
         {/if}
