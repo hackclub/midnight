@@ -1,0 +1,1 @@
+<a href="https://forms.hackclub.com/t/naF11efv2Nus" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">Visa Letter Form</a>           <a href="https://forms.hackclub.com/t/7yC7uKY69Mus" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">School Excuse Letter Form</a> 
