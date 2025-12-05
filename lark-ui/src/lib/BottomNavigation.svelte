@@ -62,9 +62,11 @@
       case 'shop':
         goto('/app/shop');
         break;
+      case 'faq':
+        goto('/faq');
+        break;
     }
   }
-
 
 </script>
 
@@ -104,6 +106,15 @@
         <!-- {#if onboarding} -->
           <img class="lock" src="/icons/lock.svg" alt="Lock" />
         <!-- {/if} -->
+      </button>
+      <button
+        class="nav-item enabled"
+        onclick={() => navigateTo('faq')}
+        class:active={activeTab === 'faq'}
+        role="tab"
+        aria-selected={activeTab === 'faq'}
+      >
+        FAQ
       </button>
     </div>
     <div class="tray">
