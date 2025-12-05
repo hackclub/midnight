@@ -68,8 +68,6 @@
           <div class="h-[1px] bg-black my-4"></div>
 
           <a href="https://docs.google.com/document/d/1QN19MK9OBo85iW-dVQn3uU2sy78u8UEzAOTBj8C-Fs4/edit?tab=t.0" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">Parent's Guide</a>
-          <a href="https://forms.hackclub.com/t/naF11efv2Nus" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">Visa Letter Form</a>
-          <a href="https://forms.hackclub.com/t/7yC7uKY69Mus" target="_blank" class="text-[16px] text-[#1385F0] font-['PT_Sans',_sans-serif]">School Excuse Letter Form</a>
         </div>
       </aside>
 
