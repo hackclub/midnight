@@ -2,6 +2,7 @@
   import BottomNavigation from '$lib/BottomNavigation.svelte';
   import { navigating } from '$app/state';
   import { page } from '$app/state';
+    import { onMount } from 'svelte';
 
   let { children } = $props();
 

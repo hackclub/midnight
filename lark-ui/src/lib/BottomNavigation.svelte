@@ -1,14 +1,13 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-  import { getReferralCode, type User } from './auth';
+  import { checkAuthStatus, getReferralCode, type User } from './auth';
   import { getHourCounts } from './auth';
 
-  type Tab = 'create' | 'explore' | 'shop' | 'settings';
+  type Tab = 'create' | 'explore' | 'shop' | 'settings' | 'faq' | 'travel';
 
-  const { page, onboarding = false, user }: {
+  const { page, user }: {
     page: string;
-    onboarding?: boolean;
     user?: User;
   } = $props();
  
@@ -18,6 +17,7 @@
     if (page.startsWith('/app/explore')) return 'explore';
     if (page.startsWith('/app/shop')) return 'shop';
     if (page.startsWith('/app/settings')) return 'settings';
+    if (page.startsWith('/app/travel')) return 'travel';
     return 'create';
   });
   
@@ -46,8 +46,13 @@
     }, 4000);
   }
   
-  function navigateTo(tab: string) {
+  function navigateTo(tab: Tab) {
     if (tab === 'shop' && onboarding) {
+      handleLockedClick(tab);
+      return;
+    }
+
+    if (tab == 'travel' && travelLocked) {
       handleLockedClick(tab);
       return;
     }
@@ -63,13 +68,25 @@
       case 'shop':
         goto('/app/shop');
         break;
-      case 'settings':
-        goto('/app/settings');
+      case 'faq':
+        goto('/faq');
+        break;
+      case 'travel':
+        goto('/app/travel');
         break;
     }
   }
 
+  let onboarding = $state(true);
+  let travelLocked = $state(false);
 
+  onMount(async () => {
+    const user = await checkAuthStatus();
+    onboarding = user ? !user.onboardComplete : true; 
+
+    const hours = await getHourCounts();
+    travelLocked = hours.approvedHours < 10;
+  })
 </script>
 
 <div class="bottom-navigation">
@@ -106,6 +123,28 @@
       >
         Shop
         {#if onboarding}
+          <img class="lock" src="/icons/lock.svg" alt="Lock" />
+        {/if}
+      </button>
+      <button
+        class="nav-item enabled"
+        onclick={() => navigateTo('faq')}
+        class:active={activeTab === 'faq'}
+        role="tab"
+        aria-selected={activeTab === 'faq'}
+      >
+        FAQ
+      </button>
+      <button
+        class="nav-item {travelLocked ? 'disabled' : 'enabled'}"
+        onclick={() => navigateTo('travel')}
+        class:active={activeTab === 'travel'}
+        class:shake={shakingTab === 'travel'}
+        role="tab"
+        aria-selected={activeTab === 'travel'}
+      >
+        TRAVEL
+        {#if travelLocked}
           <img class="lock" src="/icons/lock.svg" alt="Lock" />
         {/if}
       </button>
