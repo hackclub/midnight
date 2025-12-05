@@ -16,6 +16,7 @@
     if (!page) return 'create';
     if (page.startsWith('/app/projects')) return 'create';
     if (page.startsWith('/app/explore')) return 'explore';
+    if (page.startsWith('/app/shop')) return 'shop';
     if (page.startsWith('/app/settings')) return 'settings';
     return 'create';
   });
@@ -46,7 +47,7 @@
   }
   
   function navigateTo(tab: string) {
-    if (tab === 'shop') {
+    if (tab === 'shop' && onboarding) {
       handleLockedClick(tab);
       return;
     }
@@ -95,7 +96,7 @@
         Explore
       </button>
       <button 
-        class="nav-item {true ? 'disabled' : 'enabled'}" 
+        class="nav-item {onboarding ? 'disabled' : 'enabled'}" 
         class:active={activeTab === 'shop'}
         class:shake={shakingTab === 'shop'}
         onclick={() => navigateTo('shop')}
@@ -103,9 +104,9 @@
         aria-selected={activeTab === 'shop'}
       >
         Shop
-        <!-- {#if onboarding} -->
+        {#if onboarding}
           <img class="lock" src="/icons/lock.svg" alt="Lock" />
-        <!-- {/if} -->
+        {/if}
       </button>
       <button
         class="nav-item enabled"
