@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.9.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.8.0...lark-ui-v1.9.0) (2025-12-05)
+
+
+### Features
+
+* add enter key support to email signup/login section ([#46](https://github.com/hackclub/midnight/issues/46)) ([31f435a](https://github.com/hackclub/midnight/commit/31f435a3c0cddca8826c2c499c3c009c8822f651))
+* fix recalculation section ([#52](https://github.com/hackclub/midnight/issues/52)) ([925330a](https://github.com/hackclub/midnight/commit/925330aabf687f71b697ca57a49cc7e714c41d59))
+* init shop ([#50](https://github.com/hackclub/midnight/issues/50)) ([5550b16](https://github.com/hackclub/midnight/commit/5550b16d7183b9294a844966fcaa01c837e21f6c))
+* update faq + add to platform ([#51](https://github.com/hackclub/midnight/issues/51)) ([e6496dd](https://github.com/hackclub/midnight/commit/e6496ddca8b9fb98b86acbd83ee82f575d245add))
+
+
+### Bug Fixes
+
+* progress bar rendering ([#48](https://github.com/hackclub/midnight/issues/48)) ([4a13eb9](https://github.com/hackclub/midnight/commit/4a13eb96cfc91125553b1d301048c9d9282eebc4))
+
 ## [1.8.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.7.0...lark-ui-v1.8.0) (2025-11-26)
 
 
