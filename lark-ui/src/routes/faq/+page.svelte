@@ -100,7 +100,7 @@
             When and where is this happening?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            Midnight is happening in Vienna, Austria on January x-x. Exact program times and locations will be released closer to the event.
+            Midnight is happening in Vienna, Austria on January 4-8. The exact location will be released closer to the event.
           </p>
         </section>
 
