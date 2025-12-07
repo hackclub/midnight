@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.4](https://github.com/hackclub/midnight/compare/owl-api-v1.6.3...owl-api-v1.6.4) (2025-12-07)
+
+
+### Bug Fixes
+
+* use crypto random for otp ([b3b26ae](https://github.com/hackclub/midnight/commit/b3b26aec6f4dc0a8d58d339f17de9c0ac322208c))
+
 ## [1.6.3](https://github.com/hackclub/midnight/compare/owl-api-v1.6.2...owl-api-v1.6.3) (2025-12-03)
 
 

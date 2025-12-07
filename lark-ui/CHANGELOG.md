@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.9.0...lark-ui-v1.9.1) (2025-12-07)
+
+
+### Bug Fixes
+
+* change midnight dates ([9ea1478](https://github.com/hackclub/midnight/commit/9ea1478891d02f3666539a92350ebc9aa3f782db))
+
 ## [1.9.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.8.0...lark-ui-v1.9.0) (2025-12-05)
 
 
