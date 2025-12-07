@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.9.1...lark-ui-v1.10.0) (2025-12-07)
+
+
+### Features
+
+* add delete button ([7615c0d](https://github.com/hackclub/midnight/commit/7615c0dc381f198894be369c10550599f78bb058))
+
 ## [1.9.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.9.0...lark-ui-v1.9.1) (2025-12-07)
 
 

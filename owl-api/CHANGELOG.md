@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/hackclub/midnight/compare/owl-api-v1.6.4...owl-api-v1.7.0) (2025-12-07)
+
+
+### Features
+
+* add delete button ([7615c0d](https://github.com/hackclub/midnight/commit/7615c0dc381f198894be369c10550599f78bb058))
+
 ## [1.6.4](https://github.com/hackclub/midnight/compare/owl-api-v1.6.3...owl-api-v1.6.4) (2025-12-07)
 
 
