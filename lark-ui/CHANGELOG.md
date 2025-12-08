@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.10.0...lark-ui-v1.11.0) (2025-12-08)
+
+
+### Features
+
+* add store ([1bd0c87](https://github.com/hackclub/midnight/commit/1bd0c87e699471d3c839b171e2beaa918b71d55a))
+
 ## [1.10.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.9.1...lark-ui-v1.10.0) (2025-12-07)
 
 

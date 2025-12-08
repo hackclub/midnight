@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/hackclub/midnight/compare/owl-api-v1.7.0...owl-api-v1.8.0) (2025-12-08)
+
+
+### Features
+
+* add store ([1bd0c87](https://github.com/hackclub/midnight/commit/1bd0c87e699471d3c839b171e2beaa918b71d55a))
+
 ## [1.7.0](https://github.com/hackclub/midnight/compare/owl-api-v1.6.4...owl-api-v1.7.0) (2025-12-07)
 
 
