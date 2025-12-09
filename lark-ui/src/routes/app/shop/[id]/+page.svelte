@@ -158,7 +158,6 @@
                     {/if}
                     {#if specialAction === 'midnight_ticket'}
                         <div class="special-action-card">
-                            <div class="special-icon">✉️</div>
                             <h3 class="special-title">Check Your Email!</h3>
                             <p class="special-text">
                                 We've sent your Midnight ticket confirmation to your email address. 
@@ -383,41 +382,25 @@
     }
 
     .special-action-card {
-        background: linear-gradient(135deg, #2d5a3d 0%, #1a3d2a 100%);
-        border: 2px solid #4ade80;
-        border-radius: 16px;
-        padding: 32px;
-        text-align: center;
-        animation: pulse-glow 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-glow {
-        0%, 100% {
-            box-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
-        }
-        50% {
-            box-shadow: 0 0 40px rgba(74, 222, 128, 0.5);
-        }
-    }
-
-    .special-icon {
-        font-size: 64px;
-        margin-bottom: 16px;
+        background: #5E5087;
+        border: 2px solid black;
+        border-radius: 12px;
+        padding: 24px;
     }
 
     .special-title {
         font-family: "PT Serif", serif;
-        font-size: 32px;
+        font-size: 28px;
         font-weight: bold;
-        color: #4ade80;
-        margin: 0 0 16px;
+        color: #fee1c0;
+        margin: 0 0 12px;
     }
 
     .special-text {
         font-family: "PT Sans", sans-serif;
         font-size: 18px;
-        color: rgba(255, 255, 255, 0.9);
+        color: white;
         margin: 0;
-        line-height: 1.6;
+        line-height: 1.5;
     }
 </style>

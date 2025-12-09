@@ -189,6 +189,16 @@ export class ShopService {
       throw new BadRequestException('This item is no longer available');
     }
 
+    if (item.itemId === 1) {
+      const existingPurchase = await this.prisma.transaction.findFirst({
+        where: { userId, itemId: 1 },
+      });
+
+      if (existingPurchase) {
+        throw new BadRequestException('You have already purchased a Midnight ticket');
+      }
+    }
+
     let cost = item.cost;
     let variant = null;
     let description = item.name;
@@ -256,7 +266,7 @@ export class ShopService {
 
           if (user && user.email) {
             console.log('[Midnight Ticket] Sending request to attend API...');
-            const response = await fetch('https://attend.hackclub.com/api/v1/participants', {
+            const response = await fetch('https://attend.hackclub.com/api/v1/events/80acf8b8-8d7d-4ff6-9311-14edcff613b3/participants', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${attendApiKey}`,

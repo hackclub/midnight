@@ -542,7 +542,7 @@ export async function purchaseShopItem(itemId: number, variantId?: number, fetch
   if (response.ok) {
     return { success: true, transaction: data.transaction, newBalance: data.newBalance, specialAction: data.specialAction };
   }
-  return { success: false, error: data.message || 'Purchase failed' };
+  return { success: false, error: data.error || data.message || 'Purchase failed' };
 }
 
 export async function getShopTransactions(fetchFn: FetchFunction = fetch): Promise<ShopTransaction[]> {
