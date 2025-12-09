@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/hackclub/midnight/compare/owl-api-v1.8.1...owl-api-v1.8.2) (2025-12-09)
+
+
+### Bug Fixes
+
+* change attend api url ([84f25b1](https://github.com/hackclub/midnight/commit/84f25b195e28f4f1cad04f6d81c489a448fee474))
+
 ## [1.8.1](https://github.com/hackclub/midnight/compare/owl-api-v1.8.0...owl-api-v1.8.1) (2025-12-09)
 
 
