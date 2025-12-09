@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/hackclub/midnight/compare/owl-api-v1.8.0...owl-api-v1.8.1) (2025-12-09)
+
+
+### Bug Fixes
+
+* improve admin panel performance ([20012b1](https://github.com/hackclub/midnight/commit/20012b13741a996683672b0ae3452610bad6902d))
+
 ## [1.8.0](https://github.com/hackclub/midnight/compare/owl-api-v1.7.0...owl-api-v1.8.0) (2025-12-08)
 
 
