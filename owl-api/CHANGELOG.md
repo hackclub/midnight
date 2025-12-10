@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/hackclub/midnight/compare/owl-api-v1.8.2...owl-api-v1.9.0) (2025-12-10)
+
+
+### Features
+
+* add idv check for store ([8449827](https://github.com/hackclub/midnight/commit/8449827087c719b9a3f53a575dc95b37c4cd89ad))
+
 ## [1.8.2](https://github.com/hackclub/midnight/compare/owl-api-v1.8.1...owl-api-v1.8.2) (2025-12-09)
 
 
