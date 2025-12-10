@@ -1829,6 +1829,14 @@ function normalizeUrl(url: string | null): string | null {
 												>
 													💻 View Repository
 												</a>
+												<a 
+													href={`https://airlock.hackclub.com/?r=${selectedSubmission.repoUrl || selectedSubmission.project.repoUrl}`} 
+													target="_blank" 
+													rel="noreferrer"
+													class="px-4 py-2 rounded-lg bg-orange-700 hover:bg-orange-600 border border-orange-500 text-white text-sm transition-colors"
+												>
+													Open in Airlock
+												</a>												
 											{/if}
 											{#if selectedSubmission.screenshotUrl || selectedSubmission.project.screenshotUrl}
 												<a 
