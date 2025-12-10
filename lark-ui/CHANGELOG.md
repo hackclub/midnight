@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.13.0...lark-ui-v1.13.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* make bottom bar cover all screen ([7ad6919](https://github.com/hackclub/midnight/commit/7ad6919d0a375ae8d2ed5053641f73ebc9ff4bdf))
+
 ## [1.13.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.12.0...lark-ui-v1.13.0) (2025-12-10)
 
 
