@@ -524,6 +524,26 @@ export async function getShopBalance(fetchFn: FetchFunction = fetch): Promise<Sh
   return null;
 }
 
+export async function checkVerificationStatus(email: string, fetchFn: FetchFunction = fetch): Promise<{ isVerified: boolean; error?: string }> {
+  const externalApiUrl = 'https://identity.hackclub.com/api/external/check';
+  const checkUrl = `${externalApiUrl}?email=${encodeURIComponent(email)}`;
+  
+  try {
+    const response = await fetchFn(checkUrl);
+    
+    if (!response.ok) {
+      return { isVerified: false, error: 'Failed to check verification status' };
+    }
+    
+    const data = await response.json();
+    const isVerified = data.result === 'verified_eligible';
+    
+    return { isVerified };
+  } catch (error) {
+    return { isVerified: false, error: 'Failed to check verification status' };
+  }
+}
+
 export async function purchaseShopItem(itemId: number, variantId?: number, fetchFn: FetchFunction = fetch): Promise<{ success: boolean; error?: string; transaction?: ShopTransaction; newBalance?: ShopBalance; specialAction?: string | null }> {
   const body: { itemId: number; variantId?: number } = { itemId };
   if (variantId) {

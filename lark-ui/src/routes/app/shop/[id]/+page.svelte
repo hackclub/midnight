@@ -4,6 +4,7 @@
     import { checkAuthStatus, getShopItem, getShopBalance, purchaseShopItem, type User, type ShopItem, type ShopBalance, type ShopItemVariant } from "$lib/auth";
     import { page } from "$app/state";
     import Button from "$lib/Button.svelte";
+    import VerificationPopup from "$lib/VerificationPopup.svelte";
 
     let user: User | null = $state<User | null>(null);
     let item: ShopItem | null = $state(null);
@@ -14,6 +15,7 @@
     let success = $state('');
     let selectedVariantId = $state<number | null>(null);
     let specialAction = $state<string | null>(null);
+    let showVerificationPopup = $state(false);
 
     const itemId = parseInt(page.params.id!);
 
@@ -40,7 +42,7 @@
     });
 
     async function handlePurchase() {
-        if (!item || purchasing) return;
+        if (!item || purchasing || !user) return;
         
         const hasVariants = item.variants && item.variants.length > 0;
         if (hasVariants && !selectedVariantId) {
@@ -66,6 +68,9 @@
             }
         } else {
             error = result.error || 'Purchase failed';
+            if (result.error?.includes('verified eligible') || result.error?.includes('verify eligibility')) {
+                showVerificationPopup = true;
+            }
         }
         
         purchasing = false;
@@ -180,6 +185,10 @@
                 </div>
             </div>
         </div>
+    {/if}
+
+    {#if showVerificationPopup}
+        <VerificationPopup onClose={() => showVerificationPopup = false} />
     {/if}
 </div>
 

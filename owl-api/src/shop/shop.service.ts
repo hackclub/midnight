@@ -172,6 +172,51 @@ export class ShopService {
   }
 
   async purchaseItem(userId: number, itemId: number, variantId?: number) {
+    console.log(`[Shop Purchase] Starting purchase for userId: ${userId}, itemId: ${itemId}, variantId: ${variantId || 'none'}`);
+    
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { email: true },
+    });
+
+    if (!user || !user.email) {
+      console.error(`[Shop Purchase] User email not found for userId: ${userId}`);
+      throw new BadRequestException('User email not found');
+    }
+
+    console.log(`[Shop Purchase] Checking verification status for user: ${userId}, email: ${user.email}`);
+    const externalApiBaseUrl = this.configService.get<string>('EXTERNAL_VERIFICATION_API_URL', 'https://identity.hackclub.com/api/external');
+    const checkUrl = `${externalApiBaseUrl}/check?email=${encodeURIComponent(user.email)}`;
+    console.log(`[Shop Purchase] Verification API URL: ${checkUrl}`);
+    
+    try {
+      const verificationResponse = await fetch(checkUrl);
+      console.log(`[Shop Purchase] Verification API response status: ${verificationResponse.status}`);
+      
+      if (!verificationResponse.ok) {
+        const errorText = await verificationResponse.text().catch(() => 'Unable to read response');
+        console.error(`[Shop Purchase] Verification API returned non-OK status: ${verificationResponse.status}, response: ${errorText}`);
+        throw new BadRequestException('Failed to verify eligibility. Please try again later.');
+      }
+      
+      const verificationData = await verificationResponse.json();
+      console.log(`[Shop Purchase] Verification API response data:`, JSON.stringify(verificationData));
+      
+      if (verificationData.result !== 'verified_eligible') {
+        console.warn(`[Shop Purchase] User ${userId} (${user.email}) is not verified_eligible. Result: ${verificationData.result}`);
+        throw new BadRequestException('You must be verified eligible to purchase items from the shop');
+      }
+      
+      console.log(`[Shop Purchase] User ${userId} (${user.email}) verification check passed`);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        console.log(`[Shop Purchase] Verification check failed for user ${userId}: ${error.message}`);
+        throw error;
+      }
+      console.error(`[Shop Purchase] Error checking verification status for user ${userId}:`, error);
+      throw new BadRequestException('Failed to verify eligibility. Please try again later.');
+    }
+
     const item = await this.prisma.shopItem.findUnique({
       where: { itemId },
       include: {
@@ -231,6 +276,7 @@ export class ShopService {
       );
     }
 
+    console.log(`[Shop Purchase] Creating transaction for userId: ${userId}, itemId: ${itemId}, cost: ${cost}`);
     const transaction = await this.prisma.transaction.create({
       data: {
         userId,
@@ -245,7 +291,9 @@ export class ShopService {
       },
     });
 
+    console.log(`[Shop Purchase] Transaction created successfully: transactionId ${transaction.transactionId}`);
     const newBalance = await this.getUserBalance(userId);
+    console.log(`[Shop Purchase] New balance for userId ${userId}: ${newBalance.balance} hours`);
 
     let specialAction: string | null = null;
 
@@ -298,6 +346,7 @@ export class ShopService {
       }
     }
 
+    console.log(`[Shop Purchase] Purchase completed successfully for userId: ${userId}, transactionId: ${transaction.transactionId}, specialAction: ${specialAction || 'none'}`);
     return {
       transaction,
       newBalance,
