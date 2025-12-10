@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.14.0...lark-ui-v1.15.0) (2025-12-10)
+
+
+### Features
+
+* add airlock button ([#63](https://github.com/hackclub/midnight/issues/63)) ([2b5e5fb](https://github.com/hackclub/midnight/commit/2b5e5fb264a87bd902162a92a3f7c094546c1c8f))
+
 ## [1.14.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.13.1...lark-ui-v1.14.0) (2025-12-10)
 
 
