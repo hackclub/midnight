@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException, TooManyRequestsException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { MailService } from '../mail/mail.service';
 import { LoginDto } from './dto/login.dto';
@@ -6,19 +6,30 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { randomBytes, randomUUID, randomInt } from 'crypto';
 import { Role } from '../enums/role.enum';
+import { RedisService } from '../redis.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
+    private redisService: RedisService,
   ) {}
 
   async requestOtp(loginDto: LoginDto) {
     const { email, referralCode } = loginDto;
-    
+
+    const sendAttemptCount = await this.redisService.increment(
+      `otp:send:${email}`,
+      3600,
+    );
+
+    if (sendAttemptCount > 10) {
+      throw new TooManyRequestsException('You are ratelimited. Please try again later.');
+    }
+
     const otp = this.generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 600000);
 
     let existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -132,12 +143,31 @@ export class AuthService {
     return { message: 'OTP sent to your email', sessionId: session.id };
   }
 
-  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto, clientIp?: string) {
     const { email, otp } = verifyOtpDto;
+    const rateLimitMessage = 'You are ratelimited. Please regenerate a new OTP.';
+
+    const normalizedIp = this.normalizeIp(clientIp);
+    const ipAttemptCount = await this.redisService.increment(
+      `otp:ip:${normalizedIp}`,
+      600,
+    );
+
+    if (ipAttemptCount > 20) {
+      throw new TooManyRequestsException(rateLimitMessage);
+    }
+
+    const emailAttemptCount = await this.redisService.increment(
+      `otp:verify:${email}`,
+      600,
+    );
+
+    if (emailAttemptCount > 20) {
+      throw new TooManyRequestsException(rateLimitMessage);
+    }
 
     const session = await this.prisma.userSession.findFirst({
       where: {
-        otpCode: otp,
         otpExpiresAt: { gt: new Date() },
         isVerified: false,
         user: {
@@ -145,9 +175,14 @@ export class AuthService {
         },
       },
       include: { user: true },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!session) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    if (session.otpCode !== otp) {
       throw new UnauthorizedException('Invalid or expired OTP');
     }
 
@@ -162,6 +197,8 @@ export class AuthService {
         verifiedAt: new Date(),
       },
     });
+
+    await this.redisService.del(`otp:verify:${email}`);
 
     const user = session.user;
     
@@ -334,6 +371,11 @@ export class AuthService {
 
   private generateOtp(): string {
     return randomInt(100000, 999999).toString();
+  }
+
+  private normalizeIp(ip?: string): string {
+    if (!ip) return 'unknown';
+    return ip.split(',')[0].trim().replace(/[^a-zA-Z0-9:\.\-]/g, '') || 'unknown';
   }
 
   async checkHackatimeAccount(email: string): Promise<number | null> {

@@ -172,6 +172,24 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return result === 1;
   }
 
+  async increment(key: string, ttlSeconds?: number): Promise<number> {
+    if (!(await this.isRedisAvailable())) {
+      console.warn('Redis not available, skipping increment operation');
+      return 0;
+    }
+
+    try {
+      const count = await this.client.incr(key);
+      if (ttlSeconds && count === 1) {
+        await this.client.expire(key, ttlSeconds);
+      }
+      return count;
+    } catch (error) {
+      console.error('Redis increment failed:', error);
+      return 0;
+    }
+  }
+
   async acquireLock(key: string, value: string, ttlSeconds: number): Promise<boolean> {
     if (!(await this.isRedisAvailable())) {
       console.warn('Redis not available, lock acquisition failed');
