@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/hackclub/midnight/compare/owl-api-v1.9.0...owl-api-v1.10.0) (2025-12-10)
+
+
+### Features
+
+* add reviewers leaderboard ([ae368bf](https://github.com/hackclub/midnight/commit/ae368bfb65d88e802b3f430432370fa5644cfdf6))
+
 ## [1.9.0](https://github.com/hackclub/midnight/compare/owl-api-v1.8.2...owl-api-v1.9.0) (2025-12-10)
 
 

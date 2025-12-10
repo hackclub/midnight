@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.12.0...lark-ui-v1.13.0) (2025-12-10)
+
+
+### Features
+
+* add reviewers leaderboard ([ae368bf](https://github.com/hackclub/midnight/commit/ae368bfb65d88e802b3f430432370fa5644cfdf6))
+
+
+### Bug Fixes
+
+* make BottomNavigation overflow scrollable on mobile ([#56](https://github.com/hackclub/midnight/issues/56)) ([5b689ff](https://github.com/hackclub/midnight/commit/5b689ff0902f312b1fb5b7c7ed43d7c5263ba808))
+
 ## [1.12.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.11.2...lark-ui-v1.12.0) (2025-12-10)
 
 
