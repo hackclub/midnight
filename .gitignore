@@ -5,3 +5,4 @@ owl-api/mail-service/certs/
 *.p12
 *.pfx
 *.pem
+.DS_Store
