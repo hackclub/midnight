@@ -145,7 +145,7 @@ export class AuthService {
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto, clientIp?: string) {
     const { email, otp } = verifyOtpDto;
-    const rateLimitMessage = 'You are ratelimited. Please regenerate a new OTP.';
+    const rateLimitMessage = 'You are ratelimited. Please regenerate a new OTP in a few minutes and try again.';
 
     const normalizedIp = this.normalizeIp(clientIp);
     const ipAttemptCount = await this.redisService.increment(

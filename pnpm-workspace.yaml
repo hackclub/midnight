@@ -1,20 +1,4 @@
 packages:
-  - lark-ui
-  - owl-api
-  - gateway
-
-ignoredBuiltDependencies:
-  - '@datadog/native-appsec'
-  - '@datadog/native-iast-taint-tracking'
-  - '@datadog/native-metrics'
-  - '@datadog/pprof'
-  - '@nestjs/core'
-  - '@prisma/client'
-  - '@prisma/engines'
-  - '@tailwindcss/oxide'
-  - core-js
-  - dd-trace
-  - esbuild
-  - prisma
-  - protobufjs
-  - unrs-resolver
+  - 'lark-ui'
+  - 'owl-api'
+  - 'gateway'
