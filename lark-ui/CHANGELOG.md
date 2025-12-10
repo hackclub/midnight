@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.13.1...lark-ui-v1.14.0) (2025-12-10)
+
+
+### Features
+
+* add max per user amount for store items ([981d5a2](https://github.com/hackclub/midnight/commit/981d5a2036a98d3ee65118040497f8911c63348c))
+
 ## [1.13.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.13.0...lark-ui-v1.13.1) (2025-12-10)
 
 
