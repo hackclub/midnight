@@ -36,7 +36,7 @@
     }
 
     .leaderboard.small {
-        width: 18vw;
+        width: clamp(200px, 18vw, 400px);
         height: 22vh;
         cursor: pointer;
     }

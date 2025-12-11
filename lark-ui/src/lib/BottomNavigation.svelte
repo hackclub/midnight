@@ -267,6 +267,8 @@
   .nav-tabs {
     display: flex;
     gap: 60px;
+    min-width: 0;
+    flex-wrap: wrap;
   }
 
   .nav-item {
@@ -390,6 +392,14 @@
       font-size: 48px;
     }
     
+    .bottom-nav-items {
+      padding: 0 20px;
+    }
+    
+    .nav-tabs {
+      gap: 20px;
+    }
+    
     .bottom-navigation {
       height: 80px;
       padding: 0 1rem;
@@ -399,6 +409,14 @@
   @media (max-width: 480px) {
     .nav-item {
       font-size: 32px;
+    }
+    
+    .bottom-nav-items {
+      padding: 0 8px;
+    }
+    
+    .nav-tabs {
+      gap: 12px;
     }
     
     .bottom-navigation {

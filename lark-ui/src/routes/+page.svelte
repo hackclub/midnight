@@ -382,10 +382,10 @@
   </section>
 
   <section
-    class="w-full flex flex-col items-center overflow-x-hidden pt-12 md:pt-16"
+    class="w-full flex flex-col items-center pt-12 md:pt-16"
   >
     <div
-      class="bg-[#2A2746] aspect-video w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 p-4 flex items-center justify-center mb-8 relative z-10"
+      class="bg-[#2A2746] aspect-video w-[95%] sm:w-[95%] md:w-[85%] lg:w-4/5 p-4 flex items-center justify-center mb-8 relative z-10"
     >
       <iframe
         width="560"
@@ -401,7 +401,7 @@
     </div>
 
     <div
-      class="w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 relative block leading-[0]"
+      class="w-[95%] sm:w-[95%] md:w-[85%] lg:w-4/5 relative block leading-[0]"
     >
       <img alt="" class="w-full h-auto block" src="/envelope.svg" />
 
