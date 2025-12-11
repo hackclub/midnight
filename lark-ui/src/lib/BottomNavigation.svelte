@@ -341,7 +341,7 @@
     bottom: 120%;
     left: 50%;
     translate: -50% 0;
-    z-index: 200;
+    z-index: 1001;
     padding: 1.5rem 2rem;
     background-image: url('/shapes/shape-popover-2.svg');
     background-size: contain;
