@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.15.1...lark-ui-v1.16.0) (2025-12-11)
+
+
+### Features
+
+* add fraud flag to admin panel ([e8bfcbd](https://github.com/hackclub/midnight/commit/e8bfcbda6b24c4b7d0ad07e883b6eabb4159653a))
+
 ## [1.15.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.15.0...lark-ui-v1.15.1) (2025-12-11)
 
 
