@@ -33,20 +33,20 @@ export const actions = {
 
         const responseData = await response.json();
 
-                if (!response || !response.ok) {
-                        const urlParams = new URLSearchParams();
-                        const errorMessage = response?.status === 429
-                            ? 'You are ratelimited. Please regenerate a new OTP in a few minutes and try again.'
-                            : (responseData.error || responseData.message || 'An error occurred');
+        if (!response || !response.ok) {
+            const urlParams = new URLSearchParams();
+            const errorMessage = response?.status === 429
+                ? 'You are ratelimited. Please regenerate a new OTP in a few minutes and try again.'
+                : (responseData.error || responseData.message || 'An error occurred');
 
-                        urlParams.set("error", errorMessage);
+            urlParams.set("error", errorMessage);
 
-                        if (email) {
-                            urlParams.set("email", email as string);
-                        }
+            if (email) {
+                urlParams.set("email", email as string);
+            }
 
-                        return redirect(302, `/login?${urlParams.toString()}`);
-                }
+            return redirect(302, `/login?${urlParams.toString()}`);
+        }
 
         if (responseData.sessionId) {
             cookies.set('sessionId', responseData.sessionId, { path: '/' });
