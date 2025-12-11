@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.15.0...lark-ui-v1.15.1) (2025-12-11)
+
+
+### Bug Fixes
+
+* add rate limiting to otp endpoints ([#64](https://github.com/hackclub/midnight/issues/64)) ([741d3b5](https://github.com/hackclub/midnight/commit/741d3b5f80e7bd8b31cd84594e942e277101874d))
+
 ## [1.15.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.14.0...lark-ui-v1.15.0) (2025-12-10)
 
 
