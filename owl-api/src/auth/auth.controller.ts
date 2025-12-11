@@ -18,8 +18,8 @@ export class AuthController {
 
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const clientIp = this.getClientIp(req);
-    const result = await this.authService.verifyOtp(verifyOtpDto, clientIp);
+    const forwarded = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || '';
+    const result = await this.authService.verifyOtp(verifyOtpDto, forwarded);
     
     if (result.sessionId) {
       const cookieOptions = {
@@ -44,12 +44,6 @@ export class AuthController {
     }
     
     return result;
-  }
-
-  private getClientIp(req: Request): string {
-    const forwarded = (req.headers['x-forwarded-for'] as string) || '';
-    const ip = forwarded.split(',')[0].trim() || req.ip || req.socket.remoteAddress || 'unknown';
-    return ip;
   }
 
   @Post('complete-profile')

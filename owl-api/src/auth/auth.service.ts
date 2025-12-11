@@ -10,6 +10,8 @@ import { RedisService } from '../redis.service';
 
 @Injectable()
 export class AuthService {
+  private readonly OTP_EXPIRY_MS = 600000;
+
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
@@ -29,7 +31,7 @@ export class AuthService {
     }
 
     const otp = this.generateOtp();
-    const expiresAt = new Date(Date.now() + 600000);
+    const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MS);
 
     let existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -153,7 +155,7 @@ export class AuthService {
       600,
     );
 
-    if (ipAttemptCount > 20) {
+    if (ipAttemptCount > 40) {
       throw new TooManyRequestsException(rateLimitMessage);
     }
 
@@ -168,6 +170,7 @@ export class AuthService {
 
     const session = await this.prisma.userSession.findFirst({
       where: {
+        otpCode: otp,
         otpExpiresAt: { gt: new Date() },
         isVerified: false,
         user: {
@@ -179,10 +182,6 @@ export class AuthService {
     });
 
     if (!session) {
-      throw new UnauthorizedException('Invalid or expired OTP');
-    }
-
-    if (session.otpCode !== otp) {
       throw new UnauthorizedException('Invalid or expired OTP');
     }
 
@@ -475,7 +474,7 @@ export class AuthService {
     }
 
     const otp = this.generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MS);
 
     const existingOtp = await this.prisma.hackatimeLinkOtp.findFirst({
       where: { userId },
