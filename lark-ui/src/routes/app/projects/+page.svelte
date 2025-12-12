@@ -7,7 +7,7 @@
   import { checkAuthStatus, getProjects, logout, type Project, type User } from '$lib/auth';
   import BaseCard from '$lib/cards/BaseCard.svelte';
   import NewProjectCard from '$lib/cards/NewProjectCard.svelte';
-    import ProgressBar from '$lib/ProgressBar.svelte';
+  import ProgressBar from '$lib/ProgressBar.svelte';
 
   let projects: Project[] = [];
   let loading = true;
@@ -42,11 +42,62 @@
       loading = false;
     }
   });
+
+
+
+/* Countdown */
+
+let timeLeft = "Loading...";
+
+function calculateTimeLeft() {
+  const now = new Date();
+   const currentYear = now.getFullYear();
+    const target = new Date(currentYear, 11, 31, 23, 59, 59);
+
+    let diff = target.getTime() - now.getTime();
+
+    function pad(n: number) {
+  return n.toString().padStart(2, "0");
+}
+
+  if (diff <= 0) {
+    timeLeft = "0 days, 0 hours, 0 mins";
+    return;
+  }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / (1000 * 60)) % 60);
+  const secs = Math.floor((diff / 1000) % 60);
+
+timeLeft = `${pad(days)} : ${pad(hours)} : ${pad(mins)} : ${pad(secs)}`;
+}
+
+let interval: any;
+
+onMount(() => {
+  calculateTimeLeft();
+  interval = setInterval(calculateTimeLeft, 1000);
+
+  return () => clearInterval(interval);
+});
+
+
+
 </script>
 
 <div class="projects-page">
   <div class="header">
-    <h1 class="page-title">YouR PROJECTS</h1>
+    <h1 class="page-title">YouR PROJECTS
+      <span class="countdown">
+        <span>Time left
+          <img src="/sad.png" alt="">
+        </span>        
+        <span>
+          {timeLeft}
+        </span>
+      </span>
+    </h1>
     <Button label="Logout" onclick={handleLogout} color="red" />
   </div>
   
@@ -103,6 +154,52 @@
     align-items: center;
   }
 
+  .countdown span{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25vw;
+  }
+
+  .countdown :first-child{
+    font-family: 'Moga', sans-serif;
+    font-size: 3.75vh;
+    line-height: 4vh;
+    padding-top: 0.25vh;
+    margin-bottom: 0vh;
+  }
+
+  .countdown img{
+    width: 5vw;
+    position: absolute;
+    bottom: -2vh;
+    left: -3vw;
+    transform: rotate(-15deg);
+  }
+
+
+  .countdown{
+    font-family: 'PT Sans', sans-serif;
+    font-size: 2vh;
+    width: fit-content;
+    color: #ffffff;
+    background-color: #F24B4B;
+    display: block;
+    margin-top: 8px;
+    letter-spacing: -0.33px;
+    padding: 1vh 2.75vw;
+    font-weight: normal;
+    position: absolute;
+    top: -7.5%;
+    right: -17.5vw;
+    border-bottom: 0.45vh black solid;
+    border-left: 0.45vh black solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   .page-title {
     font-family: 'Moga', sans-serif;
     font-size: 90px;
@@ -110,6 +207,8 @@
     letter-spacing: -0.99px;
     margin: 0;
     line-height: 1.5;
+    position: relative;
+    width: fit-content;
   }
 
   .projects-grid {
