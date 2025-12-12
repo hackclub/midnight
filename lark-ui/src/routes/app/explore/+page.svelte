@@ -247,7 +247,7 @@
 			<p class="text-[3vh]">No approved projects yet. Check back soon!</p>
 		</div>
 	{:else}
-		<div class="grid grid-cols-4 w-full px-[3vw] gap-x-[3vw] gap-y-[6vh] pb-[10vh]">
+		<div class="grid w-full px-[3vw] gap-x-[3vw] gap-y-[6vh] pb-[10vh]" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
 			{#each visibleProjects as project (project.id)}
 				<ProjectCard
 					{project}

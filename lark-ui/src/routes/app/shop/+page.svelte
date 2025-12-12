@@ -76,7 +76,7 @@
         {#if items.length === 0}
             <div class="empty">No items available in the shop yet.</div>
         {:else}
-            <div class="grid grid-cols-4 w-full px-[3vw] gap-x-[3vw] gap-y-[6vh] pb-[10vh] text-[#fee1c0]">
+            <div class="grid w-full px-[3vw] gap-x-[3vw] gap-y-[6vh] pb-[10vh] text-[#fee1c0]" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
                 {#each items as item}
                     <ShopCard 
                         itemId={item.itemId} 
