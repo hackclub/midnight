@@ -76,7 +76,7 @@
         {#if items.length === 0}
             <div class="empty">No items available in the shop yet.</div>
         {:else}
-            <div class="grid grid-cols-4 w-full px-[3vw] gap-x-[3vw] gap-y-[6vh] pb-[10vh] text-[#fee1c0]">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full px-[3vw] gap-x-[3vw] gap-y-[6.5vh] pb-[10vh] text-[#fee1c0]">
                 {#each items as item}
                     <ShopCard 
                         itemId={item.itemId} 
@@ -138,77 +138,108 @@
         min-height: 100vh;
         background: #453b61;
         padding: 57px 50px 200px;
+        padding-top: 4vh;
     }
 
     .page-title {
         font-family: "Moga", sans-serif;
-        font-size: 90px;
-        color: white;
+        font-size: 15vh;
+        color: rgb(0, 0, 0);
         letter-spacing: -0.99px;
         margin: 0;
-        line-height: 1;
+        line-height: 15vh;
+        position: relative;
+        z-index: 2;
+    }
+
+    .page-title::before {
+        content: "SHOP";
+        position: absolute;
+        width: 100%;
+        color: rgb(255, 255, 255);
+        top: -0.75vh;
+        left: 0.75vh;
+        z-index: 0;
     }
 
     .page-subtitle {
         font-family: "PT Serif", serif;
         font-weight: bold;
-        font-size: 30px;
+        font-size: 3.5vh;
         color: white;
         letter-spacing: -0.99px;
         margin: 0;
         line-height: 1.5;
-        padding-bottom: 16px;
+        padding-bottom: 4vh;
     }
 
     .tabs {
         display: flex;
-        gap: 8px;
-        margin: 24px 0;
+        gap: 1vw;
+        margin: 3vh 0;
+        border-bottom: 0.35vh solid #7a6b9e;
+        height: 8vh;
+        align-items: end;
+        padding-left: 1vw;
     }
 
     .tab {
-        font-family: "PT Sans", sans-serif;
-        font-size: 16px;
-        padding: 12px 24px;
-        border-radius: 8px;
+        font-family: "PT Serif", serif;
+        font-size: 2.5vh;
+        font-weight: 900;
+        padding: 1.5vh 2.5vw;
+        padding-bottom: 1.25vh;
+        border-radius: 2vh 2vh 0 0;
         border: 2px solid #7a6b9e;
-        background: transparent;
+        border-bottom: none;
+        background: #f24b4b8a;
         color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
     .tab:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
+        background: #f24b4b9c;
+        border-color: #fee1c0b0;
+        padding-bottom: 2vh;
     }
 
     .tab.active {
-        background: #5E5087;
+        background: #F24B4B;
         border-color: #fee1c0;
         color: #fee1c0;
+        padding-bottom: 3vh;
     }
 
     .balance-display {
         display: flex;
+        position: fixed;
+        top: 0;
+        right: 0;
         align-items: center;
-        gap: 12px;
-        padding: 16px 24px;
-        background: #5E5087;
-        border-radius: 12px;
+        justify-content: center;
+        gap: 1.5vw;
+        padding: 2vh 4vw;
+        background: #1385F0;
+        border-radius: 0px;
+        border-bottom-left-radius: 10vh;
+        border: 0.35vh solid black;
+        border-top: none;
         margin-bottom: 32px;
         width: fit-content;
+        z-index: 10;
     }
 
     .balance-label {
-        font-family: "PT Sans", sans-serif;
-        font-size: 18px;
+        font-family: "Moga", sans-serif;
+        font-size: 5.5vh;
+        line-height: 5.5vh;
         color: rgba(255, 255, 255, 0.8);
     }
 
     .balance-value {
         font-family: "PT Serif", serif;
-        font-size: 24px;
+        font-size: 4vh;
         font-weight: bold;
         color: #fee1c0;
     }
