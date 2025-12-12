@@ -8,6 +8,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "prisma": "^6.18.0"
   }
 }
-

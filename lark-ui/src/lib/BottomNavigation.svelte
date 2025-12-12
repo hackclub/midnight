@@ -251,13 +251,14 @@
     bottom: 0;
     left: 0;
     right: 0;
+    height: 15vh;
   }
   
   .bottom-nav-items {
     background: #2D273F;
     z-index: 200;
-    height: 137px;
-    padding: 0 120px;
+    height: 15vh;
+    padding: 0 8vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -266,12 +267,12 @@
 
   .nav-tabs {
     display: flex;
-    gap: 60px;
+    gap: 4vw;
   }
 
   .nav-item {
     font-family: 'Moga', sans-serif;
-    font-size: 90px;
+    font-size: 9vh;
 
     text-align: center;
     text-box-trim: trim-both;
@@ -327,8 +328,13 @@
   }
 
   .referral img {
-    width: 48px;
-    height: 48px;
+    width: 4vw;
+    height: 4vw;
+  }
+
+  .settings img{
+    width: 4vw;
+    height: 4vw;
   }
 
   .referral:hover img {
@@ -385,27 +391,6 @@
     animation: shake 400ms;
   }
   
-  @media (max-width: 768px) {
-    .nav-item {
-      font-size: 48px;
-    }
-    
-    .bottom-navigation {
-      height: 80px;
-      padding: 0 1rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .nav-item {
-      font-size: 32px;
-    }
-    
-    .bottom-navigation {
-      height: 60px;
-      padding: 0 0.5rem;
-    }
-  }
 
   .settings.active {
     filter: brightness(0) saturate(100%) invert(78%) sepia(88%) saturate(2130%) hue-rotate(330deg) brightness(101%) contrast(101%);
