@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.16.1...lark-ui-v1.17.0) (2025-12-12)
+
+
+### Features
+
+* add slack bot ([6efeb3d](https://github.com/hackclub/midnight/commit/6efeb3d59fb16dcf072dc4e42e35eac60eda757a))
+
 ## [1.16.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.16.0...lark-ui-v1.16.1) (2025-12-12)
 
 

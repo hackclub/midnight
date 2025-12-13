@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.0](https://github.com/hackclub/midnight/compare/owl-api-v1.12.0...owl-api-v1.13.0) (2025-12-12)
+
+
+### Features
+
+* add slack bot ([6efeb3d](https://github.com/hackclub/midnight/commit/6efeb3d59fb16dcf072dc4e42e35eac60eda757a))
+
+
+### Bug Fixes
+
+* make sessions 3 weeks ([a1b8ac7](https://github.com/hackclub/midnight/commit/a1b8ac7ec6ab06b54aa3755fa840d5a79527adda))
+
 ## [1.12.0](https://github.com/hackclub/midnight/compare/owl-api-v1.11.1...owl-api-v1.12.0) (2025-12-11)
 
 
