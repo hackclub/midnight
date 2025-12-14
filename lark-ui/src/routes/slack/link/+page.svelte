@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { checkAuthStatus } from '$lib/auth';
+	import Button from '$lib/Button.svelte';
 
 	let loading = $state(true);
 	let success = $state(false);
@@ -53,42 +54,132 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-	<div class="max-w-md w-full rounded-2xl border border-gray-700 bg-gray-900/70 backdrop-blur p-8 space-y-6 text-center">
+<div class="link-page">
+	<div class="link-container">
 		{#if loading}
-			<div class="space-y-4">
-				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-				<p class="text-gray-300">Linking your Slack account...</p>
+			<div class="link-content">
+				<div class="loading">
+					<img src="/loading/crow_fly.gif" alt="Loading..." />
+				</div>
+				<p class="link-text">Linking your Slack account...</p>
 			</div>
 		{:else if success}
-			<div class="space-y-4">
-				<div class="text-6xl">✅</div>
-				<h1 class="text-2xl font-bold text-white">Successfully Linked!</h1>
-				<p class="text-gray-300">Your Slack account is now linked to your Midnight account. You'll receive notifications when your submissions are reviewed.</p>
-				<p class="text-sm text-gray-400">Redirecting to dashboard...</p>
+			<div class="link-content">
+				<h1 class="link-title">Successfully Linked!</h1>
+				<p class="link-text">Your Slack account is now linked to your Midnight account. You'll receive notifications when your submissions are reviewed.</p>
+				<p class="link-text-small">Redirecting to dashboard...</p>
 			</div>
 		{:else}
-			<div class="space-y-4">
-				<div class="text-6xl">❌</div>
-				<h1 class="text-2xl font-bold text-white">Link Failed</h1>
-				<p class="text-gray-300">{error}</p>
-				<div class="flex gap-3 justify-center">
-					<a
-						href="/login"
-						class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors"
-					>
-						Log In
-					</a>
-					<a
-						href="/app"
-						class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-					>
-						Go to Dashboard
-					</a>
+			<div class="link-content">
+				<h1 class="link-title">Link Failed</h1>
+				<p class="link-text">{error}</p>
+				<div class="link-buttons">
+					<Button label="Log In" onclick={() => goto('/login')} color="red" />
+					<Button label="Go to Dashboard" onclick={() => goto('/app')} color="black" />
 				</div>
 			</div>
 		{/if}
 	</div>
 </div>
+
+<style>
+	.link-page {
+		position: relative;
+		min-height: 100vh;
+		background: #453b61;
+		padding: 57px 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.link-container {
+		max-width: 600px;
+		width: 100%;
+	}
+
+	.link-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 24px;
+	}
+
+	.link-title {
+		font-family: "Moga", sans-serif;
+		font-size: 90px;
+		color: white;
+		letter-spacing: -0.99px;
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	.link-text {
+		font-family: "PT Sans", sans-serif;
+		font-size: 20px;
+		font-weight: 400;
+		color: white;
+		margin: 0;
+	}
+
+	.link-text-small {
+		font-family: "PT Sans", sans-serif;
+		font-size: 16px;
+		font-weight: 400;
+		color: white;
+		margin: 0;
+		opacity: 0.8;
+	}
+
+	.loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.loading img {
+		image-rendering: pixelated;
+		width: 250px;
+		height: auto;
+	}
+
+	.link-buttons {
+		display: flex;
+		gap: 24px;
+		flex-wrap: wrap;
+		justify-content: center;
+		margin-top: 16px;
+	}
+
+	@media (max-width: 768px) {
+		.link-page {
+			padding: 32px 20px;
+		}
+
+		.link-title {
+			font-size: 60px;
+		}
+
+		.link-text {
+			font-size: 18px;
+		}
+
+		.link-buttons {
+			flex-direction: column;
+			width: 100%;
+		}
+
+		.link-buttons :global(button) {
+			width: 100%;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.link-title {
+			font-size: 40px;
+		}
+	}
+</style>
 
 
