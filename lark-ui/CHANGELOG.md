@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.18.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.17.0...lark-ui-v1.18.0) (2025-12-14)
+
+
+### Features
+
+* add priority queue ([3eee28b](https://github.com/hackclub/midnight/commit/3eee28bc97c826ade7edab35cfa412a67cd7086e))
+* add sus flag ([822b470](https://github.com/hackclub/midnight/commit/822b470c398259df1b83b97555efae2e5ed45504))
+
+
+### Bug Fixes
+
+* chang redirect after slack link ([4b97d39](https://github.com/hackclub/midnight/commit/4b97d39f7738c71eacab8093eb9ad51e28e3d6d9))
+* change slack link page style ([ba750df](https://github.com/hackclub/midnight/commit/ba750df26165a704e13e1e4f1fcc7dce2518f178))
+
 ## [1.17.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.16.1...lark-ui-v1.17.0) (2025-12-12)
 
 

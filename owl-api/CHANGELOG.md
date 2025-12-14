@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.0](https://github.com/hackclub/midnight/compare/owl-api-v1.13.0...owl-api-v1.14.0) (2025-12-14)
+
+
+### Features
+
+* add priority queue ([3eee28b](https://github.com/hackclub/midnight/commit/3eee28bc97c826ade7edab35cfa412a67cd7086e))
+* add sus flag ([822b470](https://github.com/hackclub/midnight/commit/822b470c398259df1b83b97555efae2e5ed45504))
+
 ## [1.13.0](https://github.com/hackclub/midnight/compare/owl-api-v1.12.0...owl-api-v1.13.0) (2025-12-12)
 
 
