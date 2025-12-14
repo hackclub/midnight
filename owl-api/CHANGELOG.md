@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/hackclub/midnight/compare/owl-api-v1.14.0...owl-api-v1.14.1) (2025-12-14)
+
+
+### Bug Fixes
+
+* eliminate start script ([0ae9d11](https://github.com/hackclub/midnight/commit/0ae9d1136e967296d036a46cba53aacc6c9edb77))
+
 ## [1.14.0](https://github.com/hackclub/midnight/compare/owl-api-v1.13.0...owl-api-v1.14.0) (2025-12-14)
 
 
