@@ -1314,4 +1314,67 @@ export class AdminService {
 
     return Math.round((totalSeconds / 3600) * 10) / 10;
   }
+
+  async getPriorityUsers() {
+    const priorityUsers = await this.prisma.$queryRaw<Array<{
+      user_id: number;
+      email: string;
+      first_name: string | null;
+      last_name: string | null;
+      total_approved_hours: number;
+      potential_hours_if_approved: number;
+      reason: string;
+    }>>`
+      WITH projects_with_pending AS (
+        SELECT DISTINCT p.project_id
+        FROM projects p
+        INNER JOIN submissions s ON s.project_id = p.project_id
+        WHERE s.approval_status = 'pending'
+      ),
+      user_hours AS (
+        SELECT
+          u.user_id,
+          u.email,
+          u.first_name,
+          u.last_name,
+          COALESCE(SUM(p.approved_hours), 0) AS total_approved_hours,
+          COALESCE(SUM(
+            CASE
+              WHEN pwp.project_id IS NOT NULL THEN COALESCE(p.now_hackatime_hours, 0)
+              ELSE COALESCE(p.approved_hours, 0)
+            END
+          ), 0) AS potential_hours_if_approved
+        FROM users u
+        LEFT JOIN projects p ON p.user_id = u.user_id
+        LEFT JOIN projects_with_pending pwp ON pwp.project_id = p.project_id
+        GROUP BY u.user_id, u.email, u.first_name, u.last_name
+      )
+      SELECT
+        user_id,
+        email,
+        first_name,
+        last_name,
+        total_approved_hours,
+        potential_hours_if_approved,
+        CASE
+          WHEN potential_hours_if_approved >= 50 THEN 'Would reach 50+ if pending approved'
+          ELSE 'Other'
+        END AS reason
+      FROM user_hours
+      WHERE
+        total_approved_hours < 50
+        AND potential_hours_if_approved >= 50
+      ORDER BY total_approved_hours DESC, potential_hours_if_approved DESC
+    `;
+
+    return priorityUsers.map(user => ({
+      userId: user.user_id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      totalApprovedHours: Number(user.total_approved_hours),
+      potentialHoursIfApproved: Number(user.potential_hours_if_approved),
+      reason: user.reason,
+    }));
+  }
 }

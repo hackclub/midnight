@@ -189,4 +189,11 @@ export class AdminController {
     }
     return this.adminService.getSlackInfo(slackUserId);
   }
+
+  @Get('priority-users')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  async getPriorityUsers() {
+    return this.adminService.getPriorityUsers();
+  }
 }

@@ -319,6 +319,21 @@ let reviewerLeaderboard = $state<ReviewerStats[]>([]);
 let leaderboardLoading = $state(false);
 let leaderboardLoaded = $state(false);
 
+type PriorityUser = {
+	userId: number;
+	email: string;
+	firstName: string | null;
+	lastName: string | null;
+	totalApprovedHours: number;
+	potentialHoursIfApproved: number;
+	reason: string;
+};
+
+let priorityUsers = $state<PriorityUser[]>([]);
+let priorityUsersLoading = $state(false);
+let priorityUsersLoaded = $state(false);
+let priorityFilterEnabled = $state(false);
+
 let submissionDrafts = $state<Record<number, { approvalStatus: string; approvedHours: string; userFeedback: string; hoursJustification: string; sendEmailNotification: boolean }>>(
 	buildSubmissionDrafts(data.submissions ?? [])
 );
@@ -1113,6 +1128,31 @@ async function recalculateAllProjectsHours() {
 		}
 	}
 
+	async function loadPriorityUsers() {
+		if (priorityUsersLoaded && priorityUsers.length > 0) return;
+		priorityUsersLoading = true;
+		try {
+			const response = await fetch(`${apiUrl}/api/admin/priority-users`, {
+				credentials: 'include',
+			});
+			if (response.ok) {
+				priorityUsers = await response.json();
+				priorityUsersLoaded = true;
+			}
+		} catch (err) {
+			console.error('Failed to load priority users:', err);
+		} finally {
+			priorityUsersLoading = false;
+		}
+	}
+
+	async function togglePriorityFilter() {
+		priorityFilterEnabled = !priorityFilterEnabled;
+		if (priorityFilterEnabled && !priorityUsersLoaded) {
+			await loadPriorityUsers();
+		}
+	}
+
 	function getNextPendingSubmission(currentSubmissionId: number): { projectId: number; submissionId: number } | null {
 		const projectIds = Object.keys(filteredGroupedSubmissions).map(Number);
 		
@@ -1295,6 +1335,12 @@ function matchesProjectTypeFilters(submission: AdminSubmission): boolean {
 	return selectedProjectTypes.has(submission.project.projectType);
 }
 
+function matchesPriorityFilter(submission: AdminSubmission): boolean {
+	if (!priorityFilterEnabled || !priorityUsersLoaded) return true;
+	const priorityUserIds = new Set(priorityUsers.map(u => u.userId));
+	return priorityUserIds.has(submission.project.user.userId);
+}
+
 function compareSubmissions(a: AdminSubmission, b: AdminSubmission): number {
 	let comparison = 0;
 	
@@ -1351,7 +1397,8 @@ let filteredGroupedSubmissions = $derived.by(() => {
 		const projectSubmissions = groups[projectIdNum].filter((s: AdminSubmission) => 
 			matchesSearch(s, searchQuery) &&
 			matchesStatusFilters(s) &&
-			matchesProjectTypeFilters(s)
+			matchesProjectTypeFilters(s) &&
+			matchesPriorityFilter(s)
 		);
 		
 		if (projectSubmissions.length > 0) {
@@ -1372,6 +1419,7 @@ let filteredSubmissions = $derived(
 		.filter((s) => matchesSearch(s, searchQuery))
 		.filter((s) => matchesStatusFilters(s))
 		.filter((s) => matchesProjectTypeFilters(s))
+		.filter((s) => matchesPriorityFilter(s))
 		.sort(compareSubmissions)
 );
 
@@ -1573,7 +1621,31 @@ function normalizeUrl(url: string | null): string | null {
 						</div>
 					</div>
 
-					<div class="grid gap-4 md:grid-cols-4">
+					<div class="grid gap-4 md:grid-cols-5">
+						<div>
+							<div class="block text-sm font-medium text-gray-300 mb-2">Priority Filter</div>
+							<div class="flex flex-wrap gap-2">
+								<button
+									class={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+										priorityFilterEnabled
+											? 'bg-yellow-600 border-yellow-400 text-white'
+											: 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+									}`}
+									onclick={togglePriorityFilter}
+									disabled={priorityUsersLoading}
+								>
+									{priorityUsersLoading ? 'Loading...' : '⭐ Priority (50+ hrs)'}
+									{#if priorityFilterEnabled}
+										<span class="ml-1">✓</span>
+									{/if}
+								</button>
+								{#if priorityFilterEnabled && priorityUsersLoaded}
+									<span class="px-2 py-1.5 text-xs text-gray-400 self-center">
+										({priorityUsers.length} users)
+									</span>
+								{/if}
+							</div>
+						</div>
 						<div>
 							<div class="block text-sm font-medium text-gray-300 mb-2">Filter by Submission Count</div>
 							<div class="flex flex-wrap gap-2">
