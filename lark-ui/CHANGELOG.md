@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.18.0...lark-ui-v1.18.1) (2025-12-14)
+
+
+### Bug Fixes
+
+* make slack linking use correct api ([42a3c2a](https://github.com/hackclub/midnight/commit/42a3c2a6986ec75283ce8ed0075fbeeae80266fa))
+
 ## [1.18.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.17.0...lark-ui-v1.18.0) (2025-12-14)
 
 
