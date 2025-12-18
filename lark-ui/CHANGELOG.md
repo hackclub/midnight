@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.2](https://github.com/hackclub/midnight/compare/lark-ui-v1.18.1...lark-ui-v1.18.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* solve admin panel sort issue ([6c7fc1f](https://github.com/hackclub/midnight/commit/6c7fc1fe0d50224e5caf44ad61b8bcbf90ad2080))
+
 ## [1.18.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.18.0...lark-ui-v1.18.1) (2025-12-14)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/hackclub/midnight/compare/owl-api-v1.14.1...owl-api-v1.14.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* solve admin panel sort issue ([6c7fc1f](https://github.com/hackclub/midnight/commit/6c7fc1fe0d50224e5caf44ad61b8bcbf90ad2080))
+
 ## [1.14.1](https://github.com/hackclub/midnight/compare/owl-api-v1.14.0...owl-api-v1.14.1) (2025-12-14)
 
 
