@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.15.0](https://github.com/hackclub/midnight/compare/owl-api-v1.14.2...owl-api-v1.15.0) (2025-12-20)
+
+
+### Features
+
+* add delete button ([7615c0d](https://github.com/hackclub/midnight/commit/7615c0dc381f198894be369c10550599f78bb058))
+* add fraud flag to admin panel ([e8bfcbd](https://github.com/hackclub/midnight/commit/e8bfcbda6b24c4b7d0ad07e883b6eabb4159653a))
+* add idv check for store ([8449827](https://github.com/hackclub/midnight/commit/8449827087c719b9a3f53a575dc95b37c4cd89ad))
+* add max per user amount for store items ([981d5a2](https://github.com/hackclub/midnight/commit/981d5a2036a98d3ee65118040497f8911c63348c))
+* add priority queue ([3eee28b](https://github.com/hackclub/midnight/commit/3eee28bc97c826ade7edab35cfa412a67cd7086e))
+* add resubmit workflow ([d815bfd](https://github.com/hackclub/midnight/commit/d815bfdeee601dfb3ff514e0cc96ae915a9a4bf1))
+* add review tracking system ([8616a55](https://github.com/hackclub/midnight/commit/8616a5588450670ee229b48ef2c2360392064422))
+* add review workflow ([5dd085b](https://github.com/hackclub/midnight/commit/5dd085b521a21f7284aac02dc850a9121519b2cb))
+* add reviewers leaderboard ([ae368bf](https://github.com/hackclub/midnight/commit/ae368bfb65d88e802b3f430432370fa5644cfdf6))
+* add slack bot ([6efeb3d](https://github.com/hackclub/midnight/commit/6efeb3d59fb16dcf072dc4e42e35eac60eda757a))
+* add store ([1bd0c87](https://github.com/hackclub/midnight/commit/1bd0c87e699471d3c839b171e2beaa918b71d55a))
+* add submit flow + progress bar ([#25](https://github.com/hackclub/midnight/issues/25)) ([ff934c7](https://github.com/hackclub/midnight/commit/ff934c75b0102820bb785758b817a2226ebb2132))
+* add sus flag ([822b470](https://github.com/hackclub/midnight/commit/822b470c398259df1b83b97555efae2e5ed45504))
+* add user feedback field ([7754cff](https://github.com/hackclub/midnight/commit/7754cfff3d16bfc0a3f77ee4aec39be9097e08d6))
+
+
+### Bug Fixes
+
+* add rate limiting to otp endpoints ([#64](https://github.com/hackclub/midnight/issues/64)) ([741d3b5](https://github.com/hackclub/midnight/commit/741d3b5f80e7bd8b31cd84594e942e277101874d))
+* add search bar to admin panel ([eda2b7d](https://github.com/hackclub/midnight/commit/eda2b7dcd47458b7557f0b82bb86c0161d43140c))
+* add toggle for email notifications ([5f84b76](https://github.com/hackclub/midnight/commit/5f84b76efe13f5a5516faa4f6463855a7eab66aa))
+* change attend api url ([84f25b1](https://github.com/hackclub/midnight/commit/84f25b195e28f4f1cad04f6d81c489a448fee474))
+* connect explore page to backend ([5045c9f](https://github.com/hackclub/midnight/commit/5045c9f67e37a00c123d4ff103c4e5a9bbaf5f6a))
+* eliminate start script ([0ae9d11](https://github.com/hackclub/midnight/commit/0ae9d1136e967296d036a46cba53aacc6c9edb77))
+* improve admin panel performance ([20012b1](https://github.com/hackclub/midnight/commit/20012b13741a996683672b0ae3452610bad6902d))
+* make admin panel override hours ([b3a76b0](https://github.com/hackclub/midnight/commit/b3a76b00e8dc899f5b7ec413dcbb0eeb8e87b2c6))
+* make sessions 3 weeks ([a1b8ac7](https://github.com/hackclub/midnight/commit/a1b8ac7ec6ab06b54aa3755fa840d5a79527adda))
+* remove bit about the first 100 to come ([#22](https://github.com/hackclub/midnight/issues/22)) ([4bb4061](https://github.com/hackclub/midnight/commit/4bb40617f3799f640e01eacbff842678b3480888))
+* remove hours justification from api response ([71ccf5f](https://github.com/hackclub/midnight/commit/71ccf5f2fac1ea4c030afaeb79a439028886fb69))
+* solve admin panel sort issue ([6c7fc1f](https://github.com/hackclub/midnight/commit/6c7fc1fe0d50224e5caf44ad61b8bcbf90ad2080))
+* use crypto random for otp ([b3b26ae](https://github.com/hackclub/midnight/commit/b3b26aec6f4dc0a8d58d339f17de9c0ac322208c))
+
 ## [1.14.2](https://github.com/hackclub/midnight/compare/owl-api-v1.14.1...owl-api-v1.14.2) (2025-12-18)
 
 
