@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/hackclub/midnight/compare/owl-api-v1.15.0...owl-api-v1.15.1) (2025-12-28)
+
+
+### Bug Fixes
+
+* update hackatime fetching endpoint ([c376515](https://github.com/hackclub/midnight/commit/c376515a1a78591cc551bcd084c22c5f25983da6))
+
 ## [1.15.0](https://github.com/hackclub/midnight/compare/owl-api-v1.14.2...owl-api-v1.15.0) (2025-12-20)
 
 
