@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/hackclub/midnight/compare/owl-api-v1.15.1...owl-api-v1.16.0) (2025-12-30)
+
+
+### Features
+
+* add submission toggle ([73bbb92](https://github.com/hackclub/midnight/commit/73bbb9267e0dedca0542b86711a6ce0b82ddee70))
+
 ## [1.15.1](https://github.com/hackclub/midnight/compare/owl-api-v1.15.0...owl-api-v1.15.1) (2025-12-28)
 
 

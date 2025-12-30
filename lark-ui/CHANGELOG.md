@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.19.0...lark-ui-v1.20.0) (2025-12-30)
+
+
+### Features
+
+* add submission toggle ([73bbb92](https://github.com/hackclub/midnight/commit/73bbb9267e0dedca0542b86711a6ce0b82ddee70))
+
 ## [1.19.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.18.2...lark-ui-v1.19.0) (2025-12-20)
 
 
