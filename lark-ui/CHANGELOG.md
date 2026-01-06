@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.20.0...lark-ui-v1.20.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* GAMBLE RAAAA ([#84](https://github.com/hackclub/midnight/issues/84)) ([b8b864a](https://github.com/hackclub/midnight/commit/b8b864a036a43e1abc293742c3e61cfced90ab1c))
+
 ## [1.20.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.19.0...lark-ui-v1.20.0) (2025-12-30)
 
 
