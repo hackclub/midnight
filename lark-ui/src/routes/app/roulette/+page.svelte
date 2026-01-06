@@ -90,7 +90,7 @@
                 <div class="rules">
                     <div class="rule">
                         <span class="rule-icon">🎯</span>
-                        <span>50/50 odds</span>
+                        <span>40/60 odds</span>
                     </div>
                     <div class="rule">
                         <span class="rule-icon">💰</span>

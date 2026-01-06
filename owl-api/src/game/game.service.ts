@@ -10,12 +10,12 @@ const BUCKSHOT_ROULETTE_ITEM_NAME = 'Buckshot Roulette';
 
 /**
  * Buckshot roulette game configuration.
- * - 50/50 odds (win or lose)
+ * - 40/60 odds (40% client win, 60% house win)
  * - 2x payout on win (wager amount returned + equal winnings)
  * - User wagers ALL unspent project hours (no choice)
  */
 const GAME_CONFIG = {
-  WIN_PROBABILITY: 0.5,
+  WIN_PROBABILITY: 0.4,
   PAYOUT_MULTIPLIER: 2,
   MIN_BALANCE_TO_PLAY: 0.1,
 };
