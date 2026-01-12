@@ -440,4 +440,118 @@ export class ShopService {
       itemName,
     };
   }
+
+  async markTransactionFulfilled(transactionId: number) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { transactionId },
+      include: {
+        user: { select: { userId: true, email: true } },
+        item: { select: { name: true } },
+        variant: { select: { name: true } },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (transaction.isFulfilled) {
+      throw new BadRequestException('Transaction is already fulfilled');
+    }
+
+    const updatedTransaction = await this.prisma.transaction.update({
+      where: { transactionId },
+      data: {
+        isFulfilled: true,
+        fulfilledAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        item: {
+          select: {
+            itemId: true,
+            name: true,
+          },
+        },
+        variant: {
+          select: {
+            variantId: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const itemName = transaction.variant 
+      ? `${transaction.item.name} (${transaction.variant.name})`
+      : transaction.item.name;
+
+    console.log(`[Fulfillment] Transaction ${transactionId} marked as fulfilled for user ${transaction.user.email} - "${itemName}"`);
+
+    return updatedTransaction;
+  }
+
+  async unfulfillTransaction(transactionId: number) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { transactionId },
+      include: {
+        user: { select: { userId: true, email: true } },
+        item: { select: { name: true } },
+        variant: { select: { name: true } },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (!transaction.isFulfilled) {
+      throw new BadRequestException('Transaction is not fulfilled');
+    }
+
+    const updatedTransaction = await this.prisma.transaction.update({
+      where: { transactionId },
+      data: {
+        isFulfilled: false,
+        fulfilledAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        item: {
+          select: {
+            itemId: true,
+            name: true,
+          },
+        },
+        variant: {
+          select: {
+            variantId: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const itemName = transaction.variant 
+      ? `${transaction.item.name} (${transaction.variant.name})`
+      : transaction.item.name;
+
+    console.log(`[Unfulfill] Transaction ${transactionId} marked as unfulfilled for user ${transaction.user.email} - "${itemName}"`);
+
+    return updatedTransaction;
+  }
 }
