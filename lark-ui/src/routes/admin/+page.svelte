@@ -296,6 +296,7 @@ let shopItemSaving = $state(false);
 let shopItemError = $state('');
 let shopItemSuccess = $state('');
 let shopSubTab = $state<'items' | 'transactions'>('items');
+let selectedItemFilter = $state<number | null>(null);
 
 let variantForm = $state<{ name: string; cost: string }>({ name: '', cost: '' });
 let addingVariantToItemId = $state<number | null>(null);
@@ -348,6 +349,12 @@ let priorityUsers = $state<PriorityUser[]>([]);
 let priorityUsersLoading = $state(false);
 let priorityUsersLoaded = $state(false);
 let priorityFilterEnabled = $state(false);
+
+const filteredTransactions = $derived(
+	selectedItemFilter === null
+		? shopTransactions
+		: shopTransactions.filter(t => t.itemId === selectedItemFilter)
+);
 
 let submissionDrafts = $state<Record<number, { approvalStatus: string; approvedHours: string; userFeedback: string; hoursJustification: string; sendEmailNotification: boolean }>>(
 	buildSubmissionDrafts(data.submissions ?? [])
@@ -2992,6 +2999,18 @@ function normalizeUrl(url: string | null): string | null {
 					{#if shopTransactions.length === 0}
 						<div class="py-12 text-center text-gray-300">No transactions yet.</div>
 					{:else}
+						<div class="mb-4 flex items-center gap-3">
+							<label class="text-sm font-medium text-gray-300">Filter by Item:</label>
+							<select
+								class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+								bind:value={selectedItemFilter}
+							>
+								<option value={null}>All Items</option>
+								{#each shopItems as item (item.itemId)}
+									<option value={item.itemId}>{item.name}</option>
+								{/each}
+							</select>
+						</div>
 						<div class="rounded-2xl border border-gray-700 bg-gray-900/70 backdrop-blur overflow-hidden">
 							<table class="w-full">
 								<thead class="bg-gray-800/50">
@@ -3004,7 +3023,7 @@ function normalizeUrl(url: string | null): string | null {
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-gray-700">
-									{#each shopTransactions as transaction (transaction.transactionId)}
+									{#each filteredTransactions as transaction (transaction.transactionId)}
 										<tr class="hover:bg-gray-800/30">
 											<td class="px-4 py-3 text-sm text-gray-300">{formatDate(transaction.createdAt)}</td>
 											<td class="px-4 py-3">
