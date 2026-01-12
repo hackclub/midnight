@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/hackclub/midnight/compare/owl-api-v1.16.0...owl-api-v1.17.0) (2026-01-12)
+
+
+### Features
+
+* fulfillment utility ([#87](https://github.com/hackclub/midnight/issues/87)) ([516a4ed](https://github.com/hackclub/midnight/commit/516a4ed9cd08518608926e26435d33f8193a7ddf))
+
 ## [1.16.0](https://github.com/hackclub/midnight/compare/owl-api-v1.15.1...owl-api-v1.16.0) (2025-12-30)
 
 

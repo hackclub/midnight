@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.20.0...lark-ui-v1.21.0) (2026-01-12)
+
+
+### Features
+
+* fulfillment utility ([#87](https://github.com/hackclub/midnight/issues/87)) ([516a4ed](https://github.com/hackclub/midnight/commit/516a4ed9cd08518608926e26435d33f8193a7ddf))
+
 ## [1.20.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.19.0...lark-ui-v1.20.0) (2025-12-30)
 
 
