@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 
@@ -9,6 +10,7 @@ export class ShopService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async getItems() {
@@ -494,6 +496,20 @@ export class ShopService {
       : transaction.item.name;
 
     console.log(`[Fulfillment] Transaction ${transactionId} marked as fulfilled for user ${transaction.user.email} - "${itemName}"`);
+
+    try {
+      await this.mailService.sendOrderFulfilledEmail(
+        transaction.user.email,
+        {
+          transactionId,
+          itemName,
+          itemDescription: transaction.itemDescription,
+        },
+      );
+      console.log(`[Fulfillment] Email sent to ${transaction.user.email} for transaction ${transactionId}`);
+    } catch (error) {
+      console.error(`[Fulfillment] Error sending email to ${transaction.user.email}:`, error);
+    }
 
     return updatedTransaction;
   }

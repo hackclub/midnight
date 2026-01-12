@@ -17,6 +17,7 @@ export class MailService {
   private submissionApprovedEmailTemplate: string;
   private submissionDeniedEmailTemplate: string;
   private giftCodeClaimEmailTemplate: string;
+  private orderFulfilledEmailTemplate: string;
   private smimeUtil: SmimeUtil | null = null;
 
   private smimeEnabled: boolean = false;
@@ -114,6 +115,19 @@ export class MailService {
     } catch (error) {
       console.error('Error loading gift code claim email template:', error);
       this.giftCodeClaimEmailTemplate = this.emailTemplate;
+    }
+
+    try {
+      const orderFulfilledMjmlTemplate = fs.readFileSync(
+        path.join(__dirname, '../../templates/order-fulfilled.mjml'),
+        'utf8',
+      );
+      const orderFulfilledHtml = mjml2html(orderFulfilledMjmlTemplate);
+      this.orderFulfilledEmailTemplate = orderFulfilledHtml.html;
+      console.log('Loaded order fulfilled email template successfully');
+    } catch (error) {
+      console.error('Error loading order fulfilled email template:', error);
+      this.orderFulfilledEmailTemplate = this.emailTemplate;
     }
 
     this.initializeSmime();
@@ -564,6 +578,37 @@ export class MailService {
     });
 
     console.log(`Sent gift code claim email to: ${email}`);
+
+    return { success: true };
+  }
+
+  async sendOrderFulfilledEmail(
+    email: string,
+    data: {
+      transactionId: number;
+      itemName: string;
+      itemDescription: string;
+    },
+  ): Promise<{ success: boolean }> {
+    const now = new Date();
+    const dateStr = `${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+
+    const ordersUrl = `${process.env.FRONTEND_URL || 'https://midnight.hackclub.com'}/app/shop`;
+
+    const emailContent = this.orderFulfilledEmailTemplate
+      .replace(/\{\{date\}\}/g, dateStr)
+      .replace(/\{\{transactionId\}\}/g, data.transactionId.toString())
+      .replace(/\{\{itemName\}\}/g, data.itemName)
+      .replace(/\{\{itemDescription\}\}/g, data.itemDescription)
+      .replace(/\{\{ordersUrl\}\}/g, ordersUrl);
+
+    await this.sendImmediateEmail(email, emailContent, `Your order has been fulfilled!`, {
+      smimeEnabled: this.smimeEnabled,
+      type: 'order-fulfilled',
+      transactionId: data.transactionId,
+    });
+
+    console.log(`Sent order fulfilled email to: ${email} (Transaction: ${data.transactionId})`);
 
     return { success: true };
   }
