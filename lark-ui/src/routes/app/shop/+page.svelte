@@ -119,7 +119,12 @@
                                 {/if}
                             </h3>
                             <p class="order-description">{transaction.itemDescription}</p>
-                            <p class="order-date">{formatDate(transaction.createdAt)}</p>
+                            <div class="order-meta">
+                                <p class="order-date">{formatDate(transaction.createdAt)}</p>
+                                <span class="order-status {transaction.isFulfilled ? 'fulfilled' : 'pending'}">
+                                    {transaction.isFulfilled ? '✓ Fulfilled' : '⏱ Pending'}
+                                </span>
+                            </div>
                         </div>
                         <div class="order-cost">
                             <span class="cost-value">{transaction.cost}</span>
@@ -361,11 +366,37 @@
         text-overflow: ellipsis;
     }
 
+    .order-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
     .order-date {
         font-family: "PT Sans", sans-serif;
         font-size: 14px;
         color: rgba(255, 255, 255, 0.5);
         margin: 0;
+    }
+
+    .order-status {
+        font-family: "PT Sans", sans-serif;
+        font-size: 13px;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .order-status.fulfilled {
+        background: #34d39933;
+        color: #86efac;
+        border: 1px solid #34d399;
+    }
+
+    .order-status.pending {
+        background: #fbbf2433;
+        color: #fde68a;
+        border: 1px solid #fbbf24;
     }
 
     .order-cost {

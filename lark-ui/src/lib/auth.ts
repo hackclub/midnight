@@ -475,6 +475,8 @@ export type ShopTransaction = {
   variantId: number | null;
   itemDescription: string;
   cost: number;
+  isFulfilled: boolean;
+  fulfilledAt: string | null;
   createdAt: string;
   item: {
     itemId: number;

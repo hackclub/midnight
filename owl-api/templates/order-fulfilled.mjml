@@ -1,0 +1,157 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="'PT Serif', Georgia, serif" />
+      <mj-text color="#081832" line-height="1.6" />
+    </mj-attributes>
+    <mj-style>
+      @font-face {
+        font-family: 'Pt Serif';
+        src: url('https://cdn.leafd.dev/Ws%20Paradose.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      .letter-paper {
+        background: #fffef9;
+        border: 2px solid #d4a574;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      .stamp {
+        border: 3px dashed #d4a574;
+        padding: 8px;
+        background: #fff;
+        display: inline-block;
+      }
+      .fulfilled-badge {
+        background-color: #d4f4dd;
+        border: 2px solid #5cb85c;
+        padding: 15px;
+        text-align: center;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+      .order-details {
+        background-color: #f9f7f4;
+        border-left: 4px solid #d4a574;
+        padding: 15px;
+        margin: 15px 0;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#FEE1C0">
+
+    <mj-section padding="0">
+      <mj-column>
+        <mj-text color="#FEE1C0" font-size="1px" line-height="1px" padding="0">
+          Your order has been fulfilled
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="20px 20px 0 20px">
+      <mj-column>
+        <mj-text align="right" font-size="12px" color="#7a5c3d" font-style="italic" padding="0 0 8px 0">
+          {{date}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-wrapper background-color="#fffef9" border="2px solid #d4a574" padding="0">
+
+      <mj-section padding="20px 30px 8px 30px">
+        <mj-column width="70%">
+          <mj-text align="left" font-size="20px" padding="0">
+            To my dear nibbling,
+          </mj-text>
+        </mj-column>
+        <mj-column width="30%">
+          <mj-text align="right" padding="0">
+            <div style="border: 3px dashed #d4a574; padding: 8px; background: #fff; display: inline-block; font-size: 11px; line-height: 1.3;">
+              <strong>FULFILLED</strong><br/>
+              Vienna<br/>
+              {{transactionId}}
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="15px 30px 10px 30px">
+        <mj-column>
+          <mj-text align="left" font-size="16px" line-height="1.6" padding="0 0 12px 0">
+            Good news! Your order has been fulfilled and is on its way to you.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0 30px 10px 30px">
+        <mj-column>
+          <mj-text align="center" padding="0">
+            <div class="fulfilled-badge">
+              <div style="font-size: 24px; font-weight: 700; color: #5cb85c; margin-bottom: 8px;">✓ Order Fulfilled</div>
+              <div style="font-size: 16px; color: #3c763d;">
+                Your item is being processed
+              </div>
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0 30px 15px 30px">
+        <mj-column>
+          <mj-text align="left" font-size="15px" font-weight="700" padding="0 0 8px 0">
+            Order Details:
+          </mj-text>
+          <mj-text align="left" padding="0">
+            <div class="order-details">
+              <strong>{{itemName}}</strong><br/>
+              {{itemDescription}}
+            </div>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="10px 10px 10px 10px">
+        <mj-column>
+          <mj-button
+            href="{{ordersUrl}}"
+            background-color="#F24B4B"
+            color="#fee1c0"
+            font-size="18px"
+            font-weight="700"
+            border-radius="8px"
+            padding="12px 40px"
+            align="center"
+          >
+            VIEW YOUR ORDERS
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="15px 30px 0 30px">
+        <mj-column>
+          <mj-text align="center" font-size="15px" padding="0">
+            Thank you for your patience, dear nibbling. Your reward for all that hard work is well deserved.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="15px 30px 20px 30px" border-top="2px dashed #d4a574">
+        <mj-column>
+          <mj-text align="right" font-size="17px" padding="0" line-height="1.4">
+            <em>the austrian government</em>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+    </mj-wrapper>
+
+    <mj-section padding="20px 30px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#7a5c3d" font-style="italic" padding="0">
+          You are receiving this email because you made a purchase in the Midnight shop by Hack Club
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>
