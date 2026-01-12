@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.21.0...lark-ui-v1.22.0) (2026-01-12)
+
+
+### Features
+
+* emails ([#89](https://github.com/hackclub/midnight/issues/89)) ([7c032c4](https://github.com/hackclub/midnight/commit/7c032c4bdaf1b97c60f36b39542f05eaa5b31a97))
+
 ## [1.21.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.20.0...lark-ui-v1.21.0) (2026-01-12)
 
 

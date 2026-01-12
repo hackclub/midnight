@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/hackclub/midnight/compare/owl-api-v1.17.0...owl-api-v1.18.0) (2026-01-12)
+
+
+### Features
+
+* emails ([#89](https://github.com/hackclub/midnight/issues/89)) ([7c032c4](https://github.com/hackclub/midnight/commit/7c032c4bdaf1b97c60f36b39542f05eaa5b31a97))
+
 ## [1.17.0](https://github.com/hackclub/midnight/compare/owl-api-v1.16.0...owl-api-v1.17.0) (2026-01-12)
 
 
