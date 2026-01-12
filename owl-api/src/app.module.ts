@@ -13,7 +13,6 @@ import { UploadsModule } from "./uploads/uploads.module";
 import { ShopModule } from "./shop/shop.module";
 import { GiftCodesModule } from "./gift-codes/gift-codes.module";
 import { SlackModule } from "./slack/slack.module";
-import { GameModule } from "./game/game.module";
 
 @Module({
   imports: [
@@ -32,8 +31,7 @@ import { GameModule } from "./game/game.module";
     UploadsModule,
     ShopModule,
     GiftCodesModule,
-    SlackModule,
-    GameModule,
+    SlackModule
   ],
   providers: [
     {
