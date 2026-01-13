@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
+import { MailService } from '../mail/mail.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 
@@ -9,6 +10,7 @@ export class ShopService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async getItems() {
@@ -439,5 +441,133 @@ export class ShopService {
       userId: transaction.user.userId,
       itemName,
     };
+  }
+
+  async markTransactionFulfilled(transactionId: number) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { transactionId },
+      include: {
+        user: { select: { userId: true, email: true } },
+        item: { select: { name: true } },
+        variant: { select: { name: true } },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (transaction.isFulfilled) {
+      throw new BadRequestException('Transaction is already fulfilled');
+    }
+
+    const updatedTransaction = await this.prisma.transaction.update({
+      where: { transactionId },
+      data: {
+        isFulfilled: true,
+        fulfilledAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        item: {
+          select: {
+            itemId: true,
+            name: true,
+          },
+        },
+        variant: {
+          select: {
+            variantId: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const itemName = transaction.variant 
+      ? `${transaction.item.name} (${transaction.variant.name})`
+      : transaction.item.name;
+
+    console.log(`[Fulfillment] Transaction ${transactionId} marked as fulfilled for user ${transaction.user.email} - "${itemName}"`);
+
+    try {
+      await this.mailService.sendOrderFulfilledEmail(
+        transaction.user.email,
+        {
+          transactionId,
+          itemName,
+          itemDescription: transaction.itemDescription,
+        },
+      );
+      console.log(`[Fulfillment] Email sent to ${transaction.user.email} for transaction ${transactionId}`);
+    } catch (error) {
+      console.error(`[Fulfillment] Error sending email to ${transaction.user.email}:`, error);
+    }
+
+    return updatedTransaction;
+  }
+
+  async unfulfillTransaction(transactionId: number) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { transactionId },
+      include: {
+        user: { select: { userId: true, email: true } },
+        item: { select: { name: true } },
+        variant: { select: { name: true } },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (!transaction.isFulfilled) {
+      throw new BadRequestException('Transaction is not fulfilled');
+    }
+
+    const updatedTransaction = await this.prisma.transaction.update({
+      where: { transactionId },
+      data: {
+        isFulfilled: false,
+        fulfilledAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        item: {
+          select: {
+            itemId: true,
+            name: true,
+          },
+        },
+        variant: {
+          select: {
+            variantId: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const itemName = transaction.variant 
+      ? `${transaction.item.name} (${transaction.variant.name})`
+      : transaction.item.name;
+
+    console.log(`[Unfulfill] Transaction ${transactionId} marked as unfulfilled for user ${transaction.user.email} - "${itemName}"`);
+
+    return updatedTransaction;
   }
 }
