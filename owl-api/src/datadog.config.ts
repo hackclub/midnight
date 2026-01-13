@@ -1,3 +1,10 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: resolve(__dirname, '../../.env') });
+}
+
 import tracer from 'dd-trace';
 
 const serviceName = process.env.DD_SERVICE || 'owl-api';
