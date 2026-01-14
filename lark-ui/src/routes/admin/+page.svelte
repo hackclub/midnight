@@ -134,6 +134,8 @@ type ReviewerStats = {
 		variantId: number | null;
 		itemDescription: string;
 		cost: number;
+		isFulfilled: boolean;
+		fulfilledAt: string | null;
 		createdAt: string;
 		user: {
 			userId: number;
@@ -296,6 +298,7 @@ let shopItemSaving = $state(false);
 let shopItemError = $state('');
 let shopItemSuccess = $state('');
 let shopSubTab = $state<'items' | 'transactions'>('items');
+let selectedItemFilter = $state<number | null>(null);
 
 let variantForm = $state<{ name: string; cost: string }>({ name: '', cost: '' });
 let addingVariantToItemId = $state<number | null>(null);
@@ -305,6 +308,8 @@ let variantError = $state('');
 let variantSuccess = $state('');
 let expandedItemVariants = $state<Record<number, boolean>>({});
 let refundingTransaction = $state<number | null>(null);
+let fulfillingTransaction = $state<number | null>(null);
+let unfulfillingTransaction = $state<number | null>(null);
 
 let giftCodes = $state<GiftCode[]>([]);
 let giftCodesLoaded = $state(false);
@@ -348,6 +353,12 @@ let priorityUsers = $state<PriorityUser[]>([]);
 let priorityUsersLoading = $state(false);
 let priorityUsersLoaded = $state(false);
 let priorityFilterEnabled = $state(false);
+
+const filteredTransactions = $derived(
+	selectedItemFilter === null
+		? shopTransactions
+		: shopTransactions.filter(t => t.itemId === selectedItemFilter)
+);
 
 let submissionDrafts = $state<Record<number, { approvalStatus: string; approvedHours: string; userFeedback: string; hoursJustification: string; sendEmailNotification: boolean }>>(
 	buildSubmissionDrafts(data.submissions ?? [])
@@ -814,6 +825,58 @@ function formatCount(value: number) {
 			console.error('Failed to refund transaction:', err);
 		} finally {
 			refundingTransaction = null;
+		}
+	}
+
+	async function handleMarkFulfilled(transactionId: number) {
+		const confirmFulfill = typeof window !== 'undefined' ? window.confirm('Mark this transaction as fulfilled?') : true;
+		if (!confirmFulfill) return;
+
+		fulfillingTransaction = transactionId;
+		try {
+			const response = await fetch(`${apiUrl}/api/shop/admin/transactions/${transactionId}/fulfill`, {
+				method: 'PUT',
+				credentials: 'include',
+			});
+
+			if (response.ok) {
+				const updatedTransaction = await response.json();
+				shopTransactions = shopTransactions.map(t => 
+					t.transactionId === transactionId ? updatedTransaction : t
+				);
+			} else {
+				console.error('Failed to mark transaction as fulfilled');
+			}
+		} catch (err) {
+			console.error('Failed to mark transaction as fulfilled:', err);
+		} finally {
+			fulfillingTransaction = null;
+		}
+	}
+
+	async function handleUnfulfillTransaction(transactionId: number) {
+		const confirmUnfulfill = typeof window !== 'undefined' ? window.confirm('Remove fulfilled status from this transaction?') : true;
+		if (!confirmUnfulfill) return;
+
+		unfulfillingTransaction = transactionId;
+		try {
+			const response = await fetch(`${apiUrl}/api/shop/admin/transactions/${transactionId}/fulfill`, {
+				method: 'DELETE',
+				credentials: 'include',
+			});
+
+			if (response.ok) {
+				const updatedTransaction = await response.json();
+				shopTransactions = shopTransactions.map(t => 
+					t.transactionId === transactionId ? updatedTransaction : t
+				);
+			} else {
+				console.error('Failed to unfulfill transaction');
+			}
+		} catch (err) {
+			console.error('Failed to unfulfill transaction:', err);
+		} finally {
+			unfulfillingTransaction = null;
 		}
 	}
 
@@ -2992,6 +3055,18 @@ function normalizeUrl(url: string | null): string | null {
 					{#if shopTransactions.length === 0}
 						<div class="py-12 text-center text-gray-300">No transactions yet.</div>
 					{:else}
+						<div class="mb-4 flex items-center gap-3">
+							<label class="text-sm font-medium text-gray-300">Filter by Item:</label>
+							<select
+								class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+								bind:value={selectedItemFilter}
+							>
+								<option value={null}>All Items</option>
+								{#each shopItems as item (item.itemId)}
+									<option value={item.itemId}>{item.name}</option>
+								{/each}
+							</select>
+						</div>
 						<div class="rounded-2xl border border-gray-700 bg-gray-900/70 backdrop-blur overflow-hidden">
 							<table class="w-full">
 								<thead class="bg-gray-800/50">
@@ -3000,11 +3075,12 @@ function normalizeUrl(url: string | null): string | null {
 										<th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">User</th>
 										<th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Item</th>
 										<th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Cost</th>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
 										<th class="px-4 py-3 text-left text-sm font-semibold text-gray-300">Actions</th>
 									</tr>
 								</thead>
 								<tbody class="divide-y divide-gray-700">
-									{#each shopTransactions as transaction (transaction.transactionId)}
+									{#each filteredTransactions as transaction (transaction.transactionId)}
 										<tr class="hover:bg-gray-800/30">
 											<td class="px-4 py-3 text-sm text-gray-300">{formatDate(transaction.createdAt)}</td>
 											<td class="px-4 py-3">
@@ -3022,13 +3098,44 @@ function normalizeUrl(url: string | null): string | null {
 											</td>
 											<td class="px-4 py-3 text-sm font-semibold text-purple-300">{transaction.cost} hours</td>
 											<td class="px-4 py-3">
-												<button
-													class="px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500 text-red-300 hover:bg-red-600/30 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-													onclick={() => handleRefundTransaction(transaction.transactionId)}
-													disabled={refundingTransaction === transaction.transactionId}
-												>
-													{refundingTransaction === transaction.transactionId ? 'Refunding...' : 'Refund'}
-												</button>
+												{#if transaction.isFulfilled}
+													<div class="flex flex-col gap-1">
+														<span class="px-2 py-1 text-xs rounded bg-green-500/20 border border-green-400 text-green-300 w-fit">Fulfilled</span>
+														{#if transaction.fulfilledAt}
+															<span class="text-xs text-gray-500">{formatDate(transaction.fulfilledAt)}</span>
+														{/if}
+													</div>
+												{:else}
+													<span class="px-2 py-1 text-xs rounded bg-yellow-500/20 border border-yellow-400 text-yellow-300">Pending</span>
+												{/if}
+											</td>
+											<td class="px-4 py-3">
+												<div class="flex gap-2">
+													{#if transaction.isFulfilled}
+														<button
+															class="px-3 py-1.5 rounded-lg bg-yellow-600/20 border border-yellow-500 text-yellow-300 hover:bg-yellow-600/30 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+															onclick={() => handleUnfulfillTransaction(transaction.transactionId)}
+															disabled={unfulfillingTransaction === transaction.transactionId}
+														>
+															{unfulfillingTransaction === transaction.transactionId ? 'Removing...' : 'Unfulfill'}
+														</button>
+													{:else}
+														<button
+															class="px-3 py-1.5 rounded-lg bg-green-600/20 border border-green-500 text-green-300 hover:bg-green-600/30 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+															onclick={() => handleMarkFulfilled(transaction.transactionId)}
+															disabled={fulfillingTransaction === transaction.transactionId}
+														>
+															{fulfillingTransaction === transaction.transactionId ? 'Marking...' : 'Mark Fulfilled'}
+														</button>
+													{/if}
+													<button
+														class="px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500 text-red-300 hover:bg-red-600/30 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+														onclick={() => handleRefundTransaction(transaction.transactionId)}
+														disabled={refundingTransaction === transaction.transactionId}
+													>
+														{refundingTransaction === transaction.transactionId ? 'Refunding...' : 'Refund'}
+													</button>
+												</div>
 											</td>
 										</tr>
 									{/each}

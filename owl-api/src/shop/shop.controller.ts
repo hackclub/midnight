@@ -106,4 +106,14 @@ export class ShopAdminController {
   async refundTransaction(@Param('id', ParseIntPipe) transactionId: number) {
     return this.shopService.refundTransaction(transactionId);
   }
+
+  @Put('transactions/:id/fulfill')
+  async markTransactionFulfilled(@Param('id', ParseIntPipe) transactionId: number) {
+    return this.shopService.markTransactionFulfilled(transactionId);
+  }
+
+  @Delete('transactions/:id/fulfill')
+  async unfulfillTransaction(@Param('id', ParseIntPipe) transactionId: number) {
+    return this.shopService.unfulfillTransaction(transactionId);
+  }
 }

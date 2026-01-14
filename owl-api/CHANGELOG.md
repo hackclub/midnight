@@ -1,11 +1,18 @@
 # Changelog
 
-## [1.16.1](https://github.com/hackclub/midnight/compare/owl-api-v1.16.0...owl-api-v1.16.1) (2026-01-06)
+## [1.18.0](https://github.com/hackclub/midnight/compare/owl-api-v1.17.0...owl-api-v1.18.0) (2026-01-12)
 
 
-### Bug Fixes
+### Features
 
-* GAMBLE RAAAA ([#84](https://github.com/hackclub/midnight/issues/84)) ([b8b864a](https://github.com/hackclub/midnight/commit/b8b864a036a43e1abc293742c3e61cfced90ab1c))
+* emails ([#89](https://github.com/hackclub/midnight/issues/89)) ([7c032c4](https://github.com/hackclub/midnight/commit/7c032c4bdaf1b97c60f36b39542f05eaa5b31a97))
+
+## [1.17.0](https://github.com/hackclub/midnight/compare/owl-api-v1.16.0...owl-api-v1.17.0) (2026-01-12)
+
+
+### Features
+
+* fulfillment utility ([#87](https://github.com/hackclub/midnight/issues/87)) ([516a4ed](https://github.com/hackclub/midnight/commit/516a4ed9cd08518608926e26435d33f8193a7ddf))
 
 ## [1.16.0](https://github.com/hackclub/midnight/compare/owl-api-v1.15.1...owl-api-v1.16.0) (2025-12-30)
 

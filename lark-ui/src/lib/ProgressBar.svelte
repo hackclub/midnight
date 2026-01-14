@@ -14,7 +14,10 @@
     onMount(async () => {
         const savedGoal = localStorage.getItem('hourGoal');
         if (savedGoal) {
-            goalHours = parseInt(savedGoal, 10);
+            const parsed = parseInt(savedGoal, 10);
+            if (!Number.isNaN(parsed) && parsed > 0) {
+                goalHours = parsed;
+            }
         }
 
         const hourCounts = await getHourCounts();

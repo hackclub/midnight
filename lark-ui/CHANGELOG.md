@@ -1,11 +1,18 @@
 # Changelog
 
-## [1.20.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.20.0...lark-ui-v1.20.1) (2026-01-06)
+## [1.22.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.21.0...lark-ui-v1.22.0) (2026-01-12)
 
 
-### Bug Fixes
+### Features
 
-* GAMBLE RAAAA ([#84](https://github.com/hackclub/midnight/issues/84)) ([b8b864a](https://github.com/hackclub/midnight/commit/b8b864a036a43e1abc293742c3e61cfced90ab1c))
+* emails ([#89](https://github.com/hackclub/midnight/issues/89)) ([7c032c4](https://github.com/hackclub/midnight/commit/7c032c4bdaf1b97c60f36b39542f05eaa5b31a97))
+
+## [1.21.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.20.0...lark-ui-v1.21.0) (2026-01-12)
+
+
+### Features
+
+* fulfillment utility ([#87](https://github.com/hackclub/midnight/issues/87)) ([516a4ed](https://github.com/hackclub/midnight/commit/516a4ed9cd08518608926e26435d33f8193a7ddf))
 
 ## [1.20.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.19.0...lark-ui-v1.20.0) (2025-12-30)
 
