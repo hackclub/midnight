@@ -9,18 +9,26 @@
     let totalHours = $state(0);
     let rawApprovedHours = $state(0);
     let rawTotalHours = $state(0);
-    const goalHours = 50;
+    let goalHours = $state(50);
 
     onMount(async () => {
+        const savedGoal = localStorage.getItem('hourGoal');
+        if (savedGoal) {
+            const parsed = parseInt(savedGoal, 10);
+            if (!Number.isNaN(parsed) && parsed > 0) {
+                goalHours = parsed;
+            }
+        }
+
         const hourCounts = await getHourCounts();
 
-        rawApprovedHours = +hourCounts.approvedHours.toFixed(2) ;
+        rawApprovedHours = +hourCounts.approvedHours.toFixed(2);
         rawTotalHours = +hourCounts.hackatimeHours.toFixed(2);
 
         let approvedHours =
-            hourCounts.approvedHours > 50 ? 50 : hourCounts.approvedHours;
+            hourCounts.approvedHours > goalHours ? goalHours : hourCounts.approvedHours;
         totalHours =
-            hourCounts.hackatimeHours > 50 ? 50 : hourCounts.hackatimeHours;
+            hourCounts.hackatimeHours > goalHours ? goalHours : hourCounts.hackatimeHours;
 
         approvedPercentage = approvedHours / goalHours;
         reviewPercentage = (totalHours - approvedHours) / goalHours;
@@ -66,7 +74,7 @@
                 {formattedApprovedHours} HOuRS <span class="approved">APPROVED</span>
             </p>
         {/if}
-        {#if rawTotalHours > rawApprovedHours && rawApprovedHours < 50}
+        {#if rawTotalHours > rawApprovedHours && rawApprovedHours < goalHours}
             <p
                 class="key"
                 style="width: {reviewPercentage * 100}%"
@@ -75,7 +83,7 @@
                 <span class="hackatime">PENDING FOR REVIEW</span>
             </p>
         {/if}
-        {#if remainingHours > 0 && rawApprovedHours < 50}
+        {#if remainingHours > 0 && rawApprovedHours < goalHours}
             <p
                 class="key"
                 style="width: {remainingPercentage * 100}%"

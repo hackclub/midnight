@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      prisma:
+        specifier: ^6.18.0
+        version: 6.18.0(typescript@5.9.3)
     devDependencies:
       concurrently:
         specifier: ^8.2.2
