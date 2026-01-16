@@ -391,6 +391,12 @@ export class ShopService {
             firstName: true,
             lastName: true,
             email: true,
+            addressLine1: true,
+            addressLine2: true,
+            city: true,
+            state: true,
+            zipCode: true,
+            country: true,
           },
         },
         item: {

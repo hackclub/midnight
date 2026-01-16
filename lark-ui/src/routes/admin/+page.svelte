@@ -148,6 +148,12 @@
             firstName: string;
             lastName: string;
             email: string;
+            addressLine1?: string | null;
+            addressLine2?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipCode?: string | null;
+            country?: string | null;
         };
         item: {
             itemId: number;
@@ -437,6 +443,12 @@
                     firstName: string;
                     lastName: string;
                     email: string;
+                    addressLine1?: string | null;
+                    addressLine2?: string | null;
+                    city?: string | null;
+                    state?: string | null;
+                    zipCode?: string | null;
+                    country?: string | null;
                 };
                 transactions: ShopTransaction[];
                 totalCost: number;
@@ -4645,6 +4657,20 @@
                                                 <p class="text-xs text-gray-400">
                                                     {transaction.user.email}
                                                 </p>
+                                                {#if transaction.user.addressLine1 || transaction.user.city || transaction.user.state}
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {#if transaction.user.addressLine1}
+                                                            <p>{transaction.user.addressLine1}</p>
+                                                        {/if}
+                                                        {#if transaction.user.addressLine2}
+                                                            <p>{transaction.user.addressLine2}</p>
+                                                        {/if}
+                                                        <p>{[transaction.user.city, transaction.user.state, transaction.user.zipCode].filter(Boolean).join(', ')}</p>
+                                                        {#if transaction.user.country}
+                                                            <p>{transaction.user.country}</p>
+                                                        {/if}
+                                                    </div>
+                                                {/if}
                                             </td>
                                             <td class="px-4 py-3">
                                                 <p
@@ -4818,6 +4844,20 @@
                                                 >
                                                     {userGroup.user.email}
                                                 </p>
+                                                {#if userGroup.user.addressLine1 || userGroup.user.city || userGroup.user.state}
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {#if userGroup.user.addressLine1}
+                                                            <p>{userGroup.user.addressLine1}</p>
+                                                        {/if}
+                                                        {#if userGroup.user.addressLine2}
+                                                            <p>{userGroup.user.addressLine2}</p>
+                                                        {/if}
+                                                        <p>{[userGroup.user.city, userGroup.user.state, userGroup.user.zipCode].filter(Boolean).join(', ')}</p>
+                                                        {#if userGroup.user.country}
+                                                            <p>{userGroup.user.country}</p>
+                                                        {/if}
+                                                    </div>
+                                                {/if}
                                             </div>
                                             <div class="flex gap-4 text-sm">
                                                 <div class="text-right">
