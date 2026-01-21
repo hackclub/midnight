@@ -52,7 +52,7 @@ let timeLeft = "Loading...";
 function calculateTimeLeft() {
   const now = new Date();
    const currentYear = now.getFullYear();
-    const target = new Date(currentYear, 11, 31, 23, 59, 59);
+    const target = new Date(currentYear, 0, 26, 23, 59, 59);
 
     let diff = target.getTime() - now.getTime();
 
