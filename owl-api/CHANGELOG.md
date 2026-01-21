@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/hackclub/midnight/compare/owl-api-v1.18.0...owl-api-v1.18.1) (2026-01-21)
+
+
+### Bug Fixes
+
+* trigger build ([0b73efd](https://github.com/hackclub/midnight/commit/0b73efd7e84165652ffb55a7750f8cb9b42f342d))
+
 ## [1.18.0](https://github.com/hackclub/midnight/compare/owl-api-v1.17.0...owl-api-v1.18.0) (2026-01-12)
 
 
