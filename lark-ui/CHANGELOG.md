@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.2](https://github.com/hackclub/midnight/compare/lark-ui-v1.22.1...lark-ui-v1.22.2) (2026-01-21)
+
+
+### Bug Fixes
+
+* trigger build ([0b73efd](https://github.com/hackclub/midnight/commit/0b73efd7e84165652ffb55a7750f8cb9b42f342d))
+
 ## [1.22.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.22.0...lark-ui-v1.22.1) (2026-01-21)
 
 
