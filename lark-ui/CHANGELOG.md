@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.1](https://github.com/hackclub/midnight/compare/lark-ui-v1.22.0...lark-ui-v1.22.1) (2026-01-21)
+
+
+### Bug Fixes
+
+* countdown ([#94](https://github.com/hackclub/midnight/issues/94)) ([70c57f2](https://github.com/hackclub/midnight/commit/70c57f294350eb247f033d65938acee88385464c))
+
 ## [1.22.0](https://github.com/hackclub/midnight/compare/lark-ui-v1.21.0...lark-ui-v1.22.0) (2026-01-12)
 
 
