@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.3](https://github.com/hackclub/midnight/compare/owl-api-v1.18.2...owl-api-v1.18.3) (2026-05-06)
+
+
+### Bug Fixes
+
+* it's dawn now ([c9cc356](https://github.com/hackclub/midnight/commit/c9cc356076e028bed6cee4e7add06f9fcc36899b))
+
 ## [1.18.2](https://github.com/hackclub/midnight/compare/owl-api-v1.18.1...owl-api-v1.18.2) (2026-01-21)
 
 
