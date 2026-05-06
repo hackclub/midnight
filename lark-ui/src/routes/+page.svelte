@@ -385,6 +385,22 @@
     class="w-full flex flex-col items-center overflow-x-hidden pt-12 md:pt-16"
   >
     <div
+      class="bg-[#fee1c0] border-4 border-[#2A2746] rounded-2xl px-6 py-6 md:px-10 md:py-8 mx-4 mb-8 max-w-3xl text-center shadow-[8px_8px_0_#2A2746]"
+    >
+      <h2
+        class="font-['PT_Serif',_serif] font-bold text-[#f24b4b] text-2xl md:text-3xl lg:text-4xl mb-3"
+      >
+        Midnight has ended.
+      </h2>
+      <p
+        class="font-['PT_Serif',_serif] text-[#2A2746] text-base md:text-lg lg:text-xl leading-relaxed"
+      >
+        Midnight took place in Vienna, Austria on January 4–8, 2026. A huge
+        thank you to every person who participated in this program. <3
+      </p>
+    </div>
+
+    <div
       class="bg-[#2A2746] aspect-video w-[110%] sm:w-[95%] md:w-[85%] lg:w-4/5 p-4 flex items-center justify-center mb-8 relative z-10"
     >
       <iframe

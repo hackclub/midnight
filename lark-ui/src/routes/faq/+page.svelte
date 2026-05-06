@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { env } from '$env/dynamic/public';
+
+  const signupsDisabled = env.PUBLIC_SIGNUPS_DISABLED === 'true';
 
   onMount(() => {
     const handleScroll = () => {
@@ -49,6 +52,23 @@
     </a>
   </header>
 
+  {#if signupsDisabled}
+    <div class="container mx-auto px-8 md:px-16 py-20 max-w-3xl w-full">
+      <h1 class="font-['Moga',_sans-serif] text-[48px] md:text-[72px] text-black text-center mb-8">
+        <span>FAQ FoR </span>
+        <span class="text-[#f24b4b]">MIDNIGHT</span>
+      </h1>
+      <div class="bg-[#f24b4b] text-[#fee1c0] rounded-2xl p-6 md:p-10 font-['PT_Serif',_serif] text-center shadow-[8px_8px_0_#2A2746] border-4 border-[#2A2746]">
+        <p class="font-bold text-[22px] md:text-[28px] mb-4">Midnight has ended.</p>
+        <p class="text-[16px] md:text-[18px] leading-relaxed">
+          Midnight took place in Vienna, Austria on January 4–8, 2026. Big thanks to everyone who participated, built, and made the mystery what it was. ♥
+        </p>
+        <p class="text-[14px] md:text-[16px] leading-relaxed mt-6">
+          Questions? Reach out at <a href="mailto:midnight@hackclub.com" class="underline">midnight@hackclub.com</a>.
+        </p>
+      </div>
+    </div>
+  {:else}
   <div class="container mx-auto px-8 md:px-16 lg:px-32 xl:px-12 py-20 max-w-5xl w-full">
     <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
       <aside class="w-full max-w-sm mx-auto lg:w-[225px] lg:mx-0 lg:sticky lg:top-[180px] lg:self-start flex-shrink-0 z-10">
@@ -58,10 +78,10 @@
           </h2>
           <ul class="font-['PT_Sans',_sans-serif] text-[12px] text-black space-y-2 list-disc pl-5">
             <li><a href="#what-is-midnight">What is Midnight?</a></li>
-            <li><a href="#how-to-get-invited">How do I get invited?</a></li>
-            <li><a href="#when-and-where">When and where is this happening?</a></li>
-            <li><a href="#who-can-participate">Who can participate?</a></li>
-            <li><a href="#unable-to-attend">What if I can't attend?</a></li>
+            <li><a href="#how-to-get-invited">Can I still get invited?</a></li>
+            <li><a href="#when-and-where">When and where did this happen?</a></li>
+            <li><a href="#who-can-participate">Who participated?</a></li>
+            <li><a href="#unable-to-attend">Alternative prizes</a></li>
             <li><a href="#contact">Who can I contact?</a></li>
           </ul>
           
@@ -77,48 +97,55 @@
           <span class="text-[#f24b4b]">MIDNIGHT</span>
         </h1>
 
+        <div class="bg-[#f24b4b] text-[#fee1c0] rounded-lg p-4 md:p-6 mb-10 font-['PT_Serif',_serif]">
+          <p class="font-bold text-[18px] md:text-[20px] mb-1">Midnight has ended.</p>
+          <p class="text-[14px] md:text-[16px] leading-relaxed">
+            The program ran from November 2025 through January 2026 and the in-person hackathon took place in Vienna, Austria on January 4–8, 2026. Signups are closed and we're no longer accepting new participants. Thanks to everyone who made it happen ♥
+          </p>
+        </div>
+
         <section id="what-is-midnight" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
             What is Midnight?
-          </h2> 
+          </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            Midnight is an in-person murder mystery experience by Hack Club. In early January 2026 you and other teenagers will go to Vienna, Austria to solve a murder mystery through creating technical projects! You will experience Vienna, meet like-minded friends (for life!) and create projects you will be proud of.
+            Midnight was an in-person murder mystery experience by Hack Club. In early January 2026, teenagers from around the world traveled to Vienna, Austria to solve a murder mystery through building technical projects, experience Vienna together, and meet friends for life. The program has now concluded.
           </p>
         </section>
 
         <section id="how-to-get-invited" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
-            How do I get invited?
+            Can I still get invited?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            To participate in Midnight you must spend 50 hours building projects. And, that's it! Travel stipends will be available.
+            No — Midnight has already happened and signups are closed. Keep an eye on <a href="https://hackclub.com" target="_blank" class="underline">hackclub.com</a> and the Hack Club Slack for future flagship events!
           </p>
         </section>
 
         <section id="when-and-where" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
-            When and where is this happening?
+            When and where did this happen?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            Midnight is happening in Vienna, Austria on January 4-8. The exact location will be released closer to the event.
+            Midnight took place in Vienna, Austria on January 4–8, 2026.
           </p>
         </section>
 
         <section id="who-can-participate" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
-            Who can participate?
+            Who participated?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            Anyone aged 13-18, who completes the required hours!
+            Teenagers aged 13–18 from around the world who spent 50 hours building personal projects in the lead-up to the event.
           </p>
         </section>
 
         <section id="unable-to-attend" class="mb-12 scroll-mt-[180px]">
           <h2 class="font-['PT_Serif',_serif] font-bold text-[24px] text-black mb-4">
-            What if I complete the requirements but am unable to attend Midnight in-person?
+            I qualified but couldn't attend in person — what about alternative prizes?
           </h2>
           <p class="font-['PT_Sans',_sans-serif] text-[16px] text-black leading-relaxed">
-            If you complete the requirements to attend Midnight, but are rendered unable to do so you will be able to exchange the time spent for alternative prizes. An online "store" will open after the in-person experience, where you will be able to choose your rewards.
+            If you completed the requirements but were unable to make it to Vienna, you'll be able to exchange your time for alternative prizes through the online "store" that opens after the in-person experience. If you have questions about your status, email us at <a href="mailto:midnight@hackclub.com" class="underline">midnight@hackclub.com</a>.
           </p>
         </section>
 
@@ -133,8 +160,9 @@
       </main>
     </div>
   </div>
+  {/if}
 
-  <div 
+  <div
     class="fixed right-12 top-[180px] bottom-0 w-[27px] hidden lg:block z-5 pointer-events-none parallax-decoration"
     style="background-image: url('/decoration.svg'); background-repeat: repeat-y; background-size: 27px 774px;"
   >

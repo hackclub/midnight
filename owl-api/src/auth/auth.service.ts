@@ -22,13 +22,17 @@ export class AuthService {
   async requestOtp(loginDto: LoginDto) {
     const { email, referralCode } = loginDto;
 
-    const sendAttemptCount = await this.redisService.increment(
-      `otp:send:${email}`,
-      3600,
-    );
+    const isLocalhost = process.env.NODE_ENV === 'development' || process.env.DISABLE_RATE_LIMIT === 'true';
 
-    if (sendAttemptCount > 10) {
-      throw new HttpException('You are ratelimited. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+    if (!isLocalhost) {
+      const sendAttemptCount = await this.redisService.increment(
+        `otp:send:${email}`,
+        3600,
+      );
+
+      if (sendAttemptCount > 10) {
+        throw new HttpException('You are ratelimited. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+      }
     }
 
     const otp = this.generateOtp();
@@ -39,6 +43,19 @@ export class AuthService {
     });
 
     if (!existingUser) {
+      if (process.env.DISABLE_SIGNUPS === 'true') {
+        const adminWhitelist = (process.env.ADMIN_EMAIL_WHITELIST || '')
+          .split(',')
+          .map(e => e.trim())
+          .filter(Boolean);
+
+        if (!adminWhitelist.includes(email)) {
+          throw new ForbiddenException(
+            'Signups are currently closed. Midnight took place January 4–8, 2026.',
+          );
+        }
+      }
+
       const hackatimeAccount = await this.checkHackatimeAccount(email);
       
       let firstName = 'Temporary';
@@ -150,23 +167,27 @@ export class AuthService {
     const { email, otp } = verifyOtpDto;
     const rateLimitMessage = 'You are ratelimited. Please regenerate a new OTP in a few minutes and try again.';
 
-    const normalizedIp = this.normalizeIp(clientIp);
-    const ipAttemptCount = await this.redisService.increment(
-      `otp:ip:${normalizedIp}`,
-      600,
-    );
+    const isLocalhost = process.env.NODE_ENV === 'development' || process.env.DISABLE_RATE_LIMIT === 'true';
 
-    if (ipAttemptCount > 40) {
-      throw new HttpException(rateLimitMessage, HttpStatus.TOO_MANY_REQUESTS);
-    }
+    if (!isLocalhost) {
+      const normalizedIp = this.normalizeIp(clientIp);
+      const ipAttemptCount = await this.redisService.increment(
+        `otp:ip:${normalizedIp}`,
+        600,
+      );
 
-    const emailAttemptCount = await this.redisService.increment(
-      `otp:verify:${email}`,
-      600,
-    );
+      if (ipAttemptCount > 40) {
+        throw new HttpException(rateLimitMessage, HttpStatus.TOO_MANY_REQUESTS);
+      }
 
-    if (emailAttemptCount > 20) {
-      throw new HttpException(rateLimitMessage, HttpStatus.TOO_MANY_REQUESTS);
+      const emailAttemptCount = await this.redisService.increment(
+        `otp:verify:${email}`,
+        600,
+      );
+
+      if (emailAttemptCount > 20) {
+        throw new HttpException(rateLimitMessage, HttpStatus.TOO_MANY_REQUESTS);
+      }
     }
 
     const session = await this.prisma.userSession.findFirst({
