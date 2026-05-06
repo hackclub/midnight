@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.4](https://github.com/hackclub/midnight/compare/lark-ui-v1.22.3...lark-ui-v1.22.4) (2026-05-06)
+
+
+### Bug Fixes
+
+* it's dawn now ([e1df7d3](https://github.com/hackclub/midnight/commit/e1df7d31c6d1224a185ca63827d72a115eaaad13))
+
 ## [1.22.3](https://github.com/hackclub/midnight/compare/lark-ui-v1.22.2...lark-ui-v1.22.3) (2026-01-21)
 
 
